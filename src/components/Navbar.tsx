@@ -5,7 +5,7 @@ import Button from './ui/Button'
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
-  const showAuthActions = pathname !== '/login' && pathname !== '/signup'
+  const showAuthActions = pathname === '/'
 
   return (
     <header className="nav">

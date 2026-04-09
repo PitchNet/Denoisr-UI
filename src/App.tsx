@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
+import DashboardPage from './pages/DashboardPage'
 import LoginPage from './pages/LoginPage'
 import ProductPage from './pages/ProductPage'
 import SignupPage from './pages/SignupPage'
@@ -25,6 +26,7 @@ export default function App() {
         <main className="denoisrMain">
           <Routes>
             <Route path="/" element={<ProductPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/features" element={<FeaturesPage />} />
