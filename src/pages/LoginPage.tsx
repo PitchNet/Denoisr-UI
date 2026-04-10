@@ -30,7 +30,7 @@ export default function LoginPage() {
         return
       }
 
-      navigate('/dashboard')
+      navigate('/home')
     } catch {
       setError('Wrong email/password')
     } finally {

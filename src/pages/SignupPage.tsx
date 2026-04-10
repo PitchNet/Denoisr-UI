@@ -1,7 +1,22 @@
-import { Link } from 'react-router-dom'
+import { useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 
 export default function SignupPage() {
+  const navigate = useNavigate()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      return
+    }
+
+    navigate('/dashboard')
+  }
+
   return (
     <div className="authPage">
       <div className="container authCard">
@@ -16,25 +31,38 @@ export default function SignupPage() {
           </p>
         </div>
 
-        <form
-          className="authForm"
-          onSubmit={(e) => {
-            e.preventDefault()
-          }}
-        >
+        <form className="authForm" onSubmit={handleSubmit}>
           <label className="field">
             <span className="field__label">Name</span>
-            <input className="field__input" type="text" required />
+            <input
+              className="field__input"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
           </label>
 
           <label className="field">
             <span className="field__label">Email</span>
-            <input className="field__input" type="email" required />
+            <input
+              className="field__input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </label>
 
           <label className="field">
             <span className="field__label">Password</span>
-            <input className="field__input" type="password" required />
+            <input
+              className="field__input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </label>
 
           <Button variant="solidDark" type="submit">
@@ -52,4 +80,3 @@ export default function SignupPage() {
     </div>
   )
 }
-

@@ -173,7 +173,7 @@ export default function DashboardPage() {
     setSaveError('')
 
     try {
-      const response = await fetch(`${baseUrl}/LoginController/createUser`, {
+      const response = await fetch(`${baseUrl}/LoginController/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -186,7 +186,7 @@ export default function DashboardPage() {
         return
       }
 
-      navigate('/')
+      navigate('/home')
     } catch {
       setSaveError('Saving profile failed')
     } finally {

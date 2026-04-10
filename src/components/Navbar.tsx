@@ -1,11 +1,16 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import Button from './ui/Button'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
-  const showAuthActions = pathname === '/'
+  const [searchParams, setSearchParams] = useSearchParams()
+  const isHome = pathname === '/home'
+  const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
+
+  function updateMode(nextMode: 'jobs' | 'people') {
+    setSearchParams({ mode: nextMode })
+  }
 
   return (
     <header className="nav">
@@ -19,51 +24,91 @@ export default function Navbar() {
           Denoisr.
         </Link>
 
-        <div className="nav__right">
-          {showAuthActions ? (
-            <>
-              <div className="nav__links" aria-label="Primary actions">
-                <Button to="/login" variant="outlinedLight">
-                  Login
-                </Button>
-                <Button to="/signup" variant="solidDark">
-                  Signup
-                </Button>
-              </div>
-
+        {isHome ? (
+          <>
+            <div className="nav__modeSwitch" aria-label="Discovery mode switch">
+              <div
+                className={`nav__modeBubble ${mode === 'people' ? 'nav__modeBubble--people' : ''}`}
+                aria-hidden="true"
+              />
               <button
                 type="button"
-                className="nav__burger"
-                aria-label={open ? 'Close menu' : 'Open menu'}
-                aria-expanded={open}
-                onClick={() => setOpen((v) => !v)}
+                className={`nav__modeButton ${mode === 'jobs' ? 'nav__modeButton--active' : ''}`}
+                onClick={() => updateMode('jobs')}
               >
-                <span aria-hidden="true" />
-                <span aria-hidden="true" />
-                <span aria-hidden="true" />
+                Jobs
               </button>
-            </>
-          ) : null}
-        </div>
+              <button
+                type="button"
+                className={`nav__modeButton ${mode === 'people' ? 'nav__modeButton--active' : ''}`}
+                onClick={() => updateMode('people')}
+              >
+                People
+              </button>
+            </div>
+
+            <div className="nav__appLinks" aria-label="Primary navigation">
+              <button type="button" className="nav__appLink nav__appLink--active">
+                Connections
+              </button>
+              <button type="button" className="nav__appLink">
+                Messages
+              </button>
+              <button type="button" className="nav__appLink">
+                Profile
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="nav__burger"
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+            >
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+            </button>
+          </>
+        ) : null}
       </div>
 
-      {showAuthActions && open ? (
+      {isHome && open ? (
         <div className="nav__mobile" role="dialog" aria-label="Mobile menu">
           <div className="container nav__mobileInner">
-            <Button
-              to="/login"
-              variant="outlinedLight"
-              className="nav__mobileBtn"
-            >
-              Login
-            </Button>
-            <Button
-              to="/signup"
-              variant="solidDark"
-              className="nav__mobileBtn"
-            >
-              Signup
-            </Button>
+            <div className="nav__mobileModeLabel">Mode</div>
+            <div className="nav__mobileModeButtons">
+              <button
+                type="button"
+                className={`nav__mobileModeButton ${mode === 'jobs' ? 'nav__mobileModeButton--active' : ''}`}
+                onClick={() => {
+                  updateMode('jobs')
+                  setOpen(false)
+                }}
+              >
+                Jobs
+              </button>
+              <button
+                type="button"
+                className={`nav__mobileModeButton ${mode === 'people' ? 'nav__mobileModeButton--active' : ''}`}
+                onClick={() => {
+                  updateMode('people')
+                  setOpen(false)
+                }}
+              >
+                People
+              </button>
+            </div>
+            <button type="button" className="nav__mobileBtn">
+              Connections
+            </button>
+            <button type="button" className="nav__mobileBtn">
+              Messages
+            </button>
+            <button type="button" className="nav__mobileBtn">
+              Profile
+            </button>
           </div>
         </div>
       ) : null}

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 const FOOTER_LINKS: Array<{
   title: string
@@ -39,7 +39,12 @@ const FOOTER_LINKS: Array<{
 ]
 
 export default function Footer() {
+  const { pathname } = useLocation()
   const year = new Date().getFullYear()
+
+  if (pathname === '/home') {
+    return null
+  }
 
   return (
     <footer className="footer">
@@ -85,4 +90,3 @@ export default function Footer() {
     </footer>
   )
 }
-

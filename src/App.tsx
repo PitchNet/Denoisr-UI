@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import DashboardPage from './pages/DashboardPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
+import ProductPage from './pages/ProductPage'
 import SignupPage from './pages/SignupPage'
 import AboutPage from './pages/AboutPage'
 import CareersPage from './pages/CareersPage'
@@ -25,7 +26,8 @@ export default function App() {
         <Navbar />
         <main className="denoisrMain">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<ProductPage />} />
+            <Route path="/home" element={<HomePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />

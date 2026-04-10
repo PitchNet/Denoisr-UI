@@ -1,3 +1,617 @@
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
+type DiscoveryMode = 'jobs' | 'people'
+type SwipeDirection = 'accept' | 'reject'
+
+type DiscoveryCard = {
+  id: string
+  kind: DiscoveryMode
+  headline: string
+  subheadline: string
+  organization: string
+  location: string
+  experience: number
+  salary: number
+  intro: string
+  highlights: string[]
+  tags: string[]
+  sections: Array<{
+    title: string
+    items: string[]
+  }>
+}
+
+const jobCards: DiscoveryCard[] = [
+  {
+    id: 'job-atlas',
+    kind: 'jobs',
+    headline: 'Senior Frontend Engineer',
+    subheadline: 'Atlas Health',
+    organization: 'Hiring for a trust-first patient experience team',
+    location: 'Berlin, Germany',
+    experience: 5,
+    salary: 140,
+    intro:
+      'Build a clarity-first product that helps patients and clinicians act on high-signal information instead of fragmented dashboards.',
+    highlights: ['React + TypeScript', 'Design systems', 'Accessibility'],
+    tags: ['Remote-friendly', 'Series C', 'Product-led'],
+    sections: [
+      {
+        title: 'What you will solve',
+        items: [
+          'Turn noisy medical workflow data into focused decision interfaces.',
+          'Ship production-ready UI systems that work on tablet and desktop.',
+          'Partner with product and research to reduce cognitive overload.',
+        ],
+      },
+      {
+        title: 'Why it is high-signal',
+        items: [
+          'Clear ownership over a core decision-making surface.',
+          'Measured outcomes tied to speed and confidence of clinical action.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'job-orbit',
+    kind: 'jobs',
+    headline: 'Product Designer',
+    subheadline: 'Orbit Talent',
+    organization: 'Design role for a precision hiring platform',
+    location: 'London, United Kingdom',
+    experience: 4,
+    salary: 115,
+    intro:
+      'Shape multi-panel recruiting workflows that replace busy pipelines with proof-based evaluation and controlled communication.',
+    highlights: ['Workflow design', 'Research synthesis', 'Prototyping'],
+    tags: ['Hybrid', 'Growth stage', 'B2B SaaS'],
+    sections: [
+      {
+        title: 'What you will solve',
+        items: [
+          'Design systems for fast recruiter review and comparison.',
+          'Reduce interface noise while preserving context and evidence.',
+          'Prototype card-based mobile discovery flows.',
+        ],
+      },
+      {
+        title: 'Signals they care about',
+        items: [
+          'Real product outcomes, not visual polish alone.',
+          'Strong reasoning behind information hierarchy and interaction tradeoffs.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'job-polaris',
+    kind: 'jobs',
+    headline: 'Staff Data Engineer',
+    subheadline: 'Polaris Grid',
+    organization: 'Infrastructure role for a climate intelligence company',
+    location: 'Toronto, Canada',
+    experience: 7,
+    salary: 175,
+    intro:
+      'Build the data backbone that ranks opportunities and risk with relevance, precision, and operational trust.',
+    highlights: ['Data pipelines', 'Python', 'Distributed systems'],
+    tags: ['On-site option', 'Infra-heavy', 'Mission-driven'],
+    sections: [
+      {
+        title: 'What you will solve',
+        items: [
+          'Maintain explainable ranking pipelines for enterprise decision support.',
+          'Reduce latency in high-value operational recommendations.',
+          'Create clean contracts between analytics and product surfaces.',
+        ],
+      },
+      {
+        title: 'Signals they care about',
+        items: [
+          'Evidence of ownership over complex systems in production.',
+          'Bias toward simplicity, observability, and reliable delivery.',
+        ],
+      },
+    ],
+  },
+]
+
+const peopleCards: DiscoveryCard[] = [
+  {
+    id: 'person-aanya',
+    kind: 'people',
+    headline: 'Aanya Mehta',
+    subheadline: 'Frontend Engineer',
+    organization: 'Proof-led builder with marketplace and fintech experience',
+    location: 'Bengaluru, India',
+    experience: 5,
+    salary: 80,
+    intro:
+      'Built complex React platforms used by operations teams to make faster decisions with less dashboard noise.',
+    highlights: ['React', 'TypeScript', 'Design systems'],
+    tags: ['Open to roles', 'Remote', 'Available in 30 days'],
+    sections: [
+      {
+        title: 'Proof of work',
+        items: [
+          'Redesigned internal review workflows and cut task time by 38%.',
+          'Built a reusable component system used across three product teams.',
+          'Led accessibility fixes for regulated customer journeys.',
+        ],
+      },
+      {
+        title: 'Intent and fit',
+        items: [
+          'Prefers product teams with clear ownership and measurable outcomes.',
+          'Strong fit for structured hiring, workflow SaaS, and trust-heavy products.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'person-mateo',
+    kind: 'people',
+    headline: 'Mateo Ruiz',
+    subheadline: 'Product Designer',
+    organization: 'Systems thinker focused on high-context enterprise tools',
+    location: 'Madrid, Spain',
+    experience: 6,
+    salary: 92,
+    intro:
+      'Designs interfaces that remove clutter and help users evaluate choices with confidence instead of guesswork.',
+    highlights: ['UX research', 'Figma', 'Enterprise UX'],
+    tags: ['People mode', 'Hybrid', 'Open to relocate'],
+    sections: [
+      {
+        title: 'Proof of work',
+        items: [
+          'Defined information architecture for a multi-panel procurement tool.',
+          'Reduced new-user confusion in a B2B admin product by 31%.',
+          'Ran structured validation with recruiters and hiring managers.',
+        ],
+      },
+      {
+        title: 'Intent and fit',
+        items: [
+          'Looking for teams that value reasoning, not ornamental UI.',
+          'Best fit for workflow products, marketplaces, and talent systems.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'person-naomi',
+    kind: 'people',
+    headline: 'Naomi Carter',
+    subheadline: 'Recruiting Operations Lead',
+    organization: 'Operator focused on response quality and hiring precision',
+    location: 'New York, United States',
+    experience: 8,
+    salary: 110,
+    intro:
+      'Builds systems that reduce recruiter noise, tighten match quality, and improve candidate trust through structured process design.',
+    highlights: ['Hiring ops', 'Talent systems', 'Process design'],
+    tags: ['Leadership', 'On-site', 'Growth hiring'],
+    sections: [
+      {
+        title: 'Proof of work',
+        items: [
+          'Built calibrated scorecard workflows across two business units.',
+          'Improved recruiter response rate through structured triage and routing.',
+          'Cut low-quality outreach by introducing intent-based qualification.',
+        ],
+      },
+      {
+        title: 'Intent and fit',
+        items: [
+          'Prefers fast-moving teams where hiring quality is a company metric.',
+          'Strong fit for talent platforms, high-growth startups, and recruiting infrastructure.',
+        ],
+      },
+    ],
+  },
+]
+
+const roleOptions = Array.from(
+  new Set([...jobCards, ...peopleCards].map((card) => card.subheadline)),
+)
+
+const locationOptions = [
+  'Berlin, Germany',
+  'Toronto, Canada',
+  'London, United Kingdom',
+  'Bengaluru, India',
+  'Madrid, Spain',
+  'New York, United States',
+  'India',
+  'Germany',
+  'Canada',
+  'United States',
+  'United Kingdom',
+  'Spain',
+]
+
+function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
+  return (
+    <>
+      <div className="homePreview__top">
+        <div>
+          <div className="sectionLabel sectionLabel--mono">
+            {card.kind === 'jobs' ? 'ROLE PREVIEW' : 'PERSON PREVIEW'}
+          </div>
+          <h2 className="homePreview__title">{card.headline}</h2>
+          <p className="homePreview__meta">{card.subheadline}</p>
+        </div>
+        <div className="homePreview__location">{card.location}</div>
+      </div>
+
+      <p className="homePreview__intro">{card.intro}</p>
+
+      <div className="homePreview__stats">
+        <div className="homePreview__stat">
+          <span className="homePreview__statValue">{card.experience}y</span>
+          <span className="homePreview__statLabel">Experience</span>
+        </div>
+        <div className="homePreview__stat">
+          <span className="homePreview__statValue">${card.salary}k</span>
+          <span className="homePreview__statLabel">
+            {card.kind === 'jobs' ? 'Comp band' : 'Target comp'}
+          </span>
+        </div>
+      </div>
+
+      {card.sections.map((section) => (
+        <div key={section.title} className="homePreview__section">
+          <div className="homePreview__sectionTitle">{section.title}</div>
+          <div className="homePreview__list">
+            {section.items.map((item) => (
+              <p key={item}>{item}</p>
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
+  )
+}
+
 export default function HomePage() {
-  return <div />
+  const [searchParams] = useSearchParams()
+  const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
+  const [roleFilter, setRoleFilter] = useState('')
+  const [locationFilter, setLocationFilter] = useState('')
+  const [maxExperience, setMaxExperience] = useState(10)
+  const [maxSalary, setMaxSalary] = useState(200)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [dragX, setDragX] = useState(0)
+  const [dragStartX, setDragStartX] = useState<number | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
+
+  const activeCards = mode === 'jobs' ? jobCards : peopleCards
+
+  const filteredCards = useMemo(() => {
+    const normalizedRole = roleFilter.trim().toLowerCase()
+    const normalizedLocation = locationFilter.trim().toLowerCase()
+
+    return activeCards.filter((card) => {
+      const matchesRole =
+        normalizedRole === '' ||
+        card.subheadline.toLowerCase().includes(normalizedRole) ||
+        card.headline.toLowerCase().includes(normalizedRole)
+
+      const matchesLocation =
+        normalizedLocation === '' || card.location.toLowerCase().includes(normalizedLocation)
+
+      return (
+        matchesRole &&
+        matchesLocation &&
+        card.experience <= maxExperience &&
+        card.salary <= maxSalary
+      )
+    })
+  }, [activeCards, locationFilter, maxExperience, maxSalary, roleFilter])
+
+  const currentCard = filteredCards[currentIndex] ?? null
+  const stackedCards = filteredCards.slice(currentIndex, currentIndex + 3)
+
+  useEffect(() => {
+    setCurrentIndex(0)
+    setDragX(0)
+    setExitDirection(null)
+  }, [roleFilter, locationFilter, maxExperience, maxSalary, mode])
+
+  function resetDrag() {
+    setDragX(0)
+    setDragStartX(null)
+    setIsDragging(false)
+  }
+
+  function handleDecision(direction: SwipeDirection) {
+    if (!currentCard || exitDirection) {
+      return
+    }
+
+    setExitDirection(direction)
+
+    window.setTimeout(() => {
+      setCurrentIndex((index) => index + 1)
+      setExitDirection(null)
+      resetDrag()
+    }, 220)
+  }
+
+  function handlePointerDown(clientX: number) {
+    if (!currentCard || exitDirection) {
+      return
+    }
+
+    setDragStartX(clientX)
+    setIsDragging(true)
+  }
+
+  function handlePointerMove(clientX: number) {
+    if (!isDragging || dragStartX === null || exitDirection) {
+      return
+    }
+
+    setDragX(clientX - dragStartX)
+  }
+
+  function handlePointerEnd() {
+    if (!isDragging) {
+      return
+    }
+
+    const threshold = 110
+
+    if (dragX >= threshold) {
+      handleDecision('accept')
+      return
+    }
+
+    if (dragX <= -threshold) {
+      handleDecision('reject')
+      return
+    }
+
+    resetDrag()
+  }
+
+  return (
+    <div className="homePage denoisr">
+      <div className="container homeShell">
+        <section className="homeFilters card">
+          <div className="sectionLabel sectionLabel--mono">DISCOVERY FILTERS</div>
+          <h1 className="homePanelTitle">Tune for relevance.</h1>
+          <p className="homePanelSub">
+            Denoisr keeps discovery high-signal. Narrow the stream by role, location,
+            experience, and compensation.
+          </p>
+
+          <div className="homeFilterList">
+            <label className="field">
+              <span className="field__label">Role</span>
+              <input
+                className="field__input"
+                list="home-role-options"
+                placeholder="Search role"
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+              />
+              <datalist id="home-role-options">
+                {roleOptions.map((role) => (
+                  <option key={role} value={role} />
+                ))}
+              </datalist>
+            </label>
+
+            <label className="field">
+              <span className="field__label">Experience Required</span>
+              <div className="homeRangeValue">Up to {maxExperience} years</div>
+              <input
+                className="homeRange"
+                type="range"
+                min="1"
+                max="10"
+                value={maxExperience}
+                onChange={(e) => setMaxExperience(Number(e.target.value))}
+              />
+            </label>
+
+            <label className="field">
+              <span className="field__label">Location</span>
+              <input
+                className="field__input"
+                list="home-location-options"
+                placeholder="Country or city"
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+              />
+              <datalist id="home-location-options">
+                {locationOptions.map((location) => (
+                  <option key={location} value={location} />
+                ))}
+              </datalist>
+            </label>
+
+            <label className="field">
+              <span className="field__label">Salary Range</span>
+              <div className="homeRangeValue">Up to ${maxSalary}k</div>
+              <input
+                className="homeRange"
+                type="range"
+                min="40"
+                max="200"
+                step="5"
+                value={maxSalary}
+                onChange={(e) => setMaxSalary(Number(e.target.value))}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="homeDeck card">
+          <div className="homeDeck__header">
+            <div>
+              <div className="sectionLabel sectionLabel--mono">
+                {mode === 'jobs' ? 'JOB SEARCH MODE' : 'PEOPLE VIEW MODE'}
+              </div>
+              <h2 className="homePanelTitle">{mode === 'jobs' ? 'Curated roles' : 'Intent-led people'}</h2>
+            </div>
+            <div className="homeDeck__count">{filteredCards.length - currentIndex} left</div>
+          </div>
+
+          <div className="homeMobileFilterRail" aria-label="Mobile filter summaries">
+            <div className="homeMiniFilter">{roleFilter || 'Any role'}</div>
+            <div className="homeMiniFilter">Up to {maxExperience}y</div>
+            <div className="homeMiniFilter">{locationFilter || 'Any location'}</div>
+            <div className="homeMiniFilter">Up to ${maxSalary}k</div>
+          </div>
+
+          {currentCard ? (
+            <>
+              <div className="homeCardStage">
+                {stackedCards
+                  .slice(1)
+                  .reverse()
+                  .map((card, offset) => (
+                    <div
+                      key={card.id}
+                      className="homeCard homeCard--stack"
+                      style={{
+                        transform: `translateY(${(offset + 1) * 10}px) scale(${1 - (offset + 1) * 0.03})`,
+                      }}
+                    />
+                  ))}
+
+                <article
+                  className={`homeCard ${
+                    exitDirection === 'accept'
+                      ? 'homeCard--exitRight'
+                      : exitDirection === 'reject'
+                        ? 'homeCard--exitLeft'
+                        : ''
+                  } ${isDragging ? 'homeCard--dragging' : ''}`}
+                  style={{
+                    transform:
+                      exitDirection === null
+                        ? `translateX(${dragX}px) rotate(${dragX / 18}deg)`
+                        : undefined,
+                  }}
+                  onPointerDown={(e) => handlePointerDown(e.clientX)}
+                  onPointerMove={(e) => handlePointerMove(e.clientX)}
+                  onPointerUp={handlePointerEnd}
+                  onPointerCancel={handlePointerEnd}
+                  onPointerLeave={() => {
+                    if (isDragging) {
+                      handlePointerEnd()
+                    }
+                  }}
+                >
+                  <div className="homeCard__decision homeCard__decision--reject">Reject</div>
+                  <div className="homeCard__decision homeCard__decision--accept">Accept</div>
+
+                  <div className="homeCard__meta">{currentCard.subheadline}</div>
+                  <h3 className="homeCard__title">{currentCard.headline}</h3>
+                  <p className="homeCard__subtitle">{currentCard.organization}</p>
+
+                  <div className="homeCard__row">
+                    <span>{currentCard.location}</span>
+                    <span>{currentCard.experience} years</span>
+                    <span>${currentCard.salary}k</span>
+                  </div>
+
+                  <p className="homeCard__intro">{currentCard.intro}</p>
+
+                  <div className="homeTagRow">
+                    {currentCard.highlights.map((item) => (
+                      <span key={item} className="homeTag">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="homeTagRow homeTagRow--muted">
+                    {currentCard.tags.map((item) => (
+                      <span key={item} className="homeTag homeTag--muted">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </article>
+              </div>
+
+              <div className="homeActions">
+                <button
+                  type="button"
+                  className="btn btn--outlinedLight homeActionBtn"
+                  onClick={() => handleDecision('reject')}
+                >
+                  Reject
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--solidDark homeActionBtn"
+                  onClick={() => handleDecision('accept')}
+                >
+                  Accept
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="homeEmpty card">
+              <div className="sectionLabel sectionLabel--mono">NO MORE MATCHES</div>
+              <h3 className="homePanelTitle">You reached the end of the filtered stack.</h3>
+              <p className="homePanelSub">
+                Reset the filters or switch mode to continue discovering high-signal opportunities.
+              </p>
+              <button
+                type="button"
+                className="btn btn--solidDark"
+                onClick={() => {
+                  setRoleFilter('')
+                  setLocationFilter('')
+                  setMaxExperience(10)
+                  setMaxSalary(200)
+                }}
+              >
+                Reset filters
+              </button>
+            </div>
+          )}
+        </section>
+
+        <aside className="homePreview card">
+          {currentCard ? (
+            <DiscoveryPreview card={currentCard} />
+          ) : (
+            <>
+              <div className="sectionLabel sectionLabel--mono">PREVIEW</div>
+              <h2 className="homePanelTitle">No active card selected.</h2>
+              <p className="homePanelSub">
+                Adjust your filters or switch discovery mode to load a fresh stack.
+              </p>
+            </>
+          )}
+        </aside>
+      </div>
+
+      <nav className="homeBottomNav" aria-label="Mobile navigation">
+        <button type="button" className="homeBottomNav__item homeBottomNav__item--active">
+          <span>Home</span>
+        </button>
+        <button type="button" className="homeBottomNav__item">
+          <span>Connections</span>
+        </button>
+        <button type="button" className="homeBottomNav__item">
+          <span>Messages</span>
+        </button>
+        <button type="button" className="homeBottomNav__item">
+          <span>Profile</span>
+        </button>
+      </nav>
+    </div>
+  )
 }
