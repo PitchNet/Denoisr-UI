@@ -1,5 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
+
+type SkillEntry = {
+  query: string
+  selectedSkill: string
+  proficiency: string
+  menuOpen: boolean
+}
 
 const countries = [
   'Australia',
@@ -35,38 +43,155 @@ const skills = [
 ]
 
 export default function DashboardPage() {
-  const [skillQuery, setSkillQuery] = useState('')
-  const [selectedSkill, setSelectedSkill] = useState('')
-  const [skillMenuOpen, setSkillMenuOpen] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const navigate = useNavigate()
+  const [skillEntries, setSkillEntries] = useState<SkillEntry[]>([
+    {
+      query: '',
+      selectedSkill: '',
+      proficiency: '',
+      menuOpen: false,
+    },
+  ])
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
-  const matchingSkills = useMemo(() => {
-    const query = skillQuery.trim().toLowerCase()
+  const lastSkillEntry = skillEntries[skillEntries.length - 1]
+  const canAddSkillRow =
+    lastSkillEntry.selectedSkill.trim() !== '' && lastSkillEntry.proficiency.trim() !== ''
 
-    if (!query) {
-      return []
-    }
+  const matchingSkillsByIndex = useMemo(
+    () =>
+      skillEntries.map(({ query }) => {
+        const normalizedQuery = query.trim().toLowerCase()
 
-    return skills
-      .filter((skill) => skill.toLowerCase().includes(query))
-      .slice(0, 6)
-  }, [skillQuery])
+        if (!normalizedQuery) {
+          return []
+        }
 
-  function handleSkillChange(value: string) {
-    setSkillQuery(value)
-    setSkillMenuOpen(true)
+        return skills
+          .filter((skill) => skill.toLowerCase().includes(normalizedQuery))
+          .slice(0, 6)
+      }),
+    [skillEntries],
+  )
 
-    const exactMatch = skills.find(
-      (skill) => skill.toLowerCase() === value.trim().toLowerCase(),
+  function updateSkillEntry(index: number, updater: (entry: SkillEntry) => SkillEntry) {
+    setSkillEntries((currentEntries) =>
+      currentEntries.map((entry, entryIndex) =>
+        entryIndex === index ? updater(entry) : entry,
+      ),
     )
-
-    setSelectedSkill(exactMatch ?? '')
   }
 
-  function selectSkill(skill: string) {
-    setSkillQuery(skill)
-    setSelectedSkill(skill)
-    setSkillMenuOpen(false)
+  function handleSkillChange(index: number, value: string) {
+    updateSkillEntry(index, (entry) => {
+      const exactMatch = skills.find(
+        (skill) => skill.toLowerCase() === value.trim().toLowerCase(),
+      )
+
+      return {
+        ...entry,
+        query: value,
+        selectedSkill: exactMatch ?? '',
+        menuOpen: true,
+      }
+    })
+  }
+
+  function handleSkillFocus(index: number) {
+    updateSkillEntry(index, (entry) => ({
+      ...entry,
+      menuOpen: true,
+    }))
+  }
+
+  function handleSkillBlur(index: number) {
+    window.setTimeout(() => {
+      updateSkillEntry(index, (entry) => ({
+        ...entry,
+        menuOpen: false,
+      }))
+    }, 120)
+  }
+
+  function handleProficiencyChange(index: number, value: string) {
+    updateSkillEntry(index, (entry) => ({
+      ...entry,
+      proficiency: value,
+    }))
+  }
+
+  function selectSkill(index: number, skill: string) {
+    updateSkillEntry(index, (entry) => ({
+      ...entry,
+      query: skill,
+      selectedSkill: skill,
+      menuOpen: false,
+    }))
+  }
+
+  function addSkillRow() {
+    if (!canAddSkillRow) {
+      return
+    }
+
+    setSkillEntries((currentEntries) => [
+      ...currentEntries,
+      {
+        query: '',
+        selectedSkill: '',
+        proficiency: '',
+        menuOpen: false,
+      },
+    ])
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+
+    const payload = {
+      name: String(formData.get('name') ?? '').trim(),
+      phoneNumber: String(formData.get('phone') ?? '').trim(),
+      country: String(formData.get('country') ?? '').trim(),
+      currentRole: String(formData.get('role') ?? '').trim(),
+      yearsOfExperience: Number(formData.get('experience') ?? 0),
+      availableFrom: String(formData.get('availableFrom') ?? '').trim(),
+      skills: skillEntries.map((entry) => ({
+        name: entry.selectedSkill,
+        proficiency: Number(entry.proficiency),
+      })),
+      portfolioUrl: String(formData.get('portfolioUrl') ?? '').trim(),
+      workPreference: String(formData.get('workPreference') ?? '').trim(),
+      proofOfWork: String(formData.get('proofOfWork') ?? '').trim(),
+    }
+
+    setIsSaving(true)
+    setSaveError('')
+
+    try {
+      const response = await fetch(`${baseUrl}/LoginController/createUser`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        setSaveError('Saving profile failed')
+        return
+      }
+
+      navigate('/')
+    } catch {
+      setSaveError('Saving profile failed')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -119,10 +244,7 @@ export default function DashboardPage() {
 
             <form
               className="dashboardForm"
-              onSubmit={(e) => {
-                e.preventDefault()
-                setSubmitted(true)
-              }}
+              onSubmit={handleSubmit}
             >
               <div className="dashboardGrid">
                 <label className="field">
@@ -200,65 +322,97 @@ export default function DashboardPage() {
                 </label>
               </div>
 
-              <div className="dashboardSplitField">
-                <div className="dashboardSkillField">
-                  <label className="field dashboardSkillSearch">
-                    <span className="field__label">Primary Skill (*)</span>
-                    <input
-                      className="field__input"
-                      type="search"
-                      name="skillSearch"
-                      value={skillQuery}
-                      onChange={(e) => handleSkillChange(e.target.value)}
-                      onFocus={() => setSkillMenuOpen(true)}
-                      onBlur={() => {
-                        window.setTimeout(() => setSkillMenuOpen(false), 120)
-                      }}
-                      placeholder="Search a skill"
-                      autoComplete="off"
-                      aria-expanded={skillMenuOpen && matchingSkills.length > 0}
-                      aria-controls="skill-suggestions"
-                    />
-                    <input
-                      className="dashboardHiddenInput"
-                      type="text"
-                      name="primarySkill"
-                      value={selectedSkill}
-                      readOnly
-                      required
-                      tabIndex={-1}
-                      aria-hidden="true"
-                    />
-                    {skillMenuOpen && matchingSkills.length > 0 ? (
-                      <div className="dashboardSkillDropdown" id="skill-suggestions">
-                        {matchingSkills.map((skill) => (
-                          <button
-                            key={skill}
-                            type="button"
-                            className="dashboardSkillOption"
-                            onClick={() => selectSkill(skill)}
-                          >
-                            {skill}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </label>
+              <div className="dashboardSkillsBlock">
+                <div className="dashboardSkillsHeader">
+                  <div>
+                    <div className="field__label">Skills (*)</div>
+                    <p className="dashboardSkillsHint">
+                      Add one or more skills. Each new row unlocks only after the last row is fully filled.
+                    </p>
+                  </div>
                 </div>
 
-                <label className="field">
-                  <span className="field__label">Proficiency (1-5) (*)</span>
-                  <input
-                    className="field__input"
-                    type="number"
-                    name="skillProficiency"
-                    required
-                    min={1}
-                    max={5}
-                    step={1}
-                    placeholder="4"
-                  />
-                </label>
+                {skillEntries.map((entry, index) => {
+                  const matchingSkills = matchingSkillsByIndex[index]
+                  const rowId = `skill-suggestions-${index}`
+                  const isLastRow = index === skillEntries.length - 1
+
+                  return (
+                    <div className="dashboardSkillRow" key={`skill-row-${index}`}>
+                      <div className="dashboardSkillField">
+                        <label className="field dashboardSkillSearch">
+                          <span className="field__label">Skill {index + 1} (*)</span>
+                          <input
+                            className="field__input"
+                            type="search"
+                            name={`skillSearch-${index}`}
+                            value={entry.query}
+                            onChange={(e) => handleSkillChange(index, e.target.value)}
+                            onFocus={() => handleSkillFocus(index)}
+                            onBlur={() => handleSkillBlur(index)}
+                            placeholder="Search a skill"
+                            autoComplete="off"
+                            aria-expanded={entry.menuOpen && matchingSkills.length > 0}
+                            aria-controls={rowId}
+                          />
+                          <input
+                            className="dashboardHiddenInput"
+                            type="text"
+                            name={`skills[${index}].name`}
+                            value={entry.selectedSkill}
+                            readOnly
+                            required
+                            tabIndex={-1}
+                            aria-hidden="true"
+                          />
+                          {entry.menuOpen && matchingSkills.length > 0 ? (
+                            <div className="dashboardSkillDropdown" id={rowId}>
+                              {matchingSkills.map((skill) => (
+                                <button
+                                  key={`${skill}-${index}`}
+                                  type="button"
+                                  className="dashboardSkillOption"
+                                  onClick={() => selectSkill(index, skill)}
+                                >
+                                  {skill}
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
+                        </label>
+                      </div>
+
+                      <label className="field">
+                        <span className="field__label">Proficiency (1-5) (*)</span>
+                        <input
+                          className="field__input"
+                          type="number"
+                          name={`skills[${index}].proficiency`}
+                          value={entry.proficiency}
+                          onChange={(e) => handleProficiencyChange(index, e.target.value)}
+                          required
+                          min={1}
+                          max={5}
+                          step={1}
+                          placeholder="4"
+                        />
+                      </label>
+
+                      <div className="dashboardSkillAction">
+                        {isLastRow ? (
+                          <button
+                            type="button"
+                            className="btn btn--outlinedLight dashboardAddSkillBtn"
+                            onClick={addSkillRow}
+                            disabled={!canAddSkillRow}
+                          >
+                            Add skill
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
 
               <div className="dashboardGrid">
@@ -305,16 +459,16 @@ export default function DashboardPage() {
 
               <div className="dashboardActions">
                 <button type="submit" className="btn btn--solidDark">
-                  Save profile signal
+                  {isSaving ? 'Saving profile...' : 'Save profile signal'}
                 </button>
                 <Button to="/" variant="outlinedLight">
                   Back to home
                 </Button>
               </div>
 
-              {submitted ? (
-                <div className="dashboardConfirmation" role="status">
-                  Profile details captured. This page is ready to be connected to a save API next.
+              {saveError ? (
+                <div className="dashboardError" role="alert">
+                  {saveError}
                 </div>
               ) : null}
             </form>

@@ -700,7 +700,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
   gap: 20px;
-  align-items: end;
+  align-items: center;
 }
 
 .dashboardTitle {
@@ -795,9 +795,52 @@
   align-items: start;
 }
 
+.dashboardSkillsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboardSkillsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dashboardSkillsHint {
+  margin: 8px 0 0;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.dashboardSkillRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(140px, 0.5fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+
 .dashboardSkillField,
 .dashboardSkillSearch {
   position: relative;
+}
+
+.dashboardSkillAction {
+  display: flex;
+  align-items: flex-end;
+  padding-top: 28px;
+}
+
+.dashboardAddSkillBtn {
+  min-width: 120px;
+}
+
+.dashboardAddSkillBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
 }
 
 .dashboardSkillDropdown {
@@ -888,6 +931,16 @@
   font-size: 14px;
 }
 
+.dashboardError {
+  border: 1px solid rgba(180, 35, 24, 0.2);
+  border-radius: var(--d-radius-md);
+  padding: 16px;
+  background: rgba(180, 35, 24, 0.06);
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .dashboardRail {
   padding: 32px;
   border-radius: var(--d-radius-md);
@@ -926,6 +979,7 @@
   .dashboardStats,
   .dashboardGrid,
   .dashboardSplitField,
+  .dashboardSkillRow,
   .dashboardChoiceGrid {
     grid-template-columns: 1fr;
   }
