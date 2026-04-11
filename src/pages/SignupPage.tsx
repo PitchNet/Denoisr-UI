@@ -2,17 +2,26 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 
+const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
+
 export default function SignupPage() {
   const navigate = useNavigate()
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       return
     }
+
+    sessionStorage.setItem(
+      SIGNUP_CREDENTIALS_KEY,
+      JSON.stringify({
+        email: email.trim(),
+        password,
+      }),
+    )
 
     navigate('/dashboard')
   }

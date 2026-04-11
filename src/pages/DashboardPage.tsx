@@ -2,6 +2,8 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 
+const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
+
 type SkillEntry = {
   query: string
   selectedSkill: string
@@ -152,8 +154,14 @@ export default function DashboardPage() {
     const form = e.currentTarget
     const formData = new FormData(form)
     const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+    const storedCredentials = sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY)
+    const parsedCredentials = storedCredentials
+      ? (JSON.parse(storedCredentials) as { email?: string; password?: string })
+      : {}
 
     const payload = {
+      email: parsedCredentials.email?.trim() ?? '',
+      password: parsedCredentials.password ?? '',
       name: String(formData.get('name') ?? '').trim(),
       phoneNumber: String(formData.get('phone') ?? '').trim(),
       country: String(formData.get('country') ?? '').trim(),
@@ -185,6 +193,8 @@ export default function DashboardPage() {
         setSaveError('Saving profile failed')
         return
       }
+
+      sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY)
 
       navigate('/home')
     } catch {
