@@ -32,7 +32,7 @@ export default function SignupPage() {
         </div>
 
         <form className="authForm" onSubmit={handleSubmit}>
-          <label className="field">
+          {/* <label className="field">
             <span className="field__label">Name</span>
             <input
               className="field__input"
@@ -41,7 +41,7 @@ export default function SignupPage() {
               onChange={(e) => setName(e.target.value)}
               required
             />
-          </label>
+          </label> */}
 
           <label className="field">
             <span className="field__label">Email</span>
