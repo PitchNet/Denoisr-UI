@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { hasAuthToken } from '../auth'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
+  const isLoggedIn = hasAuthToken()
   const isHome = pathname === '/home'
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
 
@@ -16,7 +18,7 @@ export default function Navbar() {
     <header className="nav">
       <div className="container nav__inner">
         <Link
-          to="/"
+          to={isLoggedIn ? '/home' : '/'}
           className="nav__brand"
           aria-label="Denoisr home"
           onClick={() => setOpen(false)}

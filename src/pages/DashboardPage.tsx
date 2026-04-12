@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { storeAuthTokenFromResponse } from '../auth'
 import Button from '../components/ui/Button'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
@@ -193,6 +194,8 @@ export default function DashboardPage() {
         setSaveError('Saving profile failed')
         return
       }
+
+      await storeAuthTokenFromResponse(response)
 
       sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY)
 

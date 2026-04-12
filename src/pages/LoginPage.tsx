@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { storeAuthTokenFromResponse } from '../auth'
 import Button from '../components/ui/Button'
 
 export default function LoginPage() {
@@ -29,6 +30,8 @@ export default function LoginPage() {
         setError('Wrong email/password')
         return
       }
+
+      await storeAuthTokenFromResponse(response)
 
       navigate('/home')
     } catch {

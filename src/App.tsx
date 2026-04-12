@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { ProtectedRoute, PublicOnlyRoute } from './components/AuthGuard'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 import DashboardPage from './pages/DashboardPage'
@@ -26,11 +27,15 @@ export default function App() {
         <Navbar />
         <main className="denoisrMain">
           <Routes>
-            <Route path="/" element={<ProductPage />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
+            <Route element={<PublicOnlyRoute />}>
+              <Route path="/" element={<ProductPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+            </Route>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+            </Route>
             <Route path="/features" element={<FeaturesPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/for-recruiters" element={<ForRecruitersPage />} />
