@@ -4,7 +4,7 @@ import Button from '../components/ui/Button'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [username, setEmail] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -22,7 +22,7 @@ export default function LoginPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       })
 
       if (!response.ok) {
@@ -58,7 +58,7 @@ export default function LoginPage() {
             <input
               className="field__input"
               type="email"
-              value={username}
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
