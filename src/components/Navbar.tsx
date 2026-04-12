@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import { hasAuthToken } from '../auth'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { clearAuthToken, hasAuthToken } from '../auth'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const isLoggedIn = hasAuthToken()
   const isHome = pathname === '/home'
@@ -12,6 +13,12 @@ export default function Navbar() {
 
   function updateMode(nextMode: 'jobs' | 'people') {
     setSearchParams({ mode: nextMode })
+  }
+
+  function handleLogout() {
+    clearAuthToken()
+    setOpen(false)
+    navigate('/login')
   }
 
   return (
@@ -58,6 +65,9 @@ export default function Navbar() {
               </button>
               <button type="button" className="nav__appLink">
                 Profile
+              </button>
+              <button type="button" className="nav__appLink" onClick={handleLogout}>
+                Logout
               </button>
             </div>
 
@@ -110,6 +120,9 @@ export default function Navbar() {
             </button>
             <button type="button" className="nav__mobileBtn">
               Profile
+            </button>
+            <button type="button" className="nav__mobileBtn" onClick={handleLogout}>
+              Logout
             </button>
           </div>
         </div>

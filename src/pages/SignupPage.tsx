@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
+import { setAuthToken } from '../auth'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 
@@ -14,6 +15,9 @@ export default function SignupPage() {
     if (!email.trim() || !password.trim()) {
       return
     }
+
+    // Optimistically mark as logged in to satisfy guard for /dashboard
+    setAuthToken('signup-token')
 
     sessionStorage.setItem(
       SIGNUP_CREDENTIALS_KEY,

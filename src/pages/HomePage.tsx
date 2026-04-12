@@ -279,8 +279,14 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 export default function HomePage() {
   const [searchParams] = useSearchParams()
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
+  const [draftRoleFilter, setDraftRoleFilter] = useState('')
+  const [draftCountryFilter, setDraftCountryFilter] = useState('')
+  const [draftCityFilter, setDraftCityFilter] = useState('')
+  const [draftMaxExperience, setDraftMaxExperience] = useState(10)
+  const [draftMaxSalary, setDraftMaxSalary] = useState(200)
   const [roleFilter, setRoleFilter] = useState('')
-  const [locationFilter, setLocationFilter] = useState('')
+  const [countryFilter, setCountryFilter] = useState('')
+  const [cityFilter, setCityFilter] = useState('')
   const [maxExperience, setMaxExperience] = useState(10)
   const [maxSalary, setMaxSalary] = useState(200)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -293,7 +299,8 @@ export default function HomePage() {
 
   const filteredCards = useMemo(() => {
     const normalizedRole = roleFilter.trim().toLowerCase()
-    const normalizedLocation = locationFilter.trim().toLowerCase()
+    const normalizedCountry = countryFilter.trim().toLowerCase()
+    const normalizedCity = cityFilter.trim().toLowerCase()
 
     return activeCards.filter((card) => {
       const matchesRole =
@@ -301,17 +308,25 @@ export default function HomePage() {
         card.subheadline.toLowerCase().includes(normalizedRole) ||
         card.headline.toLowerCase().includes(normalizedRole)
 
-      const matchesLocation =
-        normalizedLocation === '' || card.location.toLowerCase().includes(normalizedLocation)
+      const [cardCity = '', cardCountry = ''] = card.location
+        .toLowerCase()
+        .split(',')
+        .map((part) => part.trim())
+
+      const matchesCountry =
+        normalizedCountry === '' || cardCountry.includes(normalizedCountry)
+
+      const matchesCity = normalizedCity === '' || cardCity.includes(normalizedCity)
 
       return (
         matchesRole &&
-        matchesLocation &&
+        matchesCountry &&
+        matchesCity &&
         card.experience <= maxExperience &&
         card.salary <= maxSalary
       )
     })
-  }, [activeCards, locationFilter, maxExperience, maxSalary, roleFilter])
+  }, [activeCards, cityFilter, countryFilter, maxExperience, maxSalary, roleFilter])
 
   const currentCard = filteredCards[currentIndex] ?? null
   const stackedCards = filteredCards.slice(currentIndex, currentIndex + 3)
@@ -320,7 +335,15 @@ export default function HomePage() {
     setCurrentIndex(0)
     setDragX(0)
     setExitDirection(null)
-  }, [roleFilter, locationFilter, maxExperience, maxSalary, mode])
+  }, [cityFilter, countryFilter, maxExperience, maxSalary, mode, roleFilter])
+
+  function applyFilters() {
+    setRoleFilter(draftRoleFilter)
+    setCountryFilter(draftCountryFilter)
+    setCityFilter(draftCityFilter)
+    setMaxExperience(draftMaxExperience)
+    setMaxSalary(draftMaxSalary)
+  }
 
   function resetDrag() {
     setDragX(0)
@@ -397,8 +420,8 @@ export default function HomePage() {
                 className="field__input"
                 list="home-role-options"
                 placeholder="Search role"
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
+                value={draftRoleFilter}
+                onChange={(e) => setDraftRoleFilter(e.target.value)}
               />
               <datalist id="home-role-options">
                 {roleOptions.map((role) => (
@@ -409,25 +432,25 @@ export default function HomePage() {
 
             <label className="field">
               <span className="field__label">Experience Required</span>
-              <div className="homeRangeValue">Up to {maxExperience} years</div>
+              <div className="homeRangeValue">Up to {draftMaxExperience} years</div>
               <input
                 className="homeRange"
                 type="range"
                 min="1"
                 max="10"
-                value={maxExperience}
-                onChange={(e) => setMaxExperience(Number(e.target.value))}
+                value={draftMaxExperience}
+                onChange={(e) => setDraftMaxExperience(Number(e.target.value))}
               />
             </label>
 
             <label className="field">
-              <span className="field__label">Location</span>
+              <span className="field__label">Country</span>
               <input
                 className="field__input"
                 list="home-location-options"
-                placeholder="Country or city"
-                value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
+                placeholder="Country"
+                value={draftCountryFilter}
+                onChange={(e) => setDraftCountryFilter(e.target.value)}
               />
               <datalist id="home-location-options">
                 {locationOptions.map((location) => (
@@ -437,18 +460,41 @@ export default function HomePage() {
             </label>
 
             <label className="field">
+              <span className="field__label">City</span>
+              <input
+                className="field__input"
+                list="home-city-options"
+                placeholder="City"
+                value={draftCityFilter}
+                onChange={(e) => setDraftCityFilter(e.target.value)}
+              />
+              <datalist id="home-city-options">
+                {locationOptions
+                  .filter((location) => location.includes(','))
+                  .map((location) => location.split(',')[0].trim())
+                  .map((city) => (
+                    <option key={city} value={city} />
+                  ))}
+              </datalist>
+            </label>
+
+            <label className="field">
               <span className="field__label">Salary Range</span>
-              <div className="homeRangeValue">Up to ${maxSalary}k</div>
+              <div className="homeRangeValue">Up to ${draftMaxSalary}k</div>
               <input
                 className="homeRange"
                 type="range"
                 min="40"
                 max="200"
                 step="5"
-                value={maxSalary}
-                onChange={(e) => setMaxSalary(Number(e.target.value))}
+                value={draftMaxSalary}
+                onChange={(e) => setDraftMaxSalary(Number(e.target.value))}
               />
             </label>
+
+            <button type="button" className="btn btn--solidDark" onClick={applyFilters}>
+              Apply filter
+            </button>
           </div>
         </section>
 
@@ -466,7 +512,8 @@ export default function HomePage() {
           <div className="homeMobileFilterRail" aria-label="Mobile filter summaries">
             <div className="homeMiniFilter">{roleFilter || 'Any role'}</div>
             <div className="homeMiniFilter">Up to {maxExperience}y</div>
-            <div className="homeMiniFilter">{locationFilter || 'Any location'}</div>
+            <div className="homeMiniFilter">{countryFilter || 'Any country'}</div>
+            <div className="homeMiniFilter">{cityFilter || 'Any city'}</div>
             <div className="homeMiniFilter">Up to ${maxSalary}k</div>
           </div>
 
@@ -493,7 +540,7 @@ export default function HomePage() {
                       : exitDirection === 'reject'
                         ? 'homeCard--exitLeft'
                         : ''
-                  } ${isDragging ? 'homeCard--dragging' : ''}`}
+                  } ${isDragging ? 'homeCard--dragging' : ''} homeCard--active`}
                   style={{
                     transform:
                       exitDirection === null
@@ -571,8 +618,14 @@ export default function HomePage() {
                 type="button"
                 className="btn btn--solidDark"
                 onClick={() => {
+                  setDraftRoleFilter('')
+                  setDraftCountryFilter('')
+                  setDraftCityFilter('')
+                  setDraftMaxExperience(10)
+                  setDraftMaxSalary(200)
                   setRoleFilter('')
-                  setLocationFilter('')
+                  setCountryFilter('')
+                  setCityFilter('')
                   setMaxExperience(10)
                   setMaxSalary(200)
                 }}

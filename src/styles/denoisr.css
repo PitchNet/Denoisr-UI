@@ -1043,6 +1043,7 @@
 /* Home discovery */
 .homePage {
   min-height: calc(100svh - 72px);
+  overflow-x: clip;
   background:
     radial-gradient(circle at top left, rgba(239, 44, 193, 0.12), transparent 28%),
     radial-gradient(circle at top right, rgba(189, 187, 255, 0.16), transparent 26%),
@@ -1051,11 +1052,16 @@
 
 .homeShell {
   display: grid;
-  grid-template-columns: minmax(250px, 0.88fr) minmax(340px, 1.08fr) minmax(300px, 1fr);
+  max-width: 1480px;
+  grid-template-columns: minmax(280px, 0.92fr) minmax(460px, 1.24fr) minmax(320px, 1fr);
   gap: 16px;
   padding-top: 24px;
   padding-bottom: 24px;
   align-items: start;
+}
+
+.homeShell > * {
+  min-width: 0;
 }
 
 .homeFilters,
@@ -1107,7 +1113,7 @@
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .homeDeck__count {
@@ -1120,13 +1126,12 @@
 
 .homeCardStage {
   position: relative;
-  min-height: 560px;
-  padding-top: 12px;
+  padding-top: 4px;
+  padding-bottom: 20px;
 }
 
 .homeCard {
-  position: absolute;
-  inset: 0;
+  position: relative;
   border: 1px solid var(--d-border-light);
   border-radius: var(--d-radius-md);
   background:
@@ -1139,8 +1144,14 @@
 }
 
 .homeCard--stack {
+  position: absolute;
+  inset: 0;
   opacity: 0.55;
   pointer-events: none;
+}
+
+.homeCard--active {
+  z-index: 1;
 }
 
 .homeCard--dragging {
@@ -1233,6 +1244,12 @@
   margin-top: 22px;
 }
 
+.homeTagRow--muted {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
 .homeTag {
   border: 1px solid var(--d-border-light);
   border-radius: var(--d-radius-sm);
@@ -1242,6 +1259,11 @@
 }
 
 .homeTag--muted {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
   background: rgba(0, 0, 0, 0.04);
   color: rgba(0, 0, 0, 0.66);
 }
@@ -1250,7 +1272,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 .homeActionBtn {
@@ -1359,7 +1381,7 @@
 
 @media (max-width: 1180px) {
   .homeShell {
-    grid-template-columns: minmax(220px, 0.8fr) minmax(320px, 1fr) minmax(260px, 0.9fr);
+    grid-template-columns: minmax(220px, 0.82fr) minmax(380px, 1.12fr) minmax(260px, 0.92fr);
   }
 
   .homeCard__title {
