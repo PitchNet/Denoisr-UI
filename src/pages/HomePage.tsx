@@ -251,7 +251,7 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 
       <div className="homePreview__stats">
         <div className="homePreview__stat">
-          <span className="homePreview__statValue">{card.experience}y</span>
+          <span className="homePreview__statValue">{card.experience} years</span>
           <span className="homePreview__statLabel">Experience</span>
         </div>
         <div className="homePreview__stat">
