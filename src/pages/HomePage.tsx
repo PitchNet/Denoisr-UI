@@ -22,101 +22,6 @@ type DiscoveryCard = {
   }>
 }
 
-const jobCards: DiscoveryCard[] = [
-  {
-    id: 'job-atlas',
-    kind: 'jobs',
-    headline: 'Senior Frontend Engineer',
-    subheadline: 'Atlas Health',
-    organization: 'Hiring for a trust-first patient experience team',
-    location: 'Berlin, Germany',
-    experience: 5,
-    salary: 140,
-    intro:
-      'Build a clarity-first product that helps patients and clinicians act on high-signal information instead of fragmented dashboards.',
-    highlights: ['React + TypeScript', 'Design systems', 'Accessibility'],
-    tags: ['Remote-friendly', 'Series C', 'Product-led'],
-    sections: [
-      {
-        title: 'What you will solve',
-        items: [
-          'Turn noisy medical workflow data into focused decision interfaces.',
-          'Ship production-ready UI systems that work on tablet and desktop.',
-          'Partner with product and research to reduce cognitive overload.',
-        ],
-      },
-      {
-        title: 'Why it is high-signal',
-        items: [
-          'Clear ownership over a core decision-making surface.',
-          'Measured outcomes tied to speed and confidence of clinical action.',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'job-orbit',
-    kind: 'jobs',
-    headline: 'Product Designer',
-    subheadline: 'Orbit Talent',
-    organization: 'Design role for a precision hiring platform',
-    location: 'London, United Kingdom',
-    experience: 4,
-    salary: 115,
-    intro:
-      'Shape multi-panel recruiting workflows that replace busy pipelines with proof-based evaluation and controlled communication.',
-    highlights: ['Workflow design', 'Research synthesis', 'Prototyping'],
-    tags: ['Hybrid', 'Growth stage', 'B2B SaaS'],
-    sections: [
-      {
-        title: 'What you will solve',
-        items: [
-          'Design systems for fast recruiter review and comparison.',
-          'Reduce interface noise while preserving context and evidence.',
-          'Prototype card-based mobile discovery flows.',
-        ],
-      },
-      {
-        title: 'Signals they care about',
-        items: [
-          'Real product outcomes, not visual polish alone.',
-          'Strong reasoning behind information hierarchy and interaction tradeoffs.',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'job-polaris',
-    kind: 'jobs',
-    headline: 'Staff Data Engineer',
-    subheadline: 'Polaris Grid',
-    organization: 'Infrastructure role for a climate intelligence company',
-    location: 'Toronto, Canada',
-    experience: 7,
-    salary: 175,
-    intro:
-      'Build the data backbone that ranks opportunities and risk with relevance, precision, and operational trust.',
-    highlights: ['Data pipelines', 'Python', 'Distributed systems'],
-    tags: ['On-site option', 'Infra-heavy', 'Mission-driven'],
-    sections: [
-      {
-        title: 'What you will solve',
-        items: [
-          'Maintain explainable ranking pipelines for enterprise decision support.',
-          'Reduce latency in high-value operational recommendations.',
-          'Create clean contracts between analytics and product surfaces.',
-        ],
-      },
-      {
-        title: 'Signals they care about',
-        items: [
-          'Evidence of ownership over complex systems in production.',
-          'Bias toward simplicity, observability, and reliable delivery.',
-        ],
-      },
-    ],
-  },
-]
 
 const peopleCards: DiscoveryCard[] = [
   {
@@ -214,9 +119,6 @@ const peopleCards: DiscoveryCard[] = [
   },
 ]
 
-const roleOptions = Array.from(
-  new Set([...jobCards, ...peopleCards].map((card) => card.subheadline)),
-)
 
 const locationOptions = [
   'Berlin, Germany',
@@ -277,6 +179,15 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 }
 
 export default function HomePage() {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+  let [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
+  let [loading, setLoading] = useState(true)
+  let [error, setError] = useState<string | null>(null)
+  let roleOptions = useMemo(() => {
+    return Array.from(
+      new Set([...jobCards, ...peopleCards].map((card) => card.subheadline)),
+    )
+  }, [jobCards])
   const [searchParams] = useSearchParams()
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
   const [draftRoleFilter, setDraftRoleFilter] = useState('')
@@ -330,6 +241,44 @@ export default function HomePage() {
 
   const currentCard = filteredCards[currentIndex] ?? null
   const stackedCards = filteredCards.slice(currentIndex, currentIndex + 3)
+
+  useEffect(() => {
+    async function fetchJobs() {
+      try {
+        setLoading(true)
+  
+        const res = await fetch(`${baseUrl}/FeedController/fetchJobs`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            role: roleFilter || "",
+            experience: maxExperience || null,
+            country: countryFilter || "",
+            city: cityFilter || "",
+            salary: maxSalary || null,
+            userid: "", // replace with actual user id later
+          }),
+        })
+        const data = await res.json()
+  
+        const formatted: DiscoveryCard[] = data.map((job: any) => ({
+          ...job,
+          kind: 'jobs',
+        }))
+  
+        setJobCards(formatted)
+      } catch (err) {
+        console.error(err)
+        setError('Failed to load jobs')
+      } finally {
+        setLoading(false)
+      }
+    }
+  
+    fetchJobs()
+  }, [roleFilter, countryFilter, cityFilter, maxExperience, maxSalary])
 
   useEffect(() => {
     setCurrentIndex(0)
@@ -401,7 +350,14 @@ export default function HomePage() {
 
     resetDrag()
   }
+  // ⬇️ ADD HERE (just before return)
+  if (loading) {
+    return <div className="homePage">Loading jobs...</div>
+  }
 
+  if (error) {
+    return <div className="homePage">{error}</div>
+  }
   return (
     <div className="homePage denoisr">
       <div className="container homeShell">
