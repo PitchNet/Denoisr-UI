@@ -509,8 +509,8 @@ export default function HomePage() {
                     }
                   }}
                 >
-                  <div className="homeCard__decision homeCard__decision--reject">Reject</div>
-                  <div className="homeCard__decision homeCard__decision--accept">Accept</div>
+                  <div className="homeCard__decision homeCard__decision--reject">Skip</div>
+                  <div className="homeCard__decision homeCard__decision--accept">Apply</div>
 
                   <div className="homeCard__meta">{currentCard.subheadline}</div>
                   <h3 className="homeCard__title">{currentCard.headline}</h3>
@@ -548,14 +548,14 @@ export default function HomePage() {
                   className="btn btn--outlinedLight homeActionBtn"
                   onClick={() => handleDecision('reject')}
                 >
-                  Reject
+                  Skip
                 </button>
                 <button
                   type="button"
                   className="btn btn--solidDark homeActionBtn"
                   onClick={() => handleDecision('accept')}
                 >
-                  Accept
+                  Apply
                 </button>
               </div>
             </>
