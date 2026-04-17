@@ -1,3 +1,5 @@
+import { getAuthTokenFromCookies } from './api'
+
 const AUTH_COOKIE_NAME = 'denoisr_auth_token'
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 30
 
@@ -11,14 +13,7 @@ export function setAuthToken(token: string) {
 }
 
 export function getAuthToken() {
-  const cookies = document.cookie.split('; ')
-  const authCookie = cookies.find((cookie) => cookie.startsWith(`${AUTH_COOKIE_NAME}=`))
-
-  if (!authCookie) {
-    return ''
-  }
-
-  return decodeURIComponent(authCookie.split('=').slice(1).join('='))
+  return getAuthTokenFromCookies()
 }
 
 export function hasAuthToken() {

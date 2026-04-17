@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { apiRequest } from '../api'
 
 type DiscoveryMode = 'jobs' | 'people'
 type SwipeDirection = 'accept' | 'reject'
@@ -179,7 +180,6 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 }
 
 export default function HomePage() {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
   let [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
   let [loading, setLoading] = useState(true)
   let [error, setError] = useState<string | null>(null)
@@ -247,19 +247,15 @@ export default function HomePage() {
       try {
         setLoading(true)
   
-        const res = await fetch(`${baseUrl}/FeedController/fetchJobs`, {
+        const res = await apiRequest('/FeedController/fetchJobs', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+          body: {
             role: roleFilter || "",
             experience: maxExperience || null,
             country: countryFilter || "",
             city: cityFilter || "",
-            salary: maxSalary || null,
-            userid: "", // replace with actual user id later
-          }),
+            salary: maxSalary || null
+          },
         })
         const data = await res.json()
   

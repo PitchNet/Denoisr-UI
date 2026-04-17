@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { apiRequest } from '../api'
 import { storeAuthTokenFromResponse } from '../auth'
 import Button from '../components/ui/Button'
 
@@ -15,15 +16,10 @@ export default function LoginPage() {
     setIsSubmitting(true)
     setError('')
 
-    const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
-
     try {
-      const response = await fetch(`${baseUrl}/LoginController/login`, {
+      const response = await apiRequest('/LoginController/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+        body: { email, password },
       })
 
       if (!response.ok) {

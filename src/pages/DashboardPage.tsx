@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiRequest } from '../api'
 import { storeAuthTokenFromResponse } from '../auth'
 import Button from '../components/ui/Button'
 
@@ -154,7 +155,6 @@ export default function DashboardPage() {
 
     const form = e.currentTarget
     const formData = new FormData(form)
-    const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
     const storedCredentials = sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY)
     const parsedCredentials = storedCredentials
       ? (JSON.parse(storedCredentials) as { email?: string; password?: string })
@@ -182,12 +182,9 @@ export default function DashboardPage() {
     setSaveError('')
 
     try {
-      const response = await fetch(`${baseUrl}/LoginController/signup`, {
+      const response = await apiRequest('/LoginController/signup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        body: payload,
       })
 
       if (!response.ok) {
