@@ -2,6 +2,8 @@ import { getAuthTokenFromCookies } from './api'
 
 const AUTH_COOKIE_NAME = 'denoisr_auth_token'
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 30
+const SIGNUP_PLACEHOLDER_TOKEN = 'signup-token'
+const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 
 type AuthResponse = {
   access_token?: string
@@ -18,6 +20,15 @@ export function getAuthToken() {
 
 export function hasAuthToken() {
   return getAuthToken() !== ''
+}
+
+export function isAuthenticated() {
+  const token = getAuthToken()
+  return token !== '' && token !== SIGNUP_PLACEHOLDER_TOKEN
+}
+
+export function hasSignupInProgress() {
+  return sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY) !== null
 }
 
 export function clearAuthToken() {

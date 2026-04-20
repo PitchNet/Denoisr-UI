@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { clearAuthToken, hasAuthToken } from '../auth'
+import { clearAuthToken, isAuthenticated } from '../auth'
 
 export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const isLoggedIn = hasAuthToken()
+  const isLoggedIn = isAuthenticated()
   const isHome = pathname === '/home'
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
 

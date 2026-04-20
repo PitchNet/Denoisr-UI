@@ -1,10 +1,14 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { hasAuthToken } from '../auth'
+import { hasSignupInProgress, isAuthenticated } from '../auth'
 
 export function ProtectedRoute() {
   const location = useLocation()
 
-  if (!hasAuthToken()) {
+  if (location.pathname === '/dashboard' && hasSignupInProgress()) {
+    return <Outlet />
+  }
+
+  if (!isAuthenticated()) {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 
@@ -12,7 +16,7 @@ export function ProtectedRoute() {
 }
 
 export function PublicOnlyRoute() {
-  if (hasAuthToken()) {
+  if (isAuthenticated()) {
     return <Navigate to="/home" replace />
   }
 
