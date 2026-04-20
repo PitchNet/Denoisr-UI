@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { apiRequest } from '../api'
+import { apiRequest, getAuthTokenFromCookies } from '../api'
 
 type DiscoveryMode = 'jobs' | 'people'
 type SwipeDirection = 'accept' | 'reject'
@@ -296,9 +296,28 @@ export default function HomePage() {
     setIsDragging(false)
   }
 
-  function handleDecision(direction: SwipeDirection) {
+  async function handleDecision(direction: SwipeDirection) {
     if (!currentCard || exitDirection) {
       return
+    }
+
+    if (direction === 'accept' && mode === 'jobs') {
+      try {
+        const response = await apiRequest('/FeedController/jobAction', {
+          method: 'POST',
+          body: {
+            jobId: currentCard.id,
+          },
+        })
+
+        if (!response.ok) {
+          setError('Failed to apply for job')
+          return
+        }
+      } catch {
+        setError('Failed to apply for job')
+        return
+      }
     }
 
     setExitDirection(direction)
