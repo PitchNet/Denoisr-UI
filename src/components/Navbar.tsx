@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { clearAuthToken, hasAuthToken } from '../auth'
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -17,7 +17,7 @@ export default function Navbar() {
 
   function handleLogout() {
     clearAuthToken()
-    setOpen(false)
+    setProfileOpen(false)
     navigate('/login')
   }
 
@@ -28,7 +28,7 @@ export default function Navbar() {
           to={isLoggedIn ? '/home' : '/'}
           className="nav__brand"
           aria-label="Denoisr home"
-          onClick={() => setOpen(false)}
+          onClick={() => setProfileOpen(false)}
         >
           Denoisr.
         </Link>
@@ -58,75 +58,43 @@ export default function Navbar() {
 
             <div className="nav__appLinks" aria-label="Primary navigation">
               <button type="button" className="nav__appLink nav__appLink--active">
-                Connections
+                <span className="nav__appIcon nav__appIcon--connections" aria-hidden="true" />
+                <span className="nav__appLabel">Connections</span>
               </button>
               <button type="button" className="nav__appLink">
-                Messages
+                <span className="nav__appIcon nav__appIcon--messages" aria-hidden="true" />
+                <span className="nav__appLabel">Messages</span>
               </button>
-              <button type="button" className="nav__appLink">
-                Profile
-              </button>
+              <div className="nav__profileMenuWrap">
+                <button
+                  type="button"
+                  className={`nav__appLink ${profileOpen ? 'nav__appLink--active' : ''}`}
+                  aria-expanded={profileOpen}
+                  onClick={() => setProfileOpen((value) => !value)}
+                >
+                  <span className="nav__appIcon nav__appIcon--profile" aria-hidden="true" />
+                  <span className="nav__appLabel">Profile</span>
+                </button>
+
+                {profileOpen ? (
+                  <div className="nav__profileDropdown">
+                    <button type="button" className="nav__profileDropdownBtn">
+                      View Profile
+                    </button>
+                    <button type="button" className="nav__profileDropdownBtn">
+                      View Job Applications
+                    </button>
+                  </div>
+                ) : null}
+              </div>
               <button type="button" className="nav__appLink" onClick={handleLogout}>
-                Logout
+                <span className="nav__appIcon nav__appIcon--logout" aria-hidden="true" />
+                <span className="nav__appLabel">Logout</span>
               </button>
             </div>
-
-            <button
-              type="button"
-              className="nav__burger"
-              aria-label={open ? 'Close menu' : 'Open menu'}
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-            >
-              <span aria-hidden="true" />
-              <span aria-hidden="true" />
-              <span aria-hidden="true" />
-            </button>
           </>
         ) : null}
       </div>
-
-      {isHome && open ? (
-        <div className="nav__mobile" role="dialog" aria-label="Mobile menu">
-          <div className="container nav__mobileInner">
-            <div className="nav__mobileModeLabel">Mode</div>
-            <div className="nav__mobileModeButtons">
-              <button
-                type="button"
-                className={`nav__mobileModeButton ${mode === 'jobs' ? 'nav__mobileModeButton--active' : ''}`}
-                onClick={() => {
-                  updateMode('jobs')
-                  setOpen(false)
-                }}
-              >
-                Jobs
-              </button>
-              <button
-                type="button"
-                className={`nav__mobileModeButton ${mode === 'people' ? 'nav__mobileModeButton--active' : ''}`}
-                onClick={() => {
-                  updateMode('people')
-                  setOpen(false)
-                }}
-              >
-                People
-              </button>
-            </div>
-            <button type="button" className="nav__mobileBtn">
-              Connections
-            </button>
-            <button type="button" className="nav__mobileBtn">
-              Messages
-            </button>
-            <button type="button" className="nav__mobileBtn">
-              Profile
-            </button>
-            <button type="button" className="nav__mobileBtn" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-        </div>
-      ) : null}
     </header>
   )
 }

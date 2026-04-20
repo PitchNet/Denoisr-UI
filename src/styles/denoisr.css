@@ -247,6 +247,13 @@
 }
 
 .nav__appLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 98px;
+  min-height: 74px;
   border: 1px solid var(--d-border-light);
   border-radius: var(--d-radius-sm);
   background: #fff;
@@ -257,8 +264,133 @@
 }
 
 .nav__appLink--active {
-  color: var(--d-dark);
+  background: var(--d-dark);
+  color: #fff;
   box-shadow: var(--d-shadow-elev);
+}
+
+.nav__appLabel {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.nav__appIcon {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.nav__appIcon::before,
+.nav__appIcon::after {
+  content: '';
+  position: absolute;
+  border-color: currentColor;
+  border-style: solid;
+}
+
+.nav__appIcon--connections::before {
+  top: 2px;
+  left: 1px;
+  width: 6px;
+  height: 6px;
+  border-width: 2px;
+  border-radius: 999px;
+}
+
+.nav__appIcon--connections::after {
+  right: 1px;
+  bottom: 2px;
+  width: 8px;
+  height: 8px;
+  border-width: 2px;
+  border-radius: 999px;
+}
+
+.nav__appIcon--messages::before {
+  inset: 3px 1px 5px;
+  border-width: 2px;
+  border-radius: 4px;
+}
+
+.nav__appIcon--messages::after {
+  left: 4px;
+  right: 4px;
+  top: 7px;
+  height: 0;
+  border-width: 0 0 2px;
+  transform: skewY(-20deg);
+}
+
+.nav__appIcon--profile::before {
+  top: 1px;
+  left: 5px;
+  width: 8px;
+  height: 8px;
+  border-width: 2px;
+  border-radius: 999px;
+}
+
+.nav__appIcon--profile::after {
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  height: 8px;
+  border-width: 2px;
+  border-radius: 999px 999px 6px 6px;
+}
+
+.nav__appIcon--logout::before {
+  left: 2px;
+  top: 3px;
+  width: 8px;
+  height: 12px;
+  border-width: 2px;
+  border-radius: 3px;
+}
+
+.nav__appIcon--logout::after {
+  right: 1px;
+  top: 8px;
+  width: 8px;
+  height: 0;
+  border-width: 2px 0 0;
+  box-shadow: 4px -3px 0 -2px currentColor, 4px 3px 0 -2px currentColor;
+}
+
+.nav__profileMenuWrap {
+  position: relative;
+}
+
+.nav__profileDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  min-width: 210px;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--d-border-light);
+  border-radius: var(--d-radius-sm);
+  background: #fff;
+  padding: 8px;
+  box-shadow: var(--d-shadow-elev);
+}
+
+.nav__profileDropdownBtn {
+  border: 1px solid var(--d-border-light);
+  border-radius: var(--d-radius-sm);
+  background: #fff;
+  padding: 10px 12px;
+  text-align: left;
+  font: inherit;
+  color: rgba(0, 0, 0, 0.78);
+  cursor: pointer;
+}
+
+.nav__profileDropdownBtn:hover {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .nav__links {
@@ -342,10 +474,6 @@
   .nav__appLinks,
   .nav__modeSwitch {
     display: none;
-  }
-  .nav__burger {
-    display: inline-flex;
-    flex-direction: column;
   }
 }
 
@@ -1379,6 +1507,10 @@
   display: none;
 }
 
+.homeMobileModeSwitch {
+  display: none;
+}
+
 @media (max-width: 1180px) {
   .homeShell {
     grid-template-columns: minmax(220px, 0.82fr) minmax(380px, 1.12fr) minmax(260px, 0.92fr);
@@ -1416,6 +1548,12 @@
     border-inline: 0;
     box-shadow: none;
     background: transparent;
+  }
+
+  .homeMobileModeSwitch {
+    display: inline-grid;
+    width: 100%;
+    margin-bottom: 14px;
   }
 
   .homeDeck__header {
@@ -1466,6 +1604,11 @@
   }
 
   .homeBottomNav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     min-height: 62px;
     border: 0;
     background: transparent;
@@ -1474,7 +1617,46 @@
   }
 
   .homeBottomNav__item--active {
-    color: var(--d-dark);
+    background: var(--d-dark);
+    color: #fff;
+  }
+
+  .homeBottomNav__profileWrap {
+    position: relative;
+    display: flex;
+  }
+
+  .homeBottomNav__profileWrap > .homeBottomNav__item {
+    width: 100%;
+  }
+
+  .homeBottomNav__profileMenu {
+    position: absolute;
+    right: 10px;
+    bottom: calc(100% + 10px);
+    display: flex;
+    min-width: 220px;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid var(--d-border-light);
+    border-radius: var(--d-radius-sm);
+    background: rgba(255, 255, 255, 0.98);
+    padding: 10px;
+    box-shadow: var(--d-shadow-elev);
+  }
+
+  .homeBottomNav__profileAction {
+    border: 1px solid var(--d-border-light);
+    border-radius: var(--d-radius-sm);
+    background: #fff;
+    padding: 10px 12px;
+    text-align: left;
+    font: inherit;
+    color: rgba(0, 0, 0, 0.76);
+  }
+
+  .homeBottomNav__profileAction--danger {
+    color: #b42318;
   }
 }
 

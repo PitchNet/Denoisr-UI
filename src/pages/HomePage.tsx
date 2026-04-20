@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { apiRequest, getAuthTokenFromCookies } from '../api'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { apiRequest } from '../api'
+import { clearAuthToken } from '../auth'
 
 type DiscoveryMode = 'jobs' | 'people'
 type SwipeDirection = 'accept' | 'reject'
@@ -180,6 +181,7 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 }
 
 export default function HomePage() {
+  const navigate = useNavigate()
   let [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
   let [loading, setLoading] = useState(true)
   let [error, setError] = useState<string | null>(null)
@@ -188,7 +190,7 @@ export default function HomePage() {
       new Set([...jobCards, ...peopleCards].map((card) => card.subheadline)),
     )
   }, [jobCards])
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
   const [draftRoleFilter, setDraftRoleFilter] = useState('')
   const [draftCountryFilter, setDraftCountryFilter] = useState('')
@@ -205,6 +207,7 @@ export default function HomePage() {
   const [dragStartX, setDragStartX] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
 
   const activeCards = mode === 'jobs' ? jobCards : peopleCards
 
@@ -294,6 +297,16 @@ export default function HomePage() {
     setDragX(0)
     setDragStartX(null)
     setIsDragging(false)
+  }
+
+  function handleMobileLogout() {
+    clearAuthToken()
+    setMobileProfileOpen(false)
+    navigate('/login')
+  }
+
+  function updateMode(nextMode: 'jobs' | 'people') {
+    setSearchParams({ mode: nextMode })
   }
 
   async function handleDecision(direction: SwipeDirection) {
@@ -470,6 +483,27 @@ export default function HomePage() {
         </section>
 
         <section className="homeDeck card">
+          <div className="homeMobileModeSwitch nav__modeSwitch" aria-label="Discovery mode switch">
+            <div
+              className={`nav__modeBubble ${mode === 'people' ? 'nav__modeBubble--people' : ''}`}
+              aria-hidden="true"
+            />
+            <button
+              type="button"
+              className={`nav__modeButton ${mode === 'jobs' ? 'nav__modeButton--active' : ''}`}
+              onClick={() => updateMode('jobs')}
+            >
+              Jobs
+            </button>
+            <button
+              type="button"
+              className={`nav__modeButton ${mode === 'people' ? 'nav__modeButton--active' : ''}`}
+              onClick={() => updateMode('people')}
+            >
+              People
+            </button>
+          </div>
+
           <div className="homeDeck__header">
             <div>
               <div className="sectionLabel sectionLabel--mono">
@@ -624,17 +658,46 @@ export default function HomePage() {
 
       <nav className="homeBottomNav" aria-label="Mobile navigation">
         <button type="button" className="homeBottomNav__item homeBottomNav__item--active">
+          <span className="nav__appIcon nav__appIcon--connections" aria-hidden="true" />
           <span>Home</span>
         </button>
         <button type="button" className="homeBottomNav__item">
+          <span className="nav__appIcon nav__appIcon--connections" aria-hidden="true" />
           <span>Connections</span>
         </button>
         <button type="button" className="homeBottomNav__item">
+          <span className="nav__appIcon nav__appIcon--messages" aria-hidden="true" />
           <span>Messages</span>
         </button>
-        <button type="button" className="homeBottomNav__item">
-          <span>Profile</span>
-        </button>
+        <div className="homeBottomNav__profileWrap">
+          <button
+            type="button"
+            className={`homeBottomNav__item ${mobileProfileOpen ? 'homeBottomNav__item--active' : ''}`}
+            aria-expanded={mobileProfileOpen}
+            onClick={() => setMobileProfileOpen((value) => !value)}
+          >
+            <span className="nav__appIcon nav__appIcon--profile" aria-hidden="true" />
+            <span>Profile</span>
+          </button>
+
+          {mobileProfileOpen ? (
+            <div className="homeBottomNav__profileMenu">
+              <button type="button" className="homeBottomNav__profileAction">
+                View Profile
+              </button>
+              <button type="button" className="homeBottomNav__profileAction">
+                View Job Applications
+              </button>
+              <button
+                type="button"
+                className="homeBottomNav__profileAction homeBottomNav__profileAction--danger"
+                onClick={handleMobileLogout}
+              >
+                Logout
+              </button>
+            </div>
+          ) : null}
+        </div>
       </nav>
     </div>
   )
