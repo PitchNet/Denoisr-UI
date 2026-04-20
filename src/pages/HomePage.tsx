@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { clearAuthToken } from '../auth'
@@ -208,6 +208,7 @@ export default function HomePage() {
   const [isDragging, setIsDragging] = useState(false)
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
+  const swipeLockedRef = useRef(false)
 
   const activeCards = mode === 'jobs' ? jobCards : peopleCards
 
@@ -297,6 +298,7 @@ export default function HomePage() {
     setDragX(0)
     setDragStartX(null)
     setIsDragging(false)
+    swipeLockedRef.current = false
   }
 
   function handleMobileLogout() {
@@ -310,9 +312,11 @@ export default function HomePage() {
   }
 
   async function handleDecision(direction: SwipeDirection) {
-    if (!currentCard || exitDirection) {
+    if (!currentCard || exitDirection || swipeLockedRef.current) {
       return
     }
+
+    swipeLockedRef.current = true
 
     if (direction === 'accept' && mode === 'jobs') {
       try {
@@ -325,10 +329,12 @@ export default function HomePage() {
 
         if (!response.ok) {
           setError('Failed to apply for job')
+          swipeLockedRef.current = false
           return
         }
       } catch {
         setError('Failed to apply for job')
+        swipeLockedRef.current = false
         return
       }
     }
@@ -347,6 +353,7 @@ export default function HomePage() {
       return
     }
 
+    swipeLockedRef.current = false
     setDragStartX(clientX)
     setIsDragging(true)
   }
