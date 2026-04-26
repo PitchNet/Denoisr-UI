@@ -25,103 +25,6 @@ type DiscoveryCard = {
 }
 
 
-const peopleCards: DiscoveryCard[] = [
-  {
-    id: 'person-aanya',
-    kind: 'people',
-    headline: 'Aanya Mehta',
-    subheadline: 'Frontend Engineer',
-    organization: 'Proof-led builder with marketplace and fintech experience',
-    location: 'Bengaluru, India',
-    experience: 5,
-    salary: 80,
-    intro:
-      'Built complex React platforms used by operations teams to make faster decisions with less dashboard noise.',
-    highlights: ['React', 'TypeScript', 'Design systems'],
-    tags: ['Open to roles', 'Remote', 'Available in 30 days'],
-    sections: [
-      {
-        title: 'Proof of work',
-        items: [
-          'Redesigned internal review workflows and cut task time by 38%.',
-          'Built a reusable component system used across three product teams.',
-          'Led accessibility fixes for regulated customer journeys.',
-        ],
-      },
-      {
-        title: 'Intent and fit',
-        items: [
-          'Prefers product teams with clear ownership and measurable outcomes.',
-          'Strong fit for structured hiring, workflow SaaS, and trust-heavy products.',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'person-mateo',
-    kind: 'people',
-    headline: 'Mateo Ruiz',
-    subheadline: 'Product Designer',
-    organization: 'Systems thinker focused on high-context enterprise tools',
-    location: 'Madrid, Spain',
-    experience: 6,
-    salary: 92,
-    intro:
-      'Designs interfaces that remove clutter and help users evaluate choices with confidence instead of guesswork.',
-    highlights: ['UX research', 'Figma', 'Enterprise UX'],
-    tags: ['People mode', 'Hybrid', 'Open to relocate'],
-    sections: [
-      {
-        title: 'Proof of work',
-        items: [
-          'Defined information architecture for a multi-panel procurement tool.',
-          'Reduced new-user confusion in a B2B admin product by 31%.',
-          'Ran structured validation with recruiters and hiring managers.',
-        ],
-      },
-      {
-        title: 'Intent and fit',
-        items: [
-          'Looking for teams that value reasoning, not ornamental UI.',
-          'Best fit for workflow products, marketplaces, and talent systems.',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'person-naomi',
-    kind: 'people',
-    headline: 'Naomi Carter',
-    subheadline: 'Recruiting Operations Lead',
-    organization: 'Operator focused on response quality and hiring precision',
-    location: 'New York, United States',
-    experience: 8,
-    salary: 110,
-    intro:
-      'Builds systems that reduce recruiter noise, tighten match quality, and improve candidate trust through structured process design.',
-    highlights: ['Hiring ops', 'Talent systems', 'Process design'],
-    tags: ['Leadership', 'On-site', 'Growth hiring'],
-    sections: [
-      {
-        title: 'Proof of work',
-        items: [
-          'Built calibrated scorecard workflows across two business units.',
-          'Improved recruiter response rate through structured triage and routing.',
-          'Cut low-quality outreach by introducing intent-based qualification.',
-        ],
-      },
-      {
-        title: 'Intent and fit',
-        items: [
-          'Prefers fast-moving teams where hiring quality is a company metric.',
-          'Strong fit for talent platforms, high-growth startups, and recruiting infrastructure.',
-        ],
-      },
-    ],
-  },
-]
-
-
 const locationOptions = [
   'Berlin, Germany',
   'Toronto, Canada',
@@ -183,6 +86,7 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 export default function HomePage() {
   const navigate = useNavigate()
   let [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
+  let [peopleCards, setPeopleCards] = useState<DiscoveryCard[]>([])
   let [loading, setLoading] = useState(true)
   let [error, setError] = useState<string | null>(null)
   let roleOptions = useMemo(() => {
@@ -247,38 +151,43 @@ export default function HomePage() {
   const stackedCards = filteredCards.slice(currentIndex, currentIndex + 3)
 
   useEffect(() => {
-    async function fetchJobs() {
+    async function fetchFeed() {
       try {
         setLoading(true)
-  
-        const res = await apiRequest('/FeedController/fetchJobs', {
+
+        const endpoint = mode === 'jobs' ? '/FeedController/fetchJobs' : '/FeedController/fetchPeople'
+        const res = await apiRequest(endpoint, {
           method: 'POST',
           body: {
-            role: roleFilter || "",
+            role: roleFilter || '',
             experience: maxExperience || null,
-            country: countryFilter || "",
-            city: cityFilter || "",
-            salary: maxSalary || null
+            country: countryFilter || '',
+            city: cityFilter || '',
+            salary: maxSalary || null,
           },
         })
         const data = await res.json()
-  
-        const formatted: DiscoveryCard[] = data.map((job: any) => ({
-          ...job,
-          kind: 'jobs',
+
+        const formatted: DiscoveryCard[] = data.map((item: any) => ({
+          ...item,
+          kind: mode,
         }))
-  
-        setJobCards(formatted)
+
+        if (mode === 'jobs') {
+          setJobCards(formatted)
+        } else {
+          setPeopleCards(formatted)
+        }
       } catch (err) {
         console.error(err)
-        setError('Failed to load jobs')
+        setError(`Failed to load ${mode}`)
       } finally {
         setLoading(false)
       }
     }
-  
-    fetchJobs()
-  }, [roleFilter, countryFilter, cityFilter, maxExperience, maxSalary])
+
+    fetchFeed()
+  }, [mode, roleFilter, countryFilter, cityFilter, maxExperience, maxSalary])
 
   useEffect(() => {
     setCurrentIndex(0)
