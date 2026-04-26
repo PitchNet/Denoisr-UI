@@ -6,148 +6,211 @@ import Button from '../components/ui/Button'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 
-type SkillEntry = {
+type HighlightEntry = {
   query: string
-  selectedSkill: string
-  proficiency: string
+  selectedValue: string
   menuOpen: boolean
 }
 
-const countries = [
-  'Australia',
-  'Canada',
-  'France',
-  'Germany',
-  'India',
-  'Japan',
-  'Netherlands',
-  'Singapore',
-  'United Arab Emirates',
-  'United Kingdom',
-  'United States',
-]
+type SectionEntry = {
+  title: string
+  items: string[]
+}
 
-const skills = [
+const fixedSections = ['Proof of work', 'Intent and fit']
+
+const highlightSuggestions = [
   'Backend Engineering',
   'Data Analysis',
   'Data Engineering',
   'Design Systems',
   'DevOps',
+  'Enterprise UX',
+  'Figma',
   'Frontend Engineering',
+  'Hiring Ops',
   'Machine Learning',
   'Mobile Development',
   'Product Design',
   'Product Management',
   'Python',
   'React',
-  'Recruiting Operations',
-  'Talent Sourcing',
+  'Talent Systems',
   'TypeScript',
   'UX Research',
 ]
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const [skillEntries, setSkillEntries] = useState<SkillEntry[]>([
-    {
-      query: '',
-      selectedSkill: '',
-      proficiency: '',
-      menuOpen: false,
-    },
+  const [highlightEntries, setHighlightEntries] = useState<HighlightEntry[]>([
+    { query: '', selectedValue: '', menuOpen: false },
+  ])
+  const [tagEntries, setTagEntries] = useState([''])
+  const [sections, setSections] = useState<SectionEntry[]>([
+    { title: 'Proof of work', items: [''] },
+    { title: 'Intent and fit', items: [''] },
   ])
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
 
-  const lastSkillEntry = skillEntries[skillEntries.length - 1]
-  const canAddSkillRow =
-    lastSkillEntry.selectedSkill.trim() !== '' && lastSkillEntry.proficiency.trim() !== ''
-
-  const matchingSkillsByIndex = useMemo(
+  const lastHighlight = highlightEntries[highlightEntries.length - 1]
+  const canAddHighlight = lastHighlight.selectedValue.trim() !== ''
+  const lastTag = tagEntries[tagEntries.length - 1]
+  const canAddTag = lastTag.trim() !== ''
+  const matchingHighlightsByIndex = useMemo(
     () =>
-      skillEntries.map(({ query }) => {
+      highlightEntries.map(({ query }) => {
         const normalizedQuery = query.trim().toLowerCase()
 
         if (!normalizedQuery) {
           return []
         }
 
-        return skills
-          .filter((skill) => skill.toLowerCase().includes(normalizedQuery))
+        return highlightSuggestions
+          .filter((item) => item.toLowerCase().includes(normalizedQuery))
           .slice(0, 6)
       }),
-    [skillEntries],
+    [highlightEntries],
   )
 
-  function updateSkillEntry(index: number, updater: (entry: SkillEntry) => SkillEntry) {
-    setSkillEntries((currentEntries) =>
+  function updateHighlightEntry(index: number, updater: (entry: HighlightEntry) => HighlightEntry) {
+    setHighlightEntries((currentEntries) =>
       currentEntries.map((entry, entryIndex) =>
         entryIndex === index ? updater(entry) : entry,
       ),
     )
   }
 
-  function handleSkillChange(index: number, value: string) {
-    updateSkillEntry(index, (entry) => {
-      const exactMatch = skills.find(
-        (skill) => skill.toLowerCase() === value.trim().toLowerCase(),
+  function handleHighlightChange(index: number, value: string) {
+    updateHighlightEntry(index, (entry) => {
+      const exactMatch = highlightSuggestions.find(
+        (item) => item.toLowerCase() === value.trim().toLowerCase(),
       )
 
       return {
         ...entry,
         query: value,
-        selectedSkill: exactMatch ?? '',
+        selectedValue: exactMatch ?? '',
         menuOpen: true,
       }
     })
   }
 
-  function handleSkillFocus(index: number) {
-    updateSkillEntry(index, (entry) => ({
+  function handleHighlightFocus(index: number) {
+    updateHighlightEntry(index, (entry) => ({
       ...entry,
       menuOpen: true,
     }))
   }
 
-  function handleSkillBlur(index: number) {
+  function handleHighlightBlur(index: number) {
     window.setTimeout(() => {
-      updateSkillEntry(index, (entry) => ({
+      updateHighlightEntry(index, (entry) => ({
         ...entry,
         menuOpen: false,
       }))
     }, 120)
   }
 
-  function handleProficiencyChange(index: number, value: string) {
-    updateSkillEntry(index, (entry) => ({
+  function selectHighlight(index: number, value: string) {
+    updateHighlightEntry(index, (entry) => ({
       ...entry,
-      proficiency: value,
-    }))
-  }
-
-  function selectSkill(index: number, skill: string) {
-    updateSkillEntry(index, (entry) => ({
-      ...entry,
-      query: skill,
-      selectedSkill: skill,
+      query: value,
+      selectedValue: value,
       menuOpen: false,
     }))
   }
 
-  function addSkillRow() {
-    if (!canAddSkillRow) {
+  function addHighlightRow() {
+    if (!canAddHighlight) {
       return
     }
 
-    setSkillEntries((currentEntries) => [
+    setHighlightEntries((currentEntries) => [
       ...currentEntries,
-      {
-        query: '',
-        selectedSkill: '',
-        proficiency: '',
-        menuOpen: false,
-      },
+      { query: '', selectedValue: '', menuOpen: false },
     ])
+  }
+
+  function removeHighlightRow(index: number) {
+    setHighlightEntries((currentEntries) =>
+      currentEntries.length === 1
+        ? [{ query: '', selectedValue: '', menuOpen: false }]
+        : currentEntries.filter((_, entryIndex) => entryIndex !== index),
+    )
+  }
+
+  function updateTag(index: number, value: string) {
+    setTagEntries((currentEntries) =>
+      currentEntries.map((entry, entryIndex) => (entryIndex === index ? value : entry)),
+    )
+  }
+
+  function addTag() {
+    if (!canAddTag) {
+      return
+    }
+
+    setTagEntries((currentEntries) => [...currentEntries, ''])
+  }
+
+  function removeTag(index: number) {
+    setTagEntries((currentEntries) =>
+      currentEntries.length === 1 ? [''] : currentEntries.filter((_, entryIndex) => entryIndex !== index),
+    )
+  }
+
+  function updateSectionItem(sectionIndex: number, itemIndex: number, value: string) {
+    setSections((currentSections) =>
+      currentSections.map((section, currentSectionIndex) =>
+        currentSectionIndex === sectionIndex
+          ? {
+              ...section,
+              items: section.items.map((item, currentItemIndex) =>
+                currentItemIndex === itemIndex ? value : item,
+              ),
+            }
+          : section,
+      ),
+    )
+  }
+
+  function addSectionItem(sectionIndex: number) {
+    setSections((currentSections) =>
+      currentSections.map((section, currentSectionIndex) => {
+        if (currentSectionIndex !== sectionIndex) {
+          return section
+        }
+
+        const lastItem = section.items[section.items.length - 1]
+        if (lastItem.trim() === '') {
+          return section
+        }
+
+        return {
+          ...section,
+          items: [...section.items, ''],
+        }
+      }),
+    )
+  }
+
+  function removeSectionItem(sectionIndex: number, itemIndex: number) {
+    setSections((currentSections) =>
+      currentSections.map((section, currentSectionIndex) => {
+        if (currentSectionIndex !== sectionIndex) {
+          return section
+        }
+
+        return {
+          ...section,
+          items:
+            section.items.length === 1
+              ? ['']
+              : section.items.filter((_, currentItemIndex) => currentItemIndex !== itemIndex),
+        }
+      }),
+    )
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -163,19 +226,23 @@ export default function DashboardPage() {
     const payload = {
       email: parsedCredentials.email?.trim() ?? '',
       password: parsedCredentials.password ?? '',
+      phoneNumber: String(formData.get('phoneNumber') ?? '').trim(),
+      kind: 'people',
       name: String(formData.get('name') ?? '').trim(),
-      phoneNumber: String(formData.get('phone') ?? '').trim(),
-      country: String(formData.get('country') ?? '').trim(),
-      currentRole: String(formData.get('role') ?? '').trim(),
-      yearsOfExperience: Number(formData.get('experience') ?? 0),
-      availableFrom: String(formData.get('availableFrom') ?? '').trim(),
-      skills: skillEntries.map((entry) => ({
-        name: entry.selectedSkill,
-        proficiency: Number(entry.proficiency),
-      })),
-      portfolioUrl: String(formData.get('portfolioUrl') ?? '').trim(),
-      workPreference: String(formData.get('workPreference') ?? '').trim(),
-      proofOfWork: String(formData.get('proofOfWork') ?? '').trim(),
+      currentRole: String(formData.get('currentRole') ?? '').trim(),
+      organization: String(formData.get('organization') ?? '').trim(),
+      location: String(formData.get('location') ?? '').trim(),
+      experience: Number(formData.get('experience') ?? 0),
+      salary: Number(formData.get('salary') ?? 0),
+      intro: String(formData.get('intro') ?? '').trim(),
+      highlights: highlightEntries.map((entry) => entry.selectedValue).filter(Boolean),
+      tags: tagEntries.map((entry) => entry.trim()).filter(Boolean),
+      sections: sections
+        .map((section) => ({
+          title: section.title.trim(),
+          items: section.items.map((item) => item.trim()).filter(Boolean),
+        }))
+        .filter((section) => section.title !== '' && section.items.length > 0),
     }
 
     setIsSaving(true)
@@ -193,9 +260,7 @@ export default function DashboardPage() {
       }
 
       await storeAuthTokenFromResponse(response)
-
       sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY)
-
       navigate('/home')
     } catch {
       setSaveError('Saving profile failed')
@@ -212,26 +277,26 @@ export default function DashboardPage() {
 
         <div className="container dashboardIntro__inner">
           <div className="dashboardIntro__copy">
-            <div className="sectionLabel sectionLabel--mono">PROFILE SIGNAL</div>
-            <h1 className="dashboardTitle">Build a profile that shows intent, proof, and clarity.</h1>
+            <div className="sectionLabel sectionLabel--mono">PEOPLE PROFILE</div>
+            <h1 className="dashboardTitle">Compose a profile that reads like signal, not a resume dump.</h1>
             <p className="dashboardSub">
-              Denoisr works best when your information is structured and high-signal.
-              Add the details that help relevant opportunities find you faster.
+              Denoisr works when your story is compact, credible, and easy to evaluate.
+              Structure your profile like a sharp card someone would want to keep swiping on.
             </p>
           </div>
 
           <div className="dashboardStats" aria-label="Profile setup highlights">
             <div className="miniStat">
-              <div className="miniStat__value">1</div>
-              <div className="miniStat__label">Focused profile form</div>
+              <div className="miniStat__value">3</div>
+              <div className="miniStat__label">Signal blocks: profile, tags, sections</div>
             </div>
             <div className="miniStat">
-              <div className="miniStat__value">5</div>
-              <div className="miniStat__label">Point skill proficiency scale</div>
+              <div className="miniStat__value">2</div>
+              <div className="miniStat__label">Proof-first sections for fit and work</div>
             </div>
             <div className="miniStat">
               <div className="miniStat__value">0</div>
-              <div className="miniStat__label">Feed noise or vanity metrics</div>
+              <div className="miniStat__label">Generic buzzwords without evidence</div>
             </div>
           </div>
         </div>
@@ -242,149 +307,98 @@ export default function DashboardPage() {
           <div className="card dashboardFormCard">
             <div className="dashboardCardTop">
               <div>
-                <div className="sectionLabel sectionLabel--mono">USER DETAILS</div>
-                <h2 className="sectionTitle">Tell us the essentials.</h2>
+                <div className="sectionLabel sectionLabel--mono">PROFILE COMPOSER</div>
+                <h2 className="sectionTitle">Build the card recruiters should actually open.</h2>
                 <p className="sectionSub dashboardSectionSub">
-                  Required fields are marked with an asterisk. Keep the information precise so
-                  matching stays relevant and trustworthy.
+                  Every field below maps directly into the people profile payload. Keep it specific,
+                  concise, and proof-oriented.
                 </p>
               </div>
-              <div className="dashboardBadge">High-signal onboarding</div>
+              <div className="dashboardBadge">People mode payload</div>
             </div>
 
-            <form
-              className="dashboardForm"
-              onSubmit={handleSubmit}
-            >
+            <form className="dashboardForm" onSubmit={handleSubmit}>
               <div className="dashboardGrid">
                 <label className="field">
                   <span className="field__label">Name (*)</span>
-                  <input
-                    className="field__input"
-                    type="text"
-                    name="name"
-                    required
-                    minLength={2}
-                    maxLength={80}
-                    pattern="[A-Za-z][A-Za-z '.-]{1,79}"
-                    title="Enter a valid name using letters, spaces, apostrophes, periods, or hyphens."
-                    placeholder="Souptik Ghosh"
-                  />
+                  <input className="field__input" type="text" name="name" required minLength={2} maxLength={80} placeholder="Mateo Ruiz" />
                 </label>
 
                 <label className="field">
                   <span className="field__label">Phone Number (*)</span>
-                  <input
-                    className="field__input"
-                    type="tel"
-                    name="phone"
-                    required
-                    pattern="^\+?[0-9()\-\s]{7,20}$"
-                    title="Enter a valid phone number with 7 to 20 digits and symbols."
-                    placeholder="+91 98765 43210"
-                  />
-                </label>
-
-                <label className="field">
-                  <span className="field__label">Country (*)</span>
-                  <select className="field__input dashboardSelect" name="country" defaultValue="" required>
-                    <option value="" disabled>
-                      Select your country
-                    </option>
-                    {countries.map((country) => (
-                      <option key={country} value={country}>
-                        {country}
-                      </option>
-                    ))}
-                  </select>
+                  <input className="field__input" type="tel" name="phoneNumber" required pattern="^\+?[0-9()\-\s]{6,20}$" placeholder="798787" />
                 </label>
 
                 <label className="field">
                   <span className="field__label">Current Role (*)</span>
-                  <input
-                    className="field__input"
-                    type="text"
-                    name="role"
-                    required
-                    minLength={2}
-                    maxLength={80}
-                    placeholder="Frontend Engineer"
-                  />
+                  <input className="field__input" type="text" name="currentRole" required minLength={2} maxLength={80} placeholder="Product Designer" />
                 </label>
 
                 <label className="field">
-                  <span className="field__label">Years of Experience (*)</span>
-                  <input
-                    className="field__input"
-                    type="number"
-                    name="experience"
-                    required
-                    min={0}
-                    max={40}
-                    step={1}
-                    placeholder="4"
-                  />
+                  <span className="field__label">Organization (*)</span>
+                  <input className="field__input" type="text" name="organization" required minLength={2} maxLength={80} placeholder="zinfi" />
+                </label>
+
+                <label className="field field--full">
+                  <span className="field__label">Location (*)</span>
+                  <input className="field__input" type="text" name="location" required minLength={2} maxLength={80} placeholder="Madrid, Spain" />
                 </label>
 
                 <label className="field">
-                  <span className="field__label">Available From (*)</span>
-                  <input className="field__input" type="date" name="availableFrom" required />
+                  <span className="field__label">Experience (*)</span>
+                  <input className="field__input" type="number" name="experience" required min={0} max={40} step={1} placeholder="6" />
+                </label>
+
+                <label className="field">
+                  <span className="field__label">Salary (*)</span>
+                  <input className="field__input" type="number" name="salary" required min={0} max={1000} step={1} placeholder="92" />
+                </label>
+
+                <label className="field field--full">
+                  <span className="field__label">Intro (*)</span>
+                  <textarea className="field__input dashboardTextarea" name="intro" required minLength={40} maxLength={280} placeholder="Designs interfaces that remove clutter and help users evaluate choices with confidence instead of guesswork." />
                 </label>
               </div>
 
-              <div className="dashboardSkillsBlock">
-                <div className="dashboardSkillsHeader">
+              <div className="dashboardBlock">
+                <div className="dashboardBlock__head">
                   <div>
-                    <div className="field__label">Skills (*)</div>
+                    <div className="field__label">Highlights (*)</div>
                     <p className="dashboardSkillsHint">
-                      Add one or more skills. Each new row unlocks only after the last row is fully filled.
+                      Search and pick crisp capability labels.
                     </p>
                   </div>
                 </div>
 
-                {skillEntries.map((entry, index) => {
-                  const matchingSkills = matchingSkillsByIndex[index]
-                  const rowId = `skill-suggestions-${index}`
-                  const isLastRow = index === skillEntries.length - 1
+                {highlightEntries.map((entry, index) => {
+                  const matchingHighlights = matchingHighlightsByIndex[index]
+                  const rowId = `highlight-suggestions-${index}`
+                  const isLastRow = index === highlightEntries.length - 1
 
                   return (
-                    <div className="dashboardSkillRow" key={`skill-row-${index}`}>
+                    <div className="dashboardSkillRow dashboardSkillRow--compact" key={`highlight-row-${index}`}>
                       <div className="dashboardSkillField">
                         <label className="field dashboardSkillSearch">
-                          <span className="field__label">Skill {index + 1} (*)</span>
+                          <span className="field__label">Highlight {index + 1} (*)</span>
                           <input
                             className="field__input"
                             type="search"
-                            name={`skillSearch-${index}`}
                             value={entry.query}
-                            onChange={(e) => handleSkillChange(index, e.target.value)}
-                            onFocus={() => handleSkillFocus(index)}
-                            onBlur={() => handleSkillBlur(index)}
-                            placeholder="Search a skill"
+                            onChange={(e) => handleHighlightChange(index, e.target.value)}
+                            onFocus={() => handleHighlightFocus(index)}
+                            onBlur={() => handleHighlightBlur(index)}
+                            placeholder="Search a highlight"
                             autoComplete="off"
-                            aria-expanded={entry.menuOpen && matchingSkills.length > 0}
+                            aria-expanded={entry.menuOpen && matchingHighlights.length > 0}
                             aria-controls={rowId}
-                          />
-                          <input
-                            className="dashboardHiddenInput"
-                            type="text"
-                            name={`skills[${index}].name`}
-                            value={entry.selectedSkill}
-                            readOnly
                             required
-                            tabIndex={-1}
-                            aria-hidden="true"
                           />
-                          {entry.menuOpen && matchingSkills.length > 0 ? (
+                          <input className="dashboardHiddenInput" type="text" value={entry.selectedValue} readOnly tabIndex={-1} aria-hidden="true" />
+                          {entry.menuOpen && matchingHighlights.length > 0 ? (
                             <div className="dashboardSkillDropdown" id={rowId}>
-                              {matchingSkills.map((skill) => (
-                                <button
-                                  key={`${skill}-${index}`}
-                                  type="button"
-                                  className="dashboardSkillOption"
-                                  onClick={() => selectSkill(index, skill)}
-                                >
-                                  {skill}
+                              {matchingHighlights.map((item) => (
+                                <button key={`${item}-${index}`} type="button" className="dashboardSkillOption" onClick={() => selectHighlight(index, item)}>
+                                  {item}
                                 </button>
                               ))}
                             </div>
@@ -392,31 +406,13 @@ export default function DashboardPage() {
                         </label>
                       </div>
 
-                      <label className="field">
-                        <span className="field__label">Proficiency (1-5) (*)</span>
-                        <input
-                          className="field__input"
-                          type="number"
-                          name={`skills[${index}].proficiency`}
-                          value={entry.proficiency}
-                          onChange={(e) => handleProficiencyChange(index, e.target.value)}
-                          required
-                          min={1}
-                          max={5}
-                          step={1}
-                          placeholder="4"
-                        />
-                      </label>
-
-                      <div className="dashboardSkillAction">
+                      <div className="dashboardInlineActions">
+                        <button type="button" className="dashboardIconBtn" onClick={() => removeHighlightRow(index)} aria-label={`Remove highlight ${index + 1}`}>
+                          -
+                        </button>
                         {isLastRow ? (
-                          <button
-                            type="button"
-                            className="btn btn--outlinedLight dashboardAddSkillBtn"
-                            onClick={addSkillRow}
-                            disabled={!canAddSkillRow}
-                          >
-                            Add skill
+                          <button type="button" className="dashboardIconBtn dashboardIconBtn--dark" onClick={addHighlightRow} disabled={!canAddHighlight} aria-label="Add highlight">
+                            +
                           </button>
                         ) : null}
                       </div>
@@ -425,46 +421,87 @@ export default function DashboardPage() {
                 })}
               </div>
 
-              <div className="dashboardGrid">
-                <label className="field field--full">
-                  <span className="field__label">Portfolio URL</span>
-                  <input
-                    className="field__input"
-                    type="url"
-                    name="portfolioUrl"
-                    placeholder="https://your-portfolio.com"
-                  />
-                </label>
-
-                <fieldset className="dashboardChoiceCard field--full">
-                  <legend className="field__label">Work Preference (*)</legend>
-                  <div className="dashboardChoiceGrid">
-                    <label className="dashboardChoice">
-                      <input type="radio" name="workPreference" value="remote" required />
-                      <span>Remote</span>
-                    </label>
-                    <label className="dashboardChoice">
-                      <input type="radio" name="workPreference" value="hybrid" required />
-                      <span>Hybrid</span>
-                    </label>
-                    <label className="dashboardChoice">
-                      <input type="radio" name="workPreference" value="onsite" required />
-                      <span>On-site</span>
-                    </label>
+              <div className="dashboardBlock">
+                <div className="dashboardBlock__head">
+                  <div>
+                    <div className="field__label">Tags (*)</div>
+                    <p className="dashboardSkillsHint">
+                      Short contextual chips like work mode, openness, or preference.
+                    </p>
                   </div>
-                </fieldset>
+                </div>
 
-                <label className="field field--full">
-                  <span className="field__label">Proof of Work Summary (*)</span>
-                  <textarea
-                    className="field__input dashboardTextarea"
-                    name="proofOfWork"
-                    required
-                    minLength={40}
-                    maxLength={500}
-                    placeholder="Summarise the systems you built, problems you solved, or outcomes you delivered."
-                  />
-                </label>
+                {tagEntries.map((entry, index) => {
+                  const isLastRow = index === tagEntries.length - 1
+
+                  return (
+                    <div className="dashboardSkillRow dashboardSkillRow--compact" key={`tag-row-${index}`}>
+                      <label className="field">
+                        <span className="field__label">Tag {index + 1} (*)</span>
+                        <input className="field__input" type="text" value={entry} onChange={(e) => updateTag(index, e.target.value)} required maxLength={40} placeholder="Hybrid" />
+                      </label>
+
+                      <div className="dashboardInlineActions">
+                        <button type="button" className="dashboardIconBtn" onClick={() => removeTag(index)} aria-label={`Remove tag ${index + 1}`}>
+                          -
+                        </button>
+                        {isLastRow ? (
+                          <button type="button" className="dashboardIconBtn dashboardIconBtn--dark" onClick={addTag} disabled={!canAddTag} aria-label="Add tag">
+                            +
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="dashboardBlock">
+                <div className="dashboardBlock__head">
+                  <div>
+                    <div className="field__label">Sections (*)</div>
+                    <p className="dashboardSkillsHint">
+                      Build narrative blocks like proof of work and intent. Each block contains a title and bullet points.
+                    </p>
+                  </div>
+                </div>
+
+                {sections.map((section, sectionIndex) => {
+                  const canAddPoint = section.items[section.items.length - 1].trim() !== ''
+
+                  return (
+                    <div className="dashboardSectionCard" key={`section-${sectionIndex}`}>
+                      <div className="dashboardSectionCard__head">
+                        <div className="dashboardSectionHeading">
+                          <div className="field__label">Section {sectionIndex + 1}</div>
+                          <h3 className="dashboardSectionTitle">{fixedSections[sectionIndex]}</h3>
+                        </div>
+                      </div>
+
+                      <div className="dashboardSectionItems">
+                        {section.items.map((item, itemIndex) => (
+                          <div className="dashboardSkillRow dashboardSkillRow--compact" key={`section-${sectionIndex}-item-${itemIndex}`}>
+                            <label className="field field--full">
+                              <span className="field__label">Point {itemIndex + 1} (*)</span>
+                              <textarea className="field__input dashboardTextarea dashboardTextarea--sm" value={item} onChange={(e) => updateSectionItem(sectionIndex, itemIndex, e.target.value)} required minLength={8} maxLength={220} placeholder="Defined information architecture for a multi-panel procurement tool." />
+                            </label>
+
+                            <div className="dashboardInlineActions">
+                              <button type="button" className="dashboardIconBtn" onClick={() => removeSectionItem(sectionIndex, itemIndex)} aria-label={`Remove point ${itemIndex + 1}`}>
+                                -
+                              </button>
+                              {itemIndex === section.items.length - 1 ? (
+                                <button type="button" className="dashboardIconBtn dashboardIconBtn--dark" onClick={() => addSectionItem(sectionIndex)} disabled={!canAddPoint} aria-label="Add point">
+                                  +
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
 
               <div className="dashboardActions">
@@ -487,30 +524,30 @@ export default function DashboardPage() {
           <aside className="dashboardRail section--dark">
             <div className="sectionLabel sectionLabel--light">WHY THIS MATTERS</div>
             <h2 className="sectionTitle sectionTitle--light dashboardRailTitle">
-              Proof over profiles. Intent over noise.
+              Structured profiles make swiping feel like evaluation, not guessing.
             </h2>
             <p className="sectionSub dashboardRailSub">
-              Structured information helps Denoisr surface meaningful matches instead of broad,
-              low-context outreach.
+              This screen mirrors the people-card model directly: headline, context, highlights,
+              and proof blocks that travel cleanly into matching and preview surfaces.
             </p>
 
             <div className="dashboardRailCards">
               <div className="darkCard">
-                <div className="darkCard__title">Relevant matching</div>
+                <div className="darkCard__title">Readable at a glance</div>
                 <p className="darkCard__description">
-                  Role, location, and skill details create clearer alignment before any message is sent.
+                  Role, organization, location, and intro create a sharp first impression without overloading the card.
                 </p>
               </div>
               <div className="darkCard">
-                <div className="darkCard__title">Verified capability</div>
+                <div className="darkCard__title">Context in layers</div>
                 <p className="darkCard__description">
-                  Your summary focuses on tangible work, not vanity metrics or feed activity.
+                  Highlights and tags act as quick scan chips, while sections carry the proof underneath.
                 </p>
               </div>
               <div className="darkCard">
-                <div className="darkCard__title">Faster decisions</div>
+                <div className="darkCard__title">Signal travels cleanly</div>
                 <p className="darkCard__description">
-                  High-signal inputs reduce screening friction for both professionals and recruiters.
+                  Because the form maps one-to-one with the payload, the resulting profile stays structured across the app.
                 </p>
               </div>
             </div>

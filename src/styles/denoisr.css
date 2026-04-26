@@ -1001,6 +1001,19 @@
   gap: 20px;
 }
 
+.dashboardBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboardBlock__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .dashboardGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1049,9 +1062,45 @@
   align-items: end;
 }
 
+.dashboardSkillRow--compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .dashboardSkillField,
 .dashboardSkillSearch {
   position: relative;
+}
+
+.dashboardInlineActions {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding-bottom: 2px;
+}
+
+.dashboardIconBtn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--d-border-light);
+  border-radius: 12px;
+  background: #fff;
+  color: rgba(0, 0, 0, 0.72);
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.dashboardIconBtn--dark {
+  background: var(--d-dark);
+  color: #fff;
+  border-color: var(--d-dark);
+}
+
+.dashboardIconBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .dashboardSkillAction {
@@ -1112,6 +1161,47 @@
   min-height: 132px;
   resize: vertical;
   line-height: 1.3;
+}
+
+.dashboardTextarea--sm {
+  min-height: 92px;
+}
+
+.dashboardSectionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--d-border-light);
+  border-radius: var(--d-radius-md);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.dashboardSectionCard__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboardSectionHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dashboardSectionTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.05;
+  letter-spacing: -0.48px;
+  font-weight: 500;
+}
+
+.dashboardSectionItems {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .dashboardChoiceCard {
@@ -1701,6 +1791,15 @@
   .dashboardSkillRow,
   .dashboardChoiceGrid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboardBlock__head,
+  .dashboardSectionCard__head {
+    flex-direction: column;
+  }
+
+  .dashboardInlineActions {
+    padding-bottom: 0;
   }
 
   .dashboardCardTop {
