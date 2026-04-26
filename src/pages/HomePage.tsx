@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { clearAuthToken } from '../auth'
+import NavIcon from '../components/ui/NavIcon'
 import LoadingState from '../components/ui/LoadingState'
 
 type DiscoveryMode = 'jobs' | 'people'
@@ -585,15 +586,15 @@ export default function HomePage() {
 
       <nav className="homeBottomNav" aria-label="Mobile navigation">
         <button type="button" className="homeBottomNav__item homeBottomNav__item--active">
-          <span className="nav__appIcon nav__appIcon--connections" aria-hidden="true" />
+          <NavIcon name="home" />
           <span>Home</span>
         </button>
         <button type="button" className="homeBottomNav__item">
-          <span className="nav__appIcon nav__appIcon--connections" aria-hidden="true" />
+          <NavIcon name="connections" />
           <span>Connections</span>
         </button>
         <button type="button" className="homeBottomNav__item">
-          <span className="nav__appIcon nav__appIcon--messages" aria-hidden="true" />
+          <NavIcon name="messages" />
           <span>Messages</span>
         </button>
         <div className="homeBottomNav__profileWrap">
@@ -603,7 +604,7 @@ export default function HomePage() {
             aria-expanded={mobileProfileOpen}
             onClick={() => setMobileProfileOpen((value) => !value)}
           >
-            <span className="nav__appIcon nav__appIcon--profile" aria-hidden="true" />
+            <NavIcon name="profile" />
             <span>Profile</span>
           </button>
 

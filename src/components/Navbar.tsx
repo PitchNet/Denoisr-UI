@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { clearAuthToken, isAuthenticated } from '../auth'
+import NavIcon from './ui/NavIcon'
 
 export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
@@ -58,11 +59,11 @@ export default function Navbar() {
 
             <div className="nav__appLinks" aria-label="Primary navigation">
               <button type="button" className="nav__appLink nav__appLink--active">
-                <span className="nav__appIcon nav__appIcon--connections" aria-hidden="true" />
+                <NavIcon name="connections" />
                 <span className="nav__appLabel">Connections</span>
               </button>
               <button type="button" className="nav__appLink">
-                <span className="nav__appIcon nav__appIcon--messages" aria-hidden="true" />
+                <NavIcon name="messages" />
                 <span className="nav__appLabel">Messages</span>
               </button>
               <div className="nav__profileMenuWrap">
@@ -72,7 +73,7 @@ export default function Navbar() {
                   aria-expanded={profileOpen}
                   onClick={() => setProfileOpen((value) => !value)}
                 >
-                  <span className="nav__appIcon nav__appIcon--profile" aria-hidden="true" />
+                  <NavIcon name="profile" />
                   <span className="nav__appLabel">Profile</span>
                 </button>
 
@@ -88,7 +89,7 @@ export default function Navbar() {
                 ) : null}
               </div>
               <button type="button" className="nav__appLink" onClick={handleLogout}>
-                <span className="nav__appIcon nav__appIcon--logout" aria-hidden="true" />
+                <NavIcon name="logout" />
                 <span className="nav__appLabel">Logout</span>
               </button>
             </div>
