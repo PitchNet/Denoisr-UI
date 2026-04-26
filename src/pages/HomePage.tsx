@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { clearAuthToken } from '../auth'
+import LoadingState from '../components/ui/LoadingState'
 
 type DiscoveryMode = 'jobs' | 'people'
 type SwipeDirection = 'accept' | 'reject'
@@ -296,7 +297,17 @@ export default function HomePage() {
   }
   // ⬇️ ADD HERE (just before return)
   if (loading) {
-    return <div className="homePage">Loading jobs...</div>
+    return (
+      <LoadingState
+        className="homePage"
+        label={mode === 'jobs' ? 'Loading roles' : 'Loading people'}
+        detail={
+          mode === 'jobs'
+            ? 'Curating the next set of roles for your filters.'
+            : 'Pulling in people profiles that match your current search.'
+        }
+      />
+    )
   }
 
   if (error) {
