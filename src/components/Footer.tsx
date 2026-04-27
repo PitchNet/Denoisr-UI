@@ -42,7 +42,7 @@ export default function Footer() {
   const { pathname } = useLocation()
   const year = new Date().getFullYear()
 
-  if (pathname === '/home') {
+  if (pathname === '/home' || pathname === '/messages') {
     return null
   }
 

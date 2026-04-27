@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import DashboardPage from './pages/DashboardPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
+import MessagesPage from './pages/MessagesPage'
 import ProductPage from './pages/ProductPage'
 import SignupPage from './pages/SignupPage'
 import AboutPage from './pages/AboutPage'
@@ -35,6 +36,7 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/home" element={<HomePage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/messages" element={<MessagesPage />} />
             </Route>
             <Route path="/features" element={<FeaturesPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />

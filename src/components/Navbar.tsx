@@ -10,6 +10,8 @@ export default function Navbar() {
   const [searchParams, setSearchParams] = useSearchParams()
   const isLoggedIn = isAuthenticated()
   const isHome = pathname === '/home'
+  const isMessages = pathname === '/messages'
+  const isAppPage = isHome || isMessages
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
 
   function updateMode(nextMode: 'jobs' | 'people') {
@@ -34,35 +36,41 @@ export default function Navbar() {
           Denoisr.
         </Link>
 
-        {isHome ? (
+        {isAppPage ? (
           <>
-            <div className="nav__modeSwitch" aria-label="Discovery mode switch">
-              <div
-                className={`nav__modeBubble ${mode === 'people' ? 'nav__modeBubble--people' : ''}`}
-                aria-hidden="true"
-              />
-              <button
-                type="button"
-                className={`nav__modeButton ${mode === 'jobs' ? 'nav__modeButton--active' : ''}`}
-                onClick={() => updateMode('jobs')}
-              >
-                Jobs
-              </button>
-              <button
-                type="button"
-                className={`nav__modeButton ${mode === 'people' ? 'nav__modeButton--active' : ''}`}
-                onClick={() => updateMode('people')}
-              >
-                People
-              </button>
-            </div>
+            {isHome ? (
+              <div className="nav__modeSwitch" aria-label="Discovery mode switch">
+                <div
+                  className={`nav__modeBubble ${mode === 'people' ? 'nav__modeBubble--people' : ''}`}
+                  aria-hidden="true"
+                />
+                <button
+                  type="button"
+                  className={`nav__modeButton ${mode === 'jobs' ? 'nav__modeButton--active' : ''}`}
+                  onClick={() => updateMode('jobs')}
+                >
+                  Jobs
+                </button>
+                <button
+                  type="button"
+                  className={`nav__modeButton ${mode === 'people' ? 'nav__modeButton--active' : ''}`}
+                  onClick={() => updateMode('people')}
+                >
+                  People
+                </button>
+              </div>
+            ) : (
+              <div className="nav__appCenterLabel">
+                <div className="sectionLabel sectionLabel--mono">CONTROLLED COMMUNICATION</div>
+              </div>
+            )}
 
             <div className="nav__appLinks" aria-label="Primary navigation">
-              <button type="button" className="nav__appLink nav__appLink--active">
+              <button type="button" className={`nav__appLink ${isHome ? 'nav__appLink--active' : ''}`} onClick={() => navigate('/home')}>
                 <NavIcon name="connections" />
                 <span className="nav__appLabel">Connections</span>
               </button>
-              <button type="button" className="nav__appLink">
+              <button type="button" className={`nav__appLink ${isMessages ? 'nav__appLink--active' : ''}`} onClick={() => navigate('/messages')}>
                 <NavIcon name="messages" />
                 <span className="nav__appLabel">Messages</span>
               </button>
@@ -85,7 +93,7 @@ export default function Navbar() {
                     <button type="button" className="nav__profileDropdownBtn">
                       View Job Applications
                     </button>
-                    <button type="button" className="nav__profileDropdownBtn">
+                    <button type="button" className="nav__profileDropdownBtn" onClick={() => navigate('/messages')}>
                       View Connections
                     </button>
                   </div>

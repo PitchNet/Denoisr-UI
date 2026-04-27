@@ -589,11 +589,11 @@ export default function HomePage() {
           <NavIcon name="home" />
           <span>Home</span>
         </button>
-        <button type="button" className="homeBottomNav__item">
+        <button type="button" className="homeBottomNav__item" onClick={() => navigate('/messages')}>
           <NavIcon name="connections" />
           <span>Connections</span>
         </button>
-        <button type="button" className="homeBottomNav__item">
+        <button type="button" className="homeBottomNav__item" onClick={() => navigate('/messages')}>
           <NavIcon name="messages" />
           <span>Messages</span>
         </button>
@@ -616,7 +616,7 @@ export default function HomePage() {
               <button type="button" className="homeBottomNav__profileAction">
                 View Job Applications
               </button>
-              <button type="button" className="homeBottomNav__profileAction">
+              <button type="button" className="homeBottomNav__profileAction" onClick={() => navigate('/messages')}>
                 View Connections
               </button>
               <button
