@@ -616,6 +616,9 @@ export default function HomePage() {
               <button type="button" className="homeBottomNav__profileAction">
                 View Job Applications
               </button>
+              <button type="button" className="homeBottomNav__profileAction">
+                View Connections
+              </button>
               <button
                 type="button"
                 className="homeBottomNav__profileAction homeBottomNav__profileAction--danger"

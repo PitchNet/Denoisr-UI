@@ -85,6 +85,9 @@ export default function Navbar() {
                     <button type="button" className="nav__profileDropdownBtn">
                       View Job Applications
                     </button>
+                    <button type="button" className="nav__profileDropdownBtn">
+                      View Connections
+                    </button>
                   </div>
                 ) : null}
               </div>
