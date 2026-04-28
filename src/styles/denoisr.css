@@ -1705,6 +1705,12 @@
   display: none;
 }
 
+.messagesMobileHeader__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
 .messagesSidebar,
 .messagesThread,
 .messagesDetails {
@@ -1751,6 +1757,10 @@
   display: none;
 }
 
+.messagesThread__mobileList {
+  display: none;
+}
+
 .messagesList {
   display: flex;
   flex-direction: column;
@@ -1763,6 +1773,22 @@
   align-items: start;
   padding: 14px 0;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.messagesListItemButton {
+  width: 100%;
+  border-inline: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-right: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.messagesListItem--mobile {
+  padding: 16px 0;
 }
 
 .messagesListItem--active {
@@ -1842,6 +1868,18 @@
   font-size: 14px;
 }
 
+.messagesBackBtn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--d-dark);
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+}
+
 .messagesThread__body {
   display: flex;
   justify-content: center;
@@ -1908,9 +1946,44 @@
   background: rgba(0, 0, 0, 0.02);
 }
 
+.messagesComposer__box--active {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.messagesComposer__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .messagesComposer__placeholder {
   margin-top: 8px;
   font-size: 15px;
+}
+
+.messagesComposer__input {
+  min-height: 88px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px 14px;
+  font: inherit;
+  color: var(--d-dark);
+  resize: vertical;
+}
+
+.messagesComposer__input:focus {
+  outline: none;
+  border-color: rgba(189, 187, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(189, 187, 255, 0.2);
+}
+
+.messagesComposer__sendBtn {
+  min-width: 112px;
+  min-height: 48px;
 }
 
 .messagesEmptyState,
@@ -2203,6 +2276,10 @@
     background: transparent;
   }
 
+  .messagesThread__mobileList {
+    display: block;
+  }
+
   .messagesThread__header {
     display: none;
   }
@@ -2216,12 +2293,20 @@
     max-width: none;
   }
 
+  .messagesList--mobile {
+    margin-top: 10px;
+  }
+
   .messageBubble {
     width: min(100%, 88%);
   }
 
   .messagesComposer__box {
     max-width: none;
+  }
+
+  .messagesComposer__box--active {
+    grid-template-columns: 1fr;
   }
 }
 

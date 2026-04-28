@@ -589,7 +589,7 @@ export default function HomePage() {
           <NavIcon name="home" />
           <span>Home</span>
         </button>
-        <button type="button" className="homeBottomNav__item" onClick={() => navigate('/messages')}>
+        <button type="button" className="homeBottomNav__item">
           <NavIcon name="connections" />
           <span>Connections</span>
         </button>

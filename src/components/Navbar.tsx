@@ -66,7 +66,7 @@ export default function Navbar() {
             )}
 
             <div className="nav__appLinks" aria-label="Primary navigation">
-              <button type="button" className={`nav__appLink ${isHome ? 'nav__appLink--active' : ''}`} onClick={() => navigate('/home')}>
+              <button type="button" className={`nav__appLink ${isHome ? 'nav__appLink--active' : ''}`}>
                 <NavIcon name="connections" />
                 <span className="nav__appLabel">Connections</span>
               </button>
