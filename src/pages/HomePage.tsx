@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { apiRequest } from '../api'
+import { apiRequest, getAuthTokenFromCookies } from '../api'
 import { clearAuthToken } from '../auth'
 import NavIcon from '../components/ui/NavIcon'
 import LoadingState from '../components/ui/LoadingState'
 
 type DiscoveryMode = 'jobs' | 'people'
 type SwipeDirection = 'accept' | 'reject'
+
+type MatchState = {
+  open: boolean
+  name: string
+}
 
 type DiscoveryCard = {
   id: string
@@ -114,6 +119,7 @@ export default function HomePage() {
   const [isDragging, setIsDragging] = useState(false)
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
+  const [matchState, setMatchState] = useState<MatchState>({ open: false, name: '' })
   const swipeLockedRef = useRef(false)
 
   const activeCards = mode === 'jobs' ? jobCards : peopleCards
@@ -212,6 +218,12 @@ export default function HomePage() {
     swipeLockedRef.current = false
   }
 
+  function advanceCard() {
+    setCurrentIndex((index) => index + 1)
+    setExitDirection(null)
+    resetDrag()
+  }
+
   function handleMobileLogout() {
     clearAuthToken()
     setMobileProfileOpen(false)
@@ -250,13 +262,51 @@ export default function HomePage() {
       }
     }
 
+    if (direction === 'accept' && mode === 'people') {
+      try {
+        const response = await apiRequest('/FeedController/peopleAction', {
+          method: 'POST',
+          body: {
+            peopleId: currentCard.id
+          },
+        })
+
+        if (!response.ok) {
+          setError('Failed to connect with person')
+          swipeLockedRef.current = false
+          return
+        }
+
+        const result = (await response.json()) as { matched?: boolean }
+
+        if (result.matched) {
+          setMatchState({ open: true, name: currentCard.headline })
+          setExitDirection(direction)
+          return
+        }
+      } catch {
+        setError('Failed to connect with person')
+        swipeLockedRef.current = false
+        return
+      }
+    }
+
     setExitDirection(direction)
 
     window.setTimeout(() => {
-      setCurrentIndex((index) => index + 1)
-      setExitDirection(null)
-      resetDrag()
+      advanceCard()
     }, 220)
+  }
+
+  function handleKeepSwiping() {
+    setMatchState({ open: false, name: '' })
+    advanceCard()
+  }
+
+  function handleStartChat() {
+    setMatchState({ open: false, name: '' })
+    advanceCard()
+    navigate('/messages')
   }
 
   function handlePointerDown(clientX: number) {
@@ -316,6 +366,41 @@ export default function HomePage() {
   }
   return (
     <div className="homePage denoisr">
+      {matchState.open ? (
+        <div className="matchOverlay" role="dialog" aria-label="Match found">
+          <div className="matchOverlay__glow" aria-hidden="true" />
+          <div className="matchOverlay__ripple" aria-hidden="true" />
+          <div className="matchOverlay__spark matchOverlay__spark--1" aria-hidden="true" />
+          <div className="matchOverlay__spark matchOverlay__spark--2" aria-hidden="true" />
+          <div className="matchOverlay__spark matchOverlay__spark--3" aria-hidden="true" />
+          <div className="matchOverlay__spark matchOverlay__spark--4" aria-hidden="true" />
+
+          <div className="matchOverlay__cards" aria-hidden="true">
+            <div className="matchOverlay__card matchOverlay__card--left">
+              <div className="matchOverlay__avatar">Y</div>
+              <div className="matchOverlay__cardLabel">You</div>
+            </div>
+            <div className="matchOverlay__card matchOverlay__card--right">
+              <div className="matchOverlay__avatar">{matchState.name.slice(0, 1)}</div>
+              <div className="matchOverlay__cardLabel">{matchState.name}</div>
+            </div>
+          </div>
+
+          <div className="matchOverlay__content">
+            <div className="sectionLabel sectionLabel--mono">MATCHED</div>
+            <h2 className="matchOverlay__title">Connection unlocked. Start your conversation 🎉</h2>
+            <div className="matchOverlay__actions">
+              <button type="button" className="btn btn--solidDark" onClick={handleStartChat}>
+                Start Chat
+              </button>
+              <button type="button" className="btn btn--outlinedLight" onClick={handleKeepSwiping}>
+                Keep Swiping
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="container homeShell">
         <section className="homeFilters card">
           <div className="sectionLabel sectionLabel--mono">DISCOVERY FILTERS</div>
