@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { clearAuthToken } from '../auth'
 import NavIcon from '../components/ui/NavIcon'
 
 const connections = [
@@ -35,6 +38,15 @@ const connections = [
 ]
 
 export default function MessagesPage() {
+  const navigate = useNavigate()
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
+
+  function handleMobileLogout() {
+    clearAuthToken()
+    setMobileProfileOpen(false)
+    navigate('/login')
+  }
+
   return (
     <div className="messagesPage denoisr">
       <div className="container messagesShell">
@@ -114,6 +126,53 @@ export default function MessagesPage() {
           </div>
         </aside>
       </div>
+
+      <nav className="homeBottomNav" aria-label="Mobile navigation">
+        <button type="button" className="homeBottomNav__item" onClick={() => navigate('/home')}>
+          <NavIcon name="home" />
+          <span>Home</span>
+        </button>
+        <button type="button" className="homeBottomNav__item" onClick={() => navigate('/home')}>
+          <NavIcon name="connections" />
+          <span>Connections</span>
+        </button>
+        <button type="button" className="homeBottomNav__item homeBottomNav__item--active">
+          <NavIcon name="messages" />
+          <span>Messages</span>
+        </button>
+        <div className="homeBottomNav__profileWrap">
+          <button
+            type="button"
+            className={`homeBottomNav__item ${mobileProfileOpen ? 'homeBottomNav__item--active' : ''}`}
+            aria-expanded={mobileProfileOpen}
+            onClick={() => setMobileProfileOpen((value) => !value)}
+          >
+            <NavIcon name="profile" />
+            <span>Profile</span>
+          </button>
+
+          {mobileProfileOpen ? (
+            <div className="homeBottomNav__profileMenu">
+              <button type="button" className="homeBottomNav__profileAction">
+                View Profile
+              </button>
+              <button type="button" className="homeBottomNav__profileAction">
+                View Job Applications
+              </button>
+              <button type="button" className="homeBottomNav__profileAction" onClick={() => navigate('/messages')}>
+                View Connections
+              </button>
+              <button
+                type="button"
+                className="homeBottomNav__profileAction homeBottomNav__profileAction--danger"
+                onClick={handleMobileLogout}
+              >
+                Logout
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </nav>
     </div>
   )
 }
