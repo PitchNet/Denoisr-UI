@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { apiRequest, getAuthTokenFromCookies } from '../api'
+import { apiRequest } from '../api'
 import { clearAuthToken } from '../auth'
 import NavIcon from '../components/ui/NavIcon'
 import LoadingState from '../components/ui/LoadingState'
