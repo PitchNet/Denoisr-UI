@@ -27,6 +27,34 @@ export function isAuthenticated() {
   return token !== '' && token !== SIGNUP_PLACEHOLDER_TOKEN
 }
 
+export function getAuthenticatedUserId() {
+  const token = getAuthToken()
+
+  if (token === '' || token === SIGNUP_PLACEHOLDER_TOKEN) {
+    return ''
+  }
+
+  try {
+    const payload = token.split('.')[1]
+
+    if (!payload) {
+      return ''
+    }
+
+    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const decodedPayload = JSON.parse(window.atob(normalizedPayload)) as {
+      sub?: string
+      user_id?: string
+      userId?: string
+      id?: string
+    }
+
+    return decodedPayload.user_id ?? decodedPayload.userId ?? decodedPayload.id ?? decodedPayload.sub ?? ''
+  } catch {
+    return ''
+  }
+}
+
 export function hasSignupInProgress() {
   return sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY) !== null
 }

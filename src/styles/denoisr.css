@@ -2066,6 +2066,13 @@
   gap: 16px;
 }
 
+.messagesThreadLoading {
+  padding: 24px 0;
+  color: rgba(0, 0, 0, 0.68);
+  font-size: 15px;
+  text-align: center;
+}
+
 .messageBubble {
   width: min(100%, 560px);
   border: 1px solid rgba(0, 0, 0, 0.08);

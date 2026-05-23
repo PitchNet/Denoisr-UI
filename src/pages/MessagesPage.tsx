@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { clearAuthToken } from '../auth'
+import { clearAuthToken, getAuthenticatedUserId } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import NavIcon from '../components/ui/NavIcon'
 
 type Connection = {
   id: string
+  conversationId?: string
   name: string
   preview: string
   avatar: string
@@ -20,29 +21,13 @@ type Connection = {
   }>
 }
 
-const placeholderMessages = [
-  {
-    id: 'm1',
-    author: 'Aanya',
-    side: 'left',
-    text: 'I liked how Denoisr keeps the profile focused on proof rather than noise. Happy to share a few systems I shipped recently.',
-    meta: '09:14',
-  },
-  {
-    id: 'm2',
-    author: 'You',
-    side: 'right',
-    text: 'That would be helpful. I am especially interested in interfaces that help operators decide quickly without cognitive overload.',
-    meta: '09:18',
-  },
-  {
-    id: 'm3',
-    author: 'Aanya',
-    side: 'left',
-    text: 'Perfect fit. I worked on a recruiter review flow that cut task time by 38% by restructuring evaluation around context and evidence.',
-    meta: '09:22',
-  },
-]
+type ThreadMessage = {
+  id: string
+  author: string
+  side: 'left' | 'right'
+  text: string
+  meta: string
+}
 
 export default function MessagesPage() {
   const navigate = useNavigate()
@@ -51,6 +36,66 @@ export default function MessagesPage() {
   const [connections, setConnections] = useState<Connection[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [draftMessage, setDraftMessage] = useState('')
+  const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([])
+  const [isSending, setIsSending] = useState(false)
+  const [threadLoading, setThreadLoading] = useState(false)
+
+  async function loadThreadMessages(conversation: Connection, showLoader = true) {
+    try {
+      if (showLoader) {
+        setThreadLoading(true)
+      }
+
+      const response = await apiRequest('/FeedController/getMessages', {
+        method: 'POST',
+        body: conversation.conversationId
+          ? { conversationId: conversation.conversationId }
+          : { recipientId: conversation.id },
+      })
+
+      if (!response.ok) {
+        setError('Failed to load messages')
+        return
+      }
+
+      const currentUserId = getAuthenticatedUserId()
+      const data = (await response.json()) as Array<{
+        id: string
+        sender_id: string
+        content: string
+        created_at: string
+      }>
+
+      const formattedMessages: ThreadMessage[] = data.map((message) => ({
+        id: message.id,
+        author:
+          currentUserId !== '' && message.sender_id === currentUserId ? 'You' : conversation.name,
+        side:
+          currentUserId !== ''
+            ? message.sender_id === currentUserId
+              ? 'right'
+              : 'left'
+            : message.sender_id === conversation.id
+              ? 'left'
+              : 'right',
+        text: message.content,
+        meta: new Date(message.created_at).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      }))
+
+      setThreadMessages(formattedMessages)
+      setError(null)
+    } catch {
+      setError('Failed to load messages')
+    } finally {
+      if (showLoader) {
+        setThreadLoading(false)
+      }
+    }
+  }
 
   const activeConversation = useMemo(
     () => connections.find((connection) => connection.id === activeConversationId) ?? null,
@@ -86,6 +131,8 @@ export default function MessagesPage() {
         const data = (await response.json()) as Array<Record<string, unknown>>
         const formattedConnections: Connection[] = data.map((item, index) => ({
           id: String(item.id ?? item.personId ?? item.userId ?? `connection-${index}`),
+          conversationId:
+            item.conversationId === undefined ? undefined : String(item.conversationId),
           name: String(item.name ?? item.headline ?? 'Unknown connection'),
           preview: String(
             item.preview ?? item.lastMessage ?? item.intro ?? 'Start a contextual conversation.',
@@ -128,6 +175,23 @@ export default function MessagesPage() {
     fetchConnections()
   }, [])
 
+  useEffect(() => {
+    if (!activeConversation) {
+      setThreadMessages([])
+      return
+    }
+
+    loadThreadMessages(activeConversation, true)
+
+    const intervalId = window.setInterval(() => {
+      loadThreadMessages(activeConversation, false)
+    }, 1500)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [activeConversation])
+
   function handleMobileLogout() {
     clearAuthToken()
     setMobileProfileOpen(false)
@@ -135,7 +199,50 @@ export default function MessagesPage() {
   }
 
   function openConversation(id: string) {
+    setDraftMessage('')
     setActiveConversationId(id)
+  }
+
+  async function handleSendMessage() {
+    if (!activeConversation || draftMessage.trim() === '' || isSending) {
+      return
+    }
+
+    setIsSending(true)
+
+    try {
+      const content = draftMessage.trim()
+      const response = await apiRequest('/FeedController/sendMessage', {
+        method: 'POST',
+        body: {
+          recipientId: activeConversation.id,
+          content,
+        },
+      })
+
+      if (!response.ok) {
+        setError('Failed to send message')
+        return
+      }
+
+      setConnections((currentConnections) =>
+        currentConnections.map((connection) =>
+          connection.id === activeConversation.id
+            ? {
+                ...connection,
+                preview: content,
+              }
+            : connection,
+        ),
+      )
+      setDraftMessage('')
+      await loadThreadMessages(activeConversation, false)
+      setError(null)
+    } catch {
+      setError('Failed to send message')
+    } finally {
+      setIsSending(false)
+    }
   }
 
   function renderConversationItem(connection: Connection, mobile = false) {
@@ -283,18 +390,24 @@ export default function MessagesPage() {
 
               <div className="messagesThread__body">
                 <div className="messagesThread__inner">
-                  {placeholderMessages.map((message) => (
-                    <article
-                      key={message.id}
-                      className={`messageBubble ${
-                        message.side === 'right' ? 'messageBubble--outbound' : 'messageBubble--inbound'
-                      }`}
-                    >
-                      <div className="messageBubble__author">{message.author}</div>
-                      <p className="messageBubble__text">{message.text}</p>
-                      <div className="messageBubble__meta">{message.meta}</div>
-                    </article>
-                  ))}
+                  {threadLoading ? (
+                    <div className="messagesThreadLoading">Loading messages...</div>
+                  ) : threadMessages.length > 0 ? (
+                    threadMessages.map((message) => (
+                      <article
+                        key={message.id}
+                        className={`messageBubble ${
+                          message.side === 'right' ? 'messageBubble--outbound' : 'messageBubble--inbound'
+                        }`}
+                      >
+                        <div className="messageBubble__author">{message.author}</div>
+                        <p className="messageBubble__text">{message.text}</p>
+                        <div className="messageBubble__meta">{message.meta}</div>
+                      </article>
+                    ))
+                  ) : (
+                    <div className="messagesThreadLoading">No messages yet.</div>
+                  )}
                 </div>
               </div>
 
@@ -305,10 +418,12 @@ export default function MessagesPage() {
                     <textarea
                       className="messagesComposer__input"
                       placeholder="Type a thoughtful, high-context reply..."
+                      value={draftMessage}
+                      onChange={(e) => setDraftMessage(e.target.value)}
                     />
                   </label>
-                  <button type="button" className="btn btn--solidDark messagesComposer__sendBtn">
-                    Send
+                  <button type="button" className="btn btn--solidDark messagesComposer__sendBtn" onClick={handleSendMessage}>
+                    {isSending ? 'Sending...' : 'Send'}
                   </button>
                 </div>
               </footer>
