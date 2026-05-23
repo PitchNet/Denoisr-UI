@@ -1,66 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiRequest } from '../api'
 import { clearAuthToken } from '../auth'
+import LoadingState from '../components/ui/LoadingState'
 import NavIcon from '../components/ui/NavIcon'
 
-const connections = [
-  {
-    id: 'aanya',
-    name: 'Aanya Mehta',
-    preview: 'Shared a note on component systems and trust-heavy workflows.',
-    avatar: 'AM',
-    role: 'Frontend Engineer',
-    status: 'Open to roles',
-    openable: true,
-    chips: ['React', 'TypeScript', 'Design systems'],
-    details: [
-      {
-        title: 'Current intent',
-        body: 'Exploring roles where structured product systems and measurable outcomes matter more than visibility loops.',
-      },
-      {
-        title: 'Shared signal',
-        body: 'Strong overlap in workflow products, design systems, and trust-first enterprise tools.',
-      },
-    ],
-  },
-  {
-    id: 'mateo',
-    name: 'Mateo Ruiz',
-    preview: 'Sent examples of enterprise UX work for procurement flows.',
-    avatar: 'MR',
-    role: 'Product Designer',
-    status: 'Placeholder',
-    openable: false,
-  },
-  {
-    id: 'naomi',
-    name: 'Naomi Carter',
-    preview: 'Following up on calibrated scorecards and hiring ops systems.',
-    avatar: 'NC',
-    role: 'Recruiting Ops Lead',
-    status: 'Placeholder',
-    openable: false,
-  },
-  {
-    id: 'leah',
-    name: 'Leah Park',
-    preview: 'Open to discussing product design roles in structured teams.',
-    avatar: 'LP',
-    role: 'Design Systems Lead',
-    status: 'Placeholder',
-    openable: false,
-  },
-  {
-    id: 'omar',
-    name: 'Omar Khan',
-    preview: 'Interested in signal-first matching for technical recruiting.',
-    avatar: 'OK',
-    role: 'Talent Partner',
-    status: 'Placeholder',
-    openable: false,
-  },
-]
+type Connection = {
+  id: string
+  name: string
+  preview: string
+  avatar: string
+  role: string
+  status: string
+  openable: boolean
+  chips?: string[]
+  details?: Array<{
+    title: string
+    body: string
+  }>
+}
 
 const placeholderMessages = [
   {
@@ -90,10 +48,13 @@ export default function MessagesPage() {
   const navigate = useNavigate()
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  const [connections, setConnections] = useState<Connection[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const activeConversation = useMemo(
     () => connections.find((connection) => connection.id === activeConversationId) ?? null,
-    [activeConversationId],
+    [activeConversationId, connections],
   )
 
   useEffect(() => {
@@ -108,6 +69,65 @@ export default function MessagesPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  useEffect(() => {
+    async function fetchConnections() {
+      try {
+        setLoading(true)
+
+        const response = await apiRequest('/FeedController/getConnections', {
+          method: 'GET',
+        })
+
+        if (!response.ok) {
+          setError('Failed to load connections')
+          return
+        }
+
+        const data = (await response.json()) as Array<Record<string, unknown>>
+        const formattedConnections: Connection[] = data.map((item, index) => ({
+          id: String(item.id ?? item.personId ?? item.userId ?? `connection-${index}`),
+          name: String(item.name ?? item.headline ?? 'Unknown connection'),
+          preview: String(
+            item.preview ?? item.lastMessage ?? item.intro ?? 'Start a contextual conversation.',
+          ),
+          avatar: String(item.avatar ?? item.name ?? 'U')
+            .split(' ')
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0])
+            .join('')
+            .toUpperCase(),
+          role: String(item.currentRole ?? item.role ?? 'Professional'),
+          status: String(item.status ?? 'Connected'),
+          openable: index === 0,
+          chips: index === 0 ? ['React', 'TypeScript', 'Design systems'] : undefined,
+          details:
+            index === 0
+              ? [
+                  {
+                    title: 'Current intent',
+                    body: 'Exploring roles where structured product systems and measurable outcomes matter more than visibility loops.',
+                  },
+                  {
+                    title: 'Shared signal',
+                    body: 'Strong overlap in workflow products, design systems, and trust-first enterprise tools.',
+                  },
+                ]
+              : undefined,
+        }))
+
+        setConnections(formattedConnections.length > 0 ? formattedConnections : [])
+        setError(null)
+      } catch {
+        setError('Failed to load connections')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchConnections()
+  }, [])
+
   function handleMobileLogout() {
     clearAuthToken()
     setMobileProfileOpen(false)
@@ -118,7 +138,7 @@ export default function MessagesPage() {
     setActiveConversationId(id)
   }
 
-  function renderConversationItem(connection: (typeof connections)[number], mobile = false) {
+  function renderConversationItem(connection: Connection, mobile = false) {
     const content = (
       <>
         <div className="messagesAvatar">{connection.avatar}</div>
@@ -151,6 +171,20 @@ export default function MessagesPage() {
         {content}
       </button>
     )
+  }
+
+  if (loading) {
+    return (
+      <LoadingState
+        className="messagesPage"
+        label="Loading conversations"
+        detail="Bringing your active network threads into view."
+      />
+    )
+  }
+
+  if (error && connections.length === 0) {
+    return <div className="messagesPage messagesPage__error">{error}</div>
   }
 
   return (
