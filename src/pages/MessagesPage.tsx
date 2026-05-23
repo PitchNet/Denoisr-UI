@@ -4,6 +4,7 @@ import { apiRequest } from '../api'
 import { clearAuthToken, getAuthenticatedUserId } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import NavIcon from '../components/ui/NavIcon'
+import { supabase } from '../supabase'
 
 type Connection = {
   id: string
@@ -183,12 +184,32 @@ export default function MessagesPage() {
 
     loadThreadMessages(activeConversation, true)
 
-    const intervalId = window.setInterval(() => {
-      loadThreadMessages(activeConversation, false)
-    }, 1500)
+    const subscriptionConfig = activeConversation.conversationId
+      ? {
+          event: 'INSERT' as const,
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${activeConversation.conversationId}`,
+        }
+      : {
+          event: 'INSERT' as const,
+          schema: 'public',
+          table: 'messages',
+        }
+
+    const channel = supabase
+      .channel(`messages:${activeConversation.conversationId ?? activeConversation.id}`)
+      .on(
+        'postgres_changes',
+        subscriptionConfig,
+        () => {
+          loadThreadMessages(activeConversation, false)
+        },
+      )
+      .subscribe()
 
     return () => {
-      window.clearInterval(intervalId)
+      supabase.removeChannel(channel)
     }
   }, [activeConversation])
 
