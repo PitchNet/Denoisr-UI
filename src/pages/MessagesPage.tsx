@@ -148,20 +148,37 @@ export default function MessagesPage() {
           role: String(item.currentRole ?? item.role ?? 'Professional'),
           status: String(item.status ?? 'Connected'),
           openable: index === 0,
-          chips: index === 0 ? ['React', 'TypeScript', 'Design systems'] : undefined,
-          details:
-            index === 0
-              ? [
-                  {
-                    title: 'Current intent',
-                    body: 'Exploring roles where structured product systems and measurable outcomes matter more than visibility loops.',
-                  },
-                  {
-                    title: 'Shared signal',
-                    body: 'Strong overlap in workflow products, design systems, and trust-first enterprise tools.',
-                  },
-                ]
-              : undefined,
+          chips: Array.isArray(item.chips)
+            ? item.chips.filter((chip): chip is string => typeof chip === 'string')
+            : undefined,
+          details: Array.isArray(item.details)
+            ? item.details
+                .map((detail) => {
+                  if (
+                    typeof detail === 'object' &&
+                    detail !== null &&
+                    'title' in detail &&
+                    'body' in detail &&
+                    typeof detail.title === 'string' &&
+                    typeof detail.body === 'string'
+                  ) {
+                    return {
+                      title: detail.title,
+                      body: detail.body,
+                    }
+                  }
+
+                  return null
+                })
+                .filter(
+                  (
+                    detail,
+                  ): detail is {
+                    title: string
+                    body: string
+                  } => detail !== null,
+                )
+            : undefined,
         }))
 
         setConnections(formattedConnections.length > 0 ? formattedConnections : [])
