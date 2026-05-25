@@ -115,81 +115,81 @@ export default function MessagesPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  useEffect(() => {
-    async function fetchConnections() {
-      try {
-        setLoading(true)
+  async function fetchConnections(showLoader = true) {
+    try {
+      if (showLoader) setLoading(true)
 
-        const response = await apiRequest('/FeedController/getConnections', {
-          method: 'GET',
-        })
+      const response = await apiRequest('/FeedController/getConnections', {
+        method: 'GET',
+      })
 
-        if (!response.ok) {
-          setError('Failed to load connections')
-          return
-        }
-
-        const data = (await response.json()) as Array<Record<string, unknown>>
-        const formattedConnections: Connection[] = data.map((item, index) => ({
-          id: String(item.id ?? item.personId ?? item.userId ?? `connection-${index}`),
-          conversationId:
-            item.conversationId === undefined ? undefined : String(item.conversationId),
-          name: String(item.name ?? item.headline ?? 'Unknown connection'),
-          preview: String(
-            item.preview ?? item.lastMessage ?? item.intro ?? 'Start a contextual conversation.',
-          ),
-          avatar: String(item.avatar ?? item.name ?? 'U')
-            .split(' ')
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((part) => part[0])
-            .join('')
-            .toUpperCase(),
-          role: String(item.currentRole ?? item.role ?? 'Professional'),
-          status: String(item.status ?? 'Connected'),
-          openable: index === 0,
-          chips: Array.isArray(item.chips)
-            ? item.chips.filter((chip): chip is string => typeof chip === 'string')
-            : undefined,
-          details: Array.isArray(item.details)
-            ? item.details
-                .map((detail) => {
-                  if (
-                    typeof detail === 'object' &&
-                    detail !== null &&
-                    'title' in detail &&
-                    'body' in detail &&
-                    typeof detail.title === 'string' &&
-                    typeof detail.body === 'string'
-                  ) {
-                    return {
-                      title: detail.title,
-                      body: detail.body,
-                    }
-                  }
-
-                  return null
-                })
-                .filter(
-                  (
-                    detail,
-                  ): detail is {
-                    title: string
-                    body: string
-                  } => detail !== null,
-                )
-            : undefined,
-        }))
-
-        setConnections(formattedConnections.length > 0 ? formattedConnections : [])
-        setError(null)
-      } catch {
+      if (!response.ok) {
         setError('Failed to load connections')
-      } finally {
-        setLoading(false)
+        return
       }
-    }
 
+      const data = (await response.json()) as Array<Record<string, unknown>>
+      const formattedConnections: Connection[] = data.map((item, index) => ({
+        id: String(item.id ?? item.personId ?? item.userId ?? `connection-${index}`),
+        conversationId:
+          item.conversationId === undefined ? undefined : String(item.conversationId),
+        name: String(item.name ?? item.headline ?? 'Unknown connection'),
+        preview: String(
+          item.preview ?? item.lastMessage ?? item.intro ?? 'Start a contextual conversation.',
+        ),
+        avatar: String(item.avatar ?? item.name ?? 'U')
+          .split(' ')
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((part) => part[0])
+          .join('')
+          .toUpperCase(),
+        role: String(item.currentRole ?? item.role ?? 'Professional'),
+        status: String(item.status ?? 'Connected'),
+        openable: index === 0,
+        chips: Array.isArray(item.chips)
+          ? item.chips.filter((chip): chip is string => typeof chip === 'string')
+          : undefined,
+        details: Array.isArray(item.details)
+          ? item.details
+              .map((detail) => {
+                if (
+                  typeof detail === 'object' &&
+                  detail !== null &&
+                  'title' in detail &&
+                  'body' in detail &&
+                  typeof detail.title === 'string' &&
+                  typeof detail.body === 'string'
+                ) {
+                  return {
+                    title: detail.title,
+                    body: detail.body,
+                  }
+                }
+
+                return null
+              })
+              .filter(
+                (
+                  detail,
+                ): detail is {
+                  title: string
+                  body: string
+                } => detail !== null,
+              )
+          : undefined,
+      }))
+
+      setConnections(formattedConnections.length > 0 ? formattedConnections : [])
+      setError(null)
+    } catch {
+      setError('Failed to load connections')
+    } finally {
+      if (showLoader) setLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchConnections()
   }, [])
 
@@ -274,6 +274,7 @@ export default function MessagesPage() {
         ),
       )
       setDraftMessage('')
+      await fetchConnections(false)
       await loadThreadMessages(activeConversation, false)
       setError(null)
     } catch {
