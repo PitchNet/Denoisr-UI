@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { clearAuthToken, getAuthenticatedUserId } from '../auth'
@@ -32,6 +32,7 @@ type ThreadMessage = {
 
 export default function MessagesPage() {
   const navigate = useNavigate()
+  const messagesThreadBodyRef = useRef<HTMLDivElement>(null)
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [connections, setConnections] = useState<Connection[]>([])
@@ -190,18 +191,45 @@ export default function MessagesPage() {
   }
 
   useEffect(() => {
+    if (threadLoading || threadMessages.length === 0) return
+
+    const container = messagesThreadBodyRef.current
+    if (container) {
+      const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100
+      if (isAtBottom) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth',
+        })
+      }
+    }
+  }, [threadMessages, threadLoading])
+
+  useEffect(() => {
+    if (activeConversationId) {
+      const timer = setTimeout(() => {
+        const container = messagesThreadBodyRef.current
+        if (container) {
+          container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
+        }
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [activeConversationId])
+
+  useEffect(() => {
     fetchConnections()
   }, [])
 
   useEffect(() => {
-    if (!activeConversation) {
+    if (!activeConversationId) {
       setThreadMessages([])
       return
     }
 
-    loadThreadMessages(activeConversation, true)
+    loadThreadMessages(activeConversation!, true)
 
-    const subscriptionConfig = activeConversation.conversationId
+    const subscriptionConfig = activeConversation?.conversationId
       ? {
           event: 'INSERT' as const,
           schema: 'public',
@@ -215,12 +243,12 @@ export default function MessagesPage() {
         }
 
     const channel = supabase
-      .channel(`messages:${activeConversation.conversationId ?? activeConversation.id}`)
+      .channel(`messages:${activeConversation?.conversationId ?? activeConversation?.id}`)
       .on(
         'postgres_changes',
         subscriptionConfig,
         () => {
-          loadThreadMessages(activeConversation, false)
+          loadThreadMessages(activeConversation!, false)
         },
       )
       .subscribe()
@@ -228,7 +256,7 @@ export default function MessagesPage() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [activeConversation])
+  }, [activeConversationId])
 
   function handleMobileLogout() {
     clearAuthToken()
@@ -274,7 +302,6 @@ export default function MessagesPage() {
         ),
       )
       setDraftMessage('')
-      await fetchConnections(false)
       await loadThreadMessages(activeConversation, false)
       setError(null)
     } catch {
@@ -427,28 +454,28 @@ export default function MessagesPage() {
                 <div className="messagesThread__status">{activeConversation.status}</div>
               </header>
 
-              <div className="messagesThread__body">
-                <div className="messagesThread__inner">
-                  {threadLoading ? (
-                    <div className="messagesThreadLoading">Loading messages...</div>
-                  ) : threadMessages.length > 0 ? (
-                    threadMessages.map((message) => (
-                      <article
-                        key={message.id}
-                        className={`messageBubble ${
-                          message.side === 'right' ? 'messageBubble--outbound' : 'messageBubble--inbound'
-                        }`}
-                      >
-                        <div className="messageBubble__author">{message.author}</div>
-                        <p className="messageBubble__text">{message.text}</p>
-                        <div className="messageBubble__meta">{message.meta}</div>
-                      </article>
-                    ))
-                  ) : (
-                    <div className="messagesThreadLoading">No messages yet.</div>
-                  )}
-                </div>
-              </div>
+               <div className="messagesThread__body" ref={messagesThreadBodyRef}>
+                 <div className="messagesThread__inner">
+                   {threadLoading ? (
+                     <div className="messagesThreadLoading">Loading messages...</div>
+                   ) : threadMessages.length > 0 ? (
+                     threadMessages.map((message) => (
+                       <article
+                         key={message.id}
+                         className={`messageBubble ${
+                           message.side === 'right' ? 'messageBubble--outbound' : 'messageBubble--inbound'
+                         }`}
+                       >
+                         <div className="messageBubble__author">{message.author}</div>
+                         <p className="messageBubble__text">{message.text}</p>
+                         <div className="messageBubble__meta">{message.meta}</div>
+                       </article>
+                     ))
+                   ) : (
+                     <div className="messagesThreadLoading">No messages yet.</div>
+                   )}
+                 </div>
+               </div>
 
               <footer className="messagesComposer">
                 <div className="messagesComposer__box messagesComposer__box--active">
