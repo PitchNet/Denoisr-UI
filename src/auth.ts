@@ -1,7 +1,7 @@
 import { getAuthTokenFromCookies } from './api'
 
 const AUTH_COOKIE_NAME = 'denoisr_auth_token'
-const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 30
+const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 10080
 const SIGNUP_PLACEHOLDER_TOKEN = 'signup-token'
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 
