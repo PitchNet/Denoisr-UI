@@ -126,7 +126,7 @@ export default function MessagesPage() {
 
       if (!response.ok) {
         setError('Failed to load connections')
-        return
+        return []
       }
 
       const data = (await response.json()) as Array<Record<string, unknown>>
@@ -183,8 +183,10 @@ export default function MessagesPage() {
 
       setConnections(formattedConnections.length > 0 ? formattedConnections : [])
       setError(null)
+      return formattedConnections
     } catch {
       setError('Failed to load connections')
+      return []
     } finally {
       if (showLoader) setLoading(false)
     }
@@ -302,7 +304,9 @@ export default function MessagesPage() {
         ),
       )
       setDraftMessage('')
-      await loadThreadMessages(activeConversation, false)
+      const refreshed = await fetchConnections(false)
+      const updated = refreshed.find((c) => c.id === activeConversation.id) ?? activeConversation
+      await loadThreadMessages(updated, false)
       setError(null)
     } catch {
       setError('Failed to send message')
