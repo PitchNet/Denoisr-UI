@@ -1,8 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { storeAuthTokenFromResponse } from '../auth'
-import Button from '../components/ui/Button'
+import '../styles/dashboard.css'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 
@@ -61,11 +61,7 @@ export default function DashboardPage() {
     () =>
       highlightEntries.map(({ query }) => {
         const normalizedQuery = query.trim().toLowerCase()
-
-        if (!normalizedQuery) {
-          return []
-        }
-
+        if (!normalizedQuery) return []
         return highlightSuggestions
           .filter((item) => item.toLowerCase().includes(normalizedQuery))
           .slice(0, 6)
@@ -74,10 +70,8 @@ export default function DashboardPage() {
   )
 
   function updateHighlightEntry(index: number, updater: (entry: HighlightEntry) => HighlightEntry) {
-    setHighlightEntries((currentEntries) =>
-      currentEntries.map((entry, entryIndex) =>
-        entryIndex === index ? updater(entry) : entry,
-      ),
+    setHighlightEntries((current) =>
+      current.map((entry, i) => (i === index ? updater(entry) : entry)),
     )
   }
 
@@ -86,29 +80,17 @@ export default function DashboardPage() {
       const exactMatch = highlightSuggestions.find(
         (item) => item.toLowerCase() === value.trim().toLowerCase(),
       )
-
-      return {
-        ...entry,
-        query: value,
-        selectedValue: exactMatch ?? '',
-        menuOpen: true,
-      }
+      return { ...entry, query: value, selectedValue: exactMatch ?? '', menuOpen: true }
     })
   }
 
   function handleHighlightFocus(index: number) {
-    updateHighlightEntry(index, (entry) => ({
-      ...entry,
-      menuOpen: true,
-    }))
+    updateHighlightEntry(index, (entry) => ({ ...entry, menuOpen: true }))
   }
 
   function handleHighlightBlur(index: number) {
     window.setTimeout(() => {
-      updateHighlightEntry(index, (entry) => ({
-        ...entry,
-        menuOpen: false,
-      }))
+      updateHighlightEntry(index, (entry) => ({ ...entry, menuOpen: false }))
     }, 120)
   }
 
@@ -122,53 +104,40 @@ export default function DashboardPage() {
   }
 
   function addHighlightRow() {
-    if (!canAddHighlight) {
-      return
-    }
-
-    setHighlightEntries((currentEntries) => [
-      ...currentEntries,
-      { query: '', selectedValue: '', menuOpen: false },
-    ])
+    if (!canAddHighlight) return
+    setHighlightEntries((current) => [...current, { query: '', selectedValue: '', menuOpen: false }])
   }
 
   function removeHighlightRow(index: number) {
-    setHighlightEntries((currentEntries) =>
-      currentEntries.length === 1
+    setHighlightEntries((current) =>
+      current.length === 1
         ? [{ query: '', selectedValue: '', menuOpen: false }]
-        : currentEntries.filter((_, entryIndex) => entryIndex !== index),
+        : current.filter((_, i) => i !== index),
     )
   }
 
   function updateTag(index: number, value: string) {
-    setTagEntries((currentEntries) =>
-      currentEntries.map((entry, entryIndex) => (entryIndex === index ? value : entry)),
-    )
+    setTagEntries((current) => current.map((entry, i) => (i === index ? value : entry)))
   }
 
   function addTag() {
-    if (!canAddTag) {
-      return
-    }
-
-    setTagEntries((currentEntries) => [...currentEntries, ''])
+    if (!canAddTag) return
+    setTagEntries((current) => [...current, ''])
   }
 
   function removeTag(index: number) {
-    setTagEntries((currentEntries) =>
-      currentEntries.length === 1 ? [''] : currentEntries.filter((_, entryIndex) => entryIndex !== index),
+    setTagEntries((current) =>
+      current.length === 1 ? [''] : current.filter((_, i) => i !== index),
     )
   }
 
   function updateSectionItem(sectionIndex: number, itemIndex: number, value: string) {
-    setSections((currentSections) =>
-      currentSections.map((section, currentSectionIndex) =>
-        currentSectionIndex === sectionIndex
+    setSections((current) =>
+      current.map((section, sIdx) =>
+        sIdx === sectionIndex
           ? {
               ...section,
-              items: section.items.map((item, currentItemIndex) =>
-                currentItemIndex === itemIndex ? value : item,
-              ),
+              items: section.items.map((item, iIdx) => (iIdx === itemIndex ? value : item)),
             }
           : section,
       ),
@@ -176,38 +145,23 @@ export default function DashboardPage() {
   }
 
   function addSectionItem(sectionIndex: number) {
-    setSections((currentSections) =>
-      currentSections.map((section, currentSectionIndex) => {
-        if (currentSectionIndex !== sectionIndex) {
-          return section
-        }
-
+    setSections((current) =>
+      current.map((section, sIdx) => {
+        if (sIdx !== sectionIndex) return section
         const lastItem = section.items[section.items.length - 1]
-        if (lastItem.trim() === '') {
-          return section
-        }
-
-        return {
-          ...section,
-          items: [...section.items, ''],
-        }
+        if (lastItem.trim() === '') return section
+        return { ...section, items: [...section.items, ''] }
       }),
     )
   }
 
   function removeSectionItem(sectionIndex: number, itemIndex: number) {
-    setSections((currentSections) =>
-      currentSections.map((section, currentSectionIndex) => {
-        if (currentSectionIndex !== sectionIndex) {
-          return section
-        }
-
+    setSections((current) =>
+      current.map((section, sIdx) => {
+        if (sIdx !== sectionIndex) return section
         return {
           ...section,
-          items:
-            section.items.length === 1
-              ? ['']
-              : section.items.filter((_, currentItemIndex) => currentItemIndex !== itemIndex),
+          items: section.items.length === 1 ? [''] : section.items.filter((_, i) => i !== itemIndex),
         }
       }),
     )
@@ -255,7 +209,7 @@ export default function DashboardPage() {
       })
 
       if (!response.ok) {
-        setSaveError('Saving profile failed')
+        setSaveError('Saving profile failed.')
         return
       }
 
@@ -263,190 +217,170 @@ export default function DashboardPage() {
       sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY)
       navigate('/home')
     } catch {
-      setSaveError('Saving profile failed')
+      setSaveError('Saving profile failed.')
     } finally {
       setIsSaving(false)
     }
   }
 
   return (
-    <div className="dashboardPage denoisr">
-      <section className="dashboardIntro">
-        <div className="dashboardGlow dashboardGlow--pink" aria-hidden="true" />
-        <div className="dashboardGlow dashboardGlow--lavender" aria-hidden="true" />
+    <div className="dp">
+      {/* ── Intro ── */}
+      <section className="dp-hero">
+        <div className="dp-hero__wash" aria-hidden="true" />
+        <div className="dp-hero__inner">
+          <span className="dp-eyebrow">Profile · People mode</span>
+          <h1 className="dp-hero__title">
+            Compose a card that reads <em>like signal</em>, not a résumé dump.
+          </h1>
+          <p className="dp-hero__sub">
+            Denoisr cards are short, deliberate, and proof-led. Fill the fields the way you would
+            describe yourself to someone whose attention is already half-gone.
+          </p>
 
-        <div className="container dashboardIntro__inner">
-          <div className="dashboardIntro__copy">
-            <div className="sectionLabel sectionLabel--mono">PEOPLE PROFILE</div>
-            <h1 className="dashboardTitle">Compose a profile that reads like signal, not a resume dump.</h1>
-            <p className="dashboardSub">
-              Denoisr works when your story is compact, credible, and easy to evaluate.
-              Structure your profile like a sharp card someone would want to keep swiping on.
-            </p>
-          </div>
-
-          <div className="dashboardStats" aria-label="Profile setup highlights">
-            <div className="miniStat">
-              <div className="miniStat__value">3</div>
-              <div className="miniStat__label">Signal blocks: profile, tags, sections</div>
-            </div>
-            <div className="miniStat">
-              <div className="miniStat__value">2</div>
-              <div className="miniStat__label">Proof-first sections for fit and work</div>
-            </div>
-            <div className="miniStat">
-              <div className="miniStat__value">0</div>
-              <div className="miniStat__label">Generic buzzwords without evidence</div>
-            </div>
-          </div>
+          <ol className="dp-stepline">
+            <li><span className="dp-stepline__num">01</span> Profile fundamentals</li>
+            <li><span className="dp-stepline__num">02</span> Highlights and tags</li>
+            <li><span className="dp-stepline__num">03</span> Proof and intent</li>
+          </ol>
         </div>
       </section>
 
-      <section className="section section--light dashboardSection">
-        <div className="container dashboardLayout">
-          <div className="card dashboardFormCard">
-            <div className="dashboardCardTop">
-              <div>
-                <div className="sectionLabel sectionLabel--mono">PROFILE COMPOSER</div>
-                <h2 className="sectionTitle">Build the card recruiters should actually open.</h2>
-                <p className="sectionSub dashboardSectionSub">
-                  Every field below maps directly into the people profile payload. Keep it specific,
-                  concise, and proof-oriented.
-                </p>
-              </div>
-              <div className="dashboardBadge">People mode payload</div>
-            </div>
+      {/* ── Composer ── */}
+      <section className="dp-section">
+        <div className="dp-grid">
+          <article className="dp-card dp-composer">
+            <header className="dp-card__head">
+              <span className="dp-eyebrow">Composer · People payload</span>
+              <h2 className="dp-card__title">Build the card someone would actually open.</h2>
+              <p className="dp-card__sub">
+                Every field maps directly to the people-card model. Keep it specific, concise,
+                proof-oriented.
+              </p>
+            </header>
 
-            <form className="dashboardForm" onSubmit={handleSubmit}>
-              <div className="dashboardGrid">
-                <label className="field">
-                  <span className="field__label">Name (*)</span>
-                  <input className="field__input" type="text" name="name" required minLength={2} maxLength={80} placeholder="Mateo Ruiz" />
-                </label>
+            <form className="dp-form" onSubmit={handleSubmit}>
+              {/* Fundamentals */}
+              <div className="dp-block">
+                <span className="dp-blockBrow">— 01 Fundamentals</span>
 
-                <label className="field">
-                  <span className="field__label">Phone Number (*)</span>
-                  <input className="field__input" type="tel" name="phoneNumber" required pattern="^\+?[0-9()\-\s]{6,20}$" placeholder="798787" />
-                </label>
+                <div className="dp-grid2">
+                  <label className="dp-field">
+                    <span className="dp-label">Name</span>
+                    <input className="dp-input" type="text" name="name" required minLength={2} maxLength={80} placeholder="Mateo Ruiz" />
+                  </label>
 
-                <label className="field">
-                  <span className="field__label">Current Role (*)</span>
-                  <input className="field__input" type="text" name="currentRole" required minLength={2} maxLength={80} placeholder="Product Designer" />
-                </label>
+                  <label className="dp-field">
+                    <span className="dp-label">Phone</span>
+                    <input className="dp-input" type="tel" name="phoneNumber" required pattern="^\+?[0-9()\-\s]{6,20}$" placeholder="+34 600 000 000" />
+                  </label>
 
-                <label className="field">
-                  <span className="field__label">Organization (*)</span>
-                  <input className="field__input" type="text" name="organization" required minLength={2} maxLength={80} placeholder="zinfi" />
-                </label>
+                  <label className="dp-field">
+                    <span className="dp-label">Current role</span>
+                    <input className="dp-input" type="text" name="currentRole" required minLength={2} maxLength={80} placeholder="Product Designer" />
+                  </label>
 
-                <label className="field field--full">
-                  <span className="field__label">Location (*)</span>
-                  <input className="field__input" type="text" name="location" required minLength={2} maxLength={80} placeholder="Madrid, Spain" />
-                </label>
+                  <label className="dp-field">
+                    <span className="dp-label">Organization</span>
+                    <input className="dp-input" type="text" name="organization" required minLength={2} maxLength={80} placeholder="Zinfi" />
+                  </label>
 
-                <label className="field">
-                  <span className="field__label">Experience (*)</span>
-                  <input className="field__input" type="number" name="experience" required min={0} max={40} step={1} placeholder="6" />
-                </label>
+                  <label className="dp-field dp-field--full">
+                    <span className="dp-label">Location</span>
+                    <input className="dp-input" type="text" name="location" required minLength={2} maxLength={80} placeholder="Madrid, Spain" />
+                  </label>
 
-                <label className="field">
-                  <span className="field__label">Salary (*)</span>
-                  <input className="field__input" type="number" name="salary" required min={0} max={1000} step={1} placeholder="92" />
-                </label>
+                  <label className="dp-field">
+                    <span className="dp-label">Experience (years)</span>
+                    <input className="dp-input" type="number" name="experience" required min={0} max={40} step={1} placeholder="6" />
+                  </label>
 
-                <label className="field field--full">
-                  <span className="field__label">Intro (*)</span>
-                  <textarea className="field__input dashboardTextarea" name="intro" required minLength={40} maxLength={280} placeholder="Designs interfaces that remove clutter and help users evaluate choices with confidence instead of guesswork." />
-                </label>
-              </div>
+                  <label className="dp-field">
+                    <span className="dp-label">Target comp ($k)</span>
+                    <input className="dp-input" type="number" name="salary" required min={0} max={1000} step={1} placeholder="92" />
+                  </label>
 
-              <div className="dashboardBlock">
-                <div className="dashboardBlock__head">
-                  <div>
-                    <div className="field__label">Highlights (*)</div>
-                    <p className="dashboardSkillsHint">
-                      Search and pick crisp capability labels.
-                    </p>
-                  </div>
+                  <label className="dp-field dp-field--full">
+                    <span className="dp-label">Intro</span>
+                    <textarea
+                      className="dp-input dp-textarea"
+                      name="intro"
+                      required
+                      minLength={40}
+                      maxLength={280}
+                      placeholder="Designs interfaces that remove clutter and help users evaluate choices with confidence instead of guesswork."
+                    />
+                  </label>
                 </div>
+              </div>
+
+              {/* Highlights */}
+              <div className="dp-block">
+                <span className="dp-blockBrow">— 02 Highlights</span>
+                <p className="dp-blockHint">Crisp capability labels. Pick from the suggestions or type your own.</p>
 
                 {highlightEntries.map((entry, index) => {
-                  const matchingHighlights = matchingHighlightsByIndex[index]
-                  const rowId = `highlight-suggestions-${index}`
-                  const isLastRow = index === highlightEntries.length - 1
-
+                  const matching = matchingHighlightsByIndex[index]
+                  const rowId = `dp-hl-${index}`
+                  const isLast = index === highlightEntries.length - 1
                   return (
-                    <div className="dashboardSkillRow dashboardSkillRow--compact" key={`highlight-row-${index}`}>
-                      <div className="dashboardSkillField">
-                        <label className="field dashboardSkillSearch">
-                          <span className="field__label">Highlight {index + 1} (*)</span>
-                          <input
-                            className="field__input"
-                            type="search"
-                            value={entry.query}
-                            onChange={(e) => handleHighlightChange(index, e.target.value)}
-                            onFocus={() => handleHighlightFocus(index)}
-                            onBlur={() => handleHighlightBlur(index)}
-                            placeholder="Search a highlight"
-                            autoComplete="off"
-                            aria-expanded={entry.menuOpen && matchingHighlights.length > 0}
-                            aria-controls={rowId}
-                            required
-                          />
-                          <input className="dashboardHiddenInput" type="text" value={entry.selectedValue} readOnly tabIndex={-1} aria-hidden="true" />
-                          {entry.menuOpen && matchingHighlights.length > 0 ? (
-                            <div className="dashboardSkillDropdown" id={rowId}>
-                              {matchingHighlights.map((item) => (
-                                <button key={`${item}-${index}`} type="button" className="dashboardSkillOption" onClick={() => selectHighlight(index, item)}>
-                                  {item}
-                                </button>
-                              ))}
-                            </div>
-                          ) : null}
-                        </label>
-                      </div>
-
-                      <div className="dashboardInlineActions">
-                        <button type="button" className="dashboardIconBtn" onClick={() => removeHighlightRow(index)} aria-label={`Remove highlight ${index + 1}`}>
-                          -
-                        </button>
-                        {isLastRow ? (
-                          <button type="button" className="dashboardIconBtn dashboardIconBtn--dark" onClick={addHighlightRow} disabled={!canAddHighlight} aria-label="Add highlight">
-                            +
-                          </button>
+                    <div className="dp-row" key={`hl-${index}`}>
+                      <label className="dp-field dp-field--grow">
+                        <span className="dp-label">Highlight {String(index + 1).padStart(2, '0')}</span>
+                        <input
+                          className="dp-input"
+                          type="search"
+                          value={entry.query}
+                          onChange={(e) => handleHighlightChange(index, e.target.value)}
+                          onFocus={() => handleHighlightFocus(index)}
+                          onBlur={() => handleHighlightBlur(index)}
+                          placeholder="Search a highlight"
+                          autoComplete="off"
+                          aria-expanded={entry.menuOpen && matching.length > 0}
+                          aria-controls={rowId}
+                          required
+                        />
+                        <input
+                          className="dp-hidden"
+                          type="text"
+                          value={entry.selectedValue}
+                          readOnly
+                          tabIndex={-1}
+                          aria-hidden="true"
+                        />
+                        {entry.menuOpen && matching.length > 0 ? (
+                          <div className="dp-suggest" id={rowId}>
+                            {matching.map((item) => (
+                              <button
+                                key={`${item}-${index}`}
+                                type="button"
+                                className="dp-suggest__opt"
+                                onClick={() => selectHighlight(index, item)}
+                              >
+                                {item}
+                              </button>
+                            ))}
+                          </div>
                         ) : null}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              <div className="dashboardBlock">
-                <div className="dashboardBlock__head">
-                  <div>
-                    <div className="field__label">Tags (*)</div>
-                    <p className="dashboardSkillsHint">
-                      Short contextual chips like work mode, openness, or preference.
-                    </p>
-                  </div>
-                </div>
-
-                {tagEntries.map((entry, index) => {
-                  const isLastRow = index === tagEntries.length - 1
-
-                  return (
-                    <div className="dashboardSkillRow dashboardSkillRow--compact" key={`tag-row-${index}`}>
-                      <label className="field">
-                        <span className="field__label">Tag {index + 1} (*)</span>
-                        <input className="field__input" type="text" value={entry} onChange={(e) => updateTag(index, e.target.value)} required maxLength={40} placeholder="Hybrid" />
                       </label>
 
-                      <div className="dashboardInlineActions">
-                        <button type="button" className="dashboardIconBtn" onClick={() => removeTag(index)} aria-label={`Remove tag ${index + 1}`}>
-                          -
+                      <div className="dp-rowActions">
+                        <button
+                          type="button"
+                          className="dp-iconBtn"
+                          onClick={() => removeHighlightRow(index)}
+                          aria-label={`Remove highlight ${index + 1}`}
+                        >
+                          −
                         </button>
-                        {isLastRow ? (
-                          <button type="button" className="dashboardIconBtn dashboardIconBtn--dark" onClick={addTag} disabled={!canAddTag} aria-label="Add tag">
+                        {isLast ? (
+                          <button
+                            type="button"
+                            className="dp-iconBtn dp-iconBtn--ink"
+                            onClick={addHighlightRow}
+                            disabled={!canAddHighlight}
+                            aria-label="Add highlight"
+                          >
                             +
                           </button>
                         ) : null}
@@ -456,42 +390,103 @@ export default function DashboardPage() {
                 })}
               </div>
 
-              <div className="dashboardBlock">
-                <div className="dashboardBlock__head">
-                  <div>
-                    <div className="field__label">Sections (*)</div>
-                    <p className="dashboardSkillsHint">
-                      Build narrative blocks like proof of work and intent. Each block contains a title and bullet points.
-                    </p>
-                  </div>
-                </div>
+              {/* Tags */}
+              <div className="dp-block">
+                <span className="dp-blockBrow">— 03 Tags</span>
+                <p className="dp-blockHint">Short contextual chips — work mode, openness, preferences.</p>
+
+                {tagEntries.map((entry, index) => {
+                  const isLast = index === tagEntries.length - 1
+                  return (
+                    <div className="dp-row" key={`tag-${index}`}>
+                      <label className="dp-field dp-field--grow">
+                        <span className="dp-label">Tag {String(index + 1).padStart(2, '0')}</span>
+                        <input
+                          className="dp-input"
+                          type="text"
+                          value={entry}
+                          onChange={(e) => updateTag(index, e.target.value)}
+                          required
+                          maxLength={40}
+                          placeholder="Hybrid"
+                        />
+                      </label>
+
+                      <div className="dp-rowActions">
+                        <button
+                          type="button"
+                          className="dp-iconBtn"
+                          onClick={() => removeTag(index)}
+                          aria-label={`Remove tag ${index + 1}`}
+                        >
+                          −
+                        </button>
+                        {isLast ? (
+                          <button
+                            type="button"
+                            className="dp-iconBtn dp-iconBtn--ink"
+                            onClick={addTag}
+                            disabled={!canAddTag}
+                            aria-label="Add tag"
+                          >
+                            +
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Sections */}
+              <div className="dp-block">
+                <span className="dp-blockBrow">— 04 Proof and intent</span>
+                <p className="dp-blockHint">
+                  Narrative blocks. Each title is fixed; the points underneath are yours to write.
+                </p>
 
                 {sections.map((section, sectionIndex) => {
                   const canAddPoint = section.items[section.items.length - 1].trim() !== ''
-
                   return (
-                    <div className="dashboardSectionCard" key={`section-${sectionIndex}`}>
-                      <div className="dashboardSectionCard__head">
-                        <div className="dashboardSectionHeading">
-                          <div className="field__label">Section {sectionIndex + 1}</div>
-                          <h3 className="dashboardSectionTitle">{fixedSections[sectionIndex]}</h3>
-                        </div>
-                      </div>
+                    <div className="dp-subblock" key={`sec-${sectionIndex}`}>
+                      <header className="dp-subblock__head">
+                        <span className="dp-eyebrow">Section {String(sectionIndex + 1).padStart(2, '0')}</span>
+                        <h3 className="dp-subblock__title">{fixedSections[sectionIndex]}</h3>
+                      </header>
 
-                      <div className="dashboardSectionItems">
+                      <div className="dp-subblock__items">
                         {section.items.map((item, itemIndex) => (
-                          <div className="dashboardSkillRow dashboardSkillRow--compact" key={`section-${sectionIndex}-item-${itemIndex}`}>
-                            <label className="field field--full">
-                              <span className="field__label">Point {itemIndex + 1} (*)</span>
-                              <textarea className="field__input dashboardTextarea dashboardTextarea--sm" value={item} onChange={(e) => updateSectionItem(sectionIndex, itemIndex, e.target.value)} required minLength={8} maxLength={220} placeholder="Defined information architecture for a multi-panel procurement tool." />
+                          <div className="dp-row" key={`sec-${sectionIndex}-${itemIndex}`}>
+                            <label className="dp-field dp-field--grow">
+                              <span className="dp-label">Point {String(itemIndex + 1).padStart(2, '0')}</span>
+                              <textarea
+                                className="dp-input dp-textarea dp-textarea--sm"
+                                value={item}
+                                onChange={(e) => updateSectionItem(sectionIndex, itemIndex, e.target.value)}
+                                required
+                                minLength={8}
+                                maxLength={220}
+                                placeholder="Defined information architecture for a multi-panel procurement tool."
+                              />
                             </label>
 
-                            <div className="dashboardInlineActions">
-                              <button type="button" className="dashboardIconBtn" onClick={() => removeSectionItem(sectionIndex, itemIndex)} aria-label={`Remove point ${itemIndex + 1}`}>
-                                -
+                            <div className="dp-rowActions">
+                              <button
+                                type="button"
+                                className="dp-iconBtn"
+                                onClick={() => removeSectionItem(sectionIndex, itemIndex)}
+                                aria-label={`Remove point ${itemIndex + 1}`}
+                              >
+                                −
                               </button>
                               {itemIndex === section.items.length - 1 ? (
-                                <button type="button" className="dashboardIconBtn dashboardIconBtn--dark" onClick={() => addSectionItem(sectionIndex)} disabled={!canAddPoint} aria-label="Add point">
+                                <button
+                                  type="button"
+                                  className="dp-iconBtn dp-iconBtn--ink"
+                                  onClick={() => addSectionItem(sectionIndex)}
+                                  disabled={!canAddPoint}
+                                  aria-label="Add point"
+                                >
                                   +
                                 </button>
                               ) : null}
@@ -504,51 +499,45 @@ export default function DashboardPage() {
                 })}
               </div>
 
-              <div className="dashboardActions">
-                <button type="submit" className="btn btn--solidDark">
-                  {isSaving ? 'Saving profile...' : 'Save profile signal'}
+              <div className="dp-actions">
+                <button type="submit" className="btn btn--solidDark" disabled={isSaving}>
+                  {isSaving ? 'Saving…' : 'Save profile'}
                 </button>
-                <Button to="/" variant="outlinedLight">
-                  Back to home
-                </Button>
+                <Link to="/" className="btn btn--outlinedLight">Back to home</Link>
               </div>
 
               {saveError ? (
-                <div className="dashboardError" role="alert">
-                  {saveError}
-                </div>
+                <div className="dp-error" role="alert">{saveError}</div>
               ) : null}
             </form>
-          </div>
+          </article>
 
-          <aside className="dashboardRail section--dark">
-            <div className="sectionLabel sectionLabel--light">WHY THIS MATTERS</div>
-            <h2 className="sectionTitle sectionTitle--light dashboardRailTitle">
-              Structured profiles make swiping feel like evaluation, not guessing.
+          {/* ── Why this matters rail ── */}
+          <aside className="dp-rail">
+            <span className="dp-eyebrow">Why this matters · Read first</span>
+            <h2 className="dp-rail__title">
+              Structured cards make swiping feel like <em>evaluation</em>, not guessing.
             </h2>
-            <p className="sectionSub dashboardRailSub">
-              This screen mirrors the people-card model directly: headline, context, highlights,
-              and proof blocks that travel cleanly into matching and preview surfaces.
+            <p className="dp-rail__sub">
+              The composer mirrors the people-card model directly — every field travels into the
+              deck, the preview pane, and the matched-thread context.
             </p>
 
-            <div className="dashboardRailCards">
-              <div className="darkCard">
-                <div className="darkCard__title">Readable at a glance</div>
-                <p className="darkCard__description">
-                  Role, organization, location, and intro create a sharp first impression without overloading the card.
-                </p>
+            <div className="dp-rail__notes">
+              <div className="dp-note">
+                <span className="dp-eyebrow">— Note 01</span>
+                <h3 className="dp-note__title">Readable at a glance.</h3>
+                <p>Role, organization, location, intro — a sharp first impression without overload.</p>
               </div>
-              <div className="darkCard">
-                <div className="darkCard__title">Context in layers</div>
-                <p className="darkCard__description">
-                  Highlights and tags act as quick scan chips, while sections carry the proof underneath.
-                </p>
+              <div className="dp-note">
+                <span className="dp-eyebrow">— Note 02</span>
+                <h3 className="dp-note__title">Context in layers.</h3>
+                <p>Highlights and tags are scan-chips. Sections carry the proof beneath them.</p>
               </div>
-              <div className="darkCard">
-                <div className="darkCard__title">Signal travels cleanly</div>
-                <p className="darkCard__description">
-                  Because the form maps one-to-one with the payload, the resulting profile stays structured across the app.
-                </p>
+              <div className="dp-note">
+                <span className="dp-eyebrow">— Note 03</span>
+                <h3 className="dp-note__title">Signal travels cleanly.</h3>
+                <p>One-to-one mapping with the payload keeps your card structured everywhere it shows up.</p>
               </div>
             </div>
           </aside>

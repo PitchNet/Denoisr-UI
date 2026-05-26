@@ -50,14 +50,50 @@ JWT stored in a cookie (`denoisr_auth_token`), not localStorage. Lifecycle in `s
 
 `src/supabase.ts` exports a single shared `supabase` client. It's used alongside the REST API — primarily for realtime subscriptions on the messages feature, not as the source of truth for auth (auth tokens come from the Denoisr backend, not Supabase Auth).
 
-### Styling
+### Styling — Editorial Mono is authoritative
 
-All styling is in a single global stylesheet `src/styles/denoisr.css` (~3300 lines, ~424 classes) imported once from `src/main.tsx`. There is **no CSS-in-JS, no Tailwind, no CSS modules** — components reference plain class names like `denoisrApp`, `denoisrMain`. Add new styles to `denoisr.css` and reuse the design tokens defined at the top (`--d-dark`, `--d-magenta`, `--d-orange`, `--d-lavender`, `--d-radius-sm/md`, `--d-shadow-elev`).
+**Design source of truth:** `.claude/skills/denoisr-design/` (the skill folder). Its `README.md` is the brand spec; `colors_and_type.css` is the token vocabulary. The legacy `design.md` at the repo root is **out of date** and being phased out — it describes an older "pure white / The Future font / magenta + orange" direction that's no longer the brand.
 
-`design.md` is the authoritative design system spec (color palette, typography, spacing, dual light/dark world). Consult it before adding new visual elements — the brand has specific rules (e.g. magenta/orange only appear in illustrations, never as UI chrome; dark sections use `#010120` midnight blue, never gray-black).
+**CSS load order (from `src/main.tsx`):**
+1. `src/index.css` — minimal resets
+2. `src/styles/editorial.css` — global Editorial Mono tokens at `:root`, base type, `.btn` / `.nav` / `.footer` / `.info` / `.auth` styles. Also **aliases the legacy `--d-magenta / --d-orange / --d-dark / --d-lavender / --d-shadow-elev` tokens to editorial equivalents** so older pages in `denoisr.css` inherit the new palette without per-page rewrites.
+3. `src/styles/denoisr.css` — legacy stylesheet (~3300 lines) for app pages that haven't been migrated yet. The class names and structure still live here; the *colors* now resolve to editorial via the aliases.
+4. `src/styles/landing.css` — scoped under `.editorial-landing`, only loaded by `ProductPage.tsx`.
 
-Custom fonts (`The Future`, `PP Neue Montreal Mono`, `TT Interfaces`) live in `/fonts` and are `@font-face`-declared inside `denoisr.css`.
+**Editorial Mono fundamentals (must obey):**
+- Page background is `--paper` (#fbfaf6), never pure white.
+- Fonts: `Geist` for sans, `Geist Mono` for eyebrows/numerals/metadata, `Instrument Serif` italic only for accents (pull quotes, occasional `<em>` in titles).
+- Wordmark always renders as `Denoisr.` with the period dimmed (`--ink-4`).
+- Sentence case everywhere except mono eyebrows (UPPERCASE, +1.4 tracking).
+- No emoji, no gradient buttons, no left-border-accent cards, no hand-drawn SVG illustrations.
+- Cards = 22–24px radius, warm-tinted layered shadows (never neutral grey).
+- Decision colors (`--decision-pass` clay-red, `--decision-like` moss-green) appear **only** on swipe gestures, never on idle UI chrome.
 
-### Pages
+### Pages — migration status
 
-`src/pages/` contains one component per route. Heavy pages like `MessagesPage.tsx` own their own data fetching and realtime subscriptions directly — there is no shared data layer, state manager, or query library. If you add cross-page state, note that the current architecture deliberately avoids global stores.
+Routes live in `src/pages/`, wired in `src/App.tsx`. On `/` only, App.tsx hides the global `Navbar` and `Footer` so the editorial landing owns its own chrome.
+
+**All pages now migrated to Editorial Mono.** Each has its own scoped stylesheet under `src/styles/` and JSX uses namespaced class prefixes (no longer the old legacy classes from `denoisr.css`):
+
+- `ProductPage.tsx` (`/`) — landing. Interactive swipe deck, Jobs/People mode toggle, `vs the feed` comparison, real-cited research, FAQ accordion, inline invite form. Scoped under `.editorial-landing` in `landing.css`. App.tsx hides the global Navbar/Footer here.
+- `InfoPage.tsx` — long-form article layout used by 11 marketing/legal/info wrapper pages (About, Careers, Contact, CookiePolicy, Features, ForRecruiters, HelpCenter, HowItWorks, PrivacyPolicy, Security, Status, TermsOfService). Editing a wrapper just changes `label / title / paragraphs`. Styles in `editorial.css` under `.info`.
+- `LoginPage.tsx`, `SignupPage.tsx` — editorial auth card with pastel wash, mono labels, pill primary button. Styles in `editorial.css` under `.auth`.
+- `HomePage.tsx` (`/home`) — 3-column dashboard (filters · deck · preview) per the skill's `ui_kits/web/` spec. Drag-swipe, decision stamps that fade in proportional to drag distance, "It's a fit." match overlay, mobile bottom-nav, mobile chip rail for active filters. Scoped CSS in `home.css`, prefix `hp-`.
+- `DashboardPage.tsx` (`/dashboard`) — profile composer with repeatable rows (highlights / tags / proof sections), typeahead suggestions, sticky right rail. Scoped CSS in `dashboard.css`, prefix `dp-`.
+- `MessagesPage.tsx` (`/messages`) — 3-col chat (connections · thread · profile context), ⌘+↵ to send, ink-on-paper outbound bubbles vs paper-on-paper inbound, Supabase realtime subscription preserved. Scoped CSS in `messages.css`, prefix `mp-`.
+- Shared components: `Navbar`, `Footer`, `Button`, `LoadingState` — restyled via `editorial.css`.
+
+**The legacy `denoisr.css` is now dead code** for active routes. It still loads (in case anything we missed references its classes), but no page in `src/pages/` should rely on its rules anymore. Safe to delete in a follow-up cleanup once it's confirmed nothing in the tree references its classes.
+
+When migrating one of those three, mirror what `ProductPage.tsx` and `InfoPage.tsx` do: use editorial tokens directly, prefer adding new scoped class names over editing `denoisr.css`, and consult the skill's `ui_kits/web/` for layout reference (3-column desktop dashboard pattern).
+
+### Data layer
+
+Heavy pages own their own data fetching and realtime subscriptions — there is no shared data layer, state manager, or query library. If you add cross-page state, note that the current architecture deliberately avoids global stores.
+
+### Related repos (cloned to parent directory)
+
+- `../Denoisr-API/` — Python backend (FastAPI-style; `app/`, `db.py`, `requirements.txt`). The `VITE_API_BASE_URL` points at this service in production.
+- `../Denoisr-DB/` — schema and `DDL/` for the Postgres database the API talks to.
+
+When debugging API responses or adding new endpoints, check `../Denoisr-API/app/` rather than guessing at the schema. The UI's `apiRequest` paths (`/LoginController/login`, `/FeedController/getMessages`) map directly to controllers in that repo.

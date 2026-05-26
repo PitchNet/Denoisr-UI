@@ -4,6 +4,7 @@ import { apiRequest } from '../api'
 import { clearAuthToken } from '../auth'
 import NavIcon from '../components/ui/NavIcon'
 import LoadingState from '../components/ui/LoadingState'
+import '../styles/home.css'
 
 type DiscoveryMode = 'jobs' | 'people'
 type SwipeDirection = 'accept' | 'reject'
@@ -31,7 +32,6 @@ type DiscoveryCard = {
   }>
 }
 
-
 const locationOptions = [
   'Berlin, Germany',
   'Toronto, Canada',
@@ -47,44 +47,76 @@ const locationOptions = [
   'Spain',
 ]
 
+const SWATCHES = [
+  'oklch(0.78 0.10 220)',
+  'oklch(0.80 0.11 65)',
+  'oklch(0.82 0.08 150)',
+  'oklch(0.80 0.08 30)',
+  'oklch(0.78 0.10 320)',
+  'oklch(0.80 0.09 200)',
+  'oklch(0.80 0.08 90)',
+  'oklch(0.78 0.10 250)',
+]
+
+function swatchFor(id: string) {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
+  return SWATCHES[h % SWATCHES.length]
+}
+
+function initialsOf(name: string) {
+  return name
+    .split(/\s+/)
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+}
+
+function pad2(n: number) {
+  return String(Math.max(0, Math.floor(n))).padStart(2, '0')
+}
+
 function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
   return (
     <>
-      <div className="homePreview__top">
-        <div>
-          <div className="sectionLabel sectionLabel--mono">
-            {card.kind === 'jobs' ? 'ROLE PREVIEW' : 'PERSON PREVIEW'}
-          </div>
-          <h2 className="homePreview__title">{card.headline}</h2>
-          <p className="homePreview__meta">{card.subheadline}</p>
+      <header className="hp-preview__head">
+        <span className="hp-eyebrow">
+          {card.kind === 'jobs' ? 'Role · Preview' : 'Person · Preview'}
+        </span>
+        <h2 className="hp-preview__title">{card.headline}</h2>
+        <div className="hp-preview__meta hp-meta">
+          <span>{card.subheadline}</span>
+          <span className="dot">·</span>
+          <span>{card.location}</span>
         </div>
-        <div className="homePreview__location">{card.location}</div>
-      </div>
+      </header>
 
-      <p className="homePreview__intro">{card.intro}</p>
+      <p className="hp-preview__intro">{card.intro}</p>
 
-      <div className="homePreview__stats">
-        <div className="homePreview__stat">
-          <span className="homePreview__statValue">{card.experience} years</span>
-          <span className="homePreview__statLabel">Experience</span>
+      <div className="hp-preview__stats">
+        <div className="hp-preview__stat">
+          <span className="hp-preview__statValue">{pad2(card.experience)} yrs</span>
+          <span className="hp-preview__statLabel">Experience</span>
         </div>
-        <div className="homePreview__stat">
-          <span className="homePreview__statValue">${card.salary}k</span>
-          <span className="homePreview__statLabel">
+        <div className="hp-preview__stat">
+          <span className="hp-preview__statValue">${card.salary}k</span>
+          <span className="hp-preview__statLabel">
             {card.kind === 'jobs' ? 'Comp band' : 'Target comp'}
           </span>
         </div>
       </div>
 
       {card.sections.map((section) => (
-        <div key={section.title} className="homePreview__section">
-          <div className="homePreview__sectionTitle">{section.title}</div>
-          <div className="homePreview__list">
+        <section key={section.title} className="hp-preview__section">
+          <div className="hp-eyebrow">{section.title}</div>
+          <div className="hp-preview__list">
             {section.items.map((item) => (
               <p key={item}>{item}</p>
             ))}
           </div>
-        </div>
+        </section>
       ))}
     </>
   )
@@ -92,17 +124,17 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 
 export default function HomePage() {
   const navigate = useNavigate()
-  let [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
-  let [peopleCards, setPeopleCards] = useState<DiscoveryCard[]>([])
-  let [loading, setLoading] = useState(true)
-  let [error, setError] = useState<string | null>(null)
-  let roleOptions = useMemo(() => {
-    return Array.from(
-      new Set([...jobCards, ...peopleCards].map((card) => card.subheadline)),
-    )
-  }, [jobCards])
+  const [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
+  const [peopleCards, setPeopleCards] = useState<DiscoveryCard[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const roleOptions = useMemo(
+    () => Array.from(new Set([...jobCards, ...peopleCards].map((c) => c.subheadline))),
+    [jobCards, peopleCards],
+  )
   const [searchParams, setSearchParams] = useSearchParams()
-  const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
+  const mode: DiscoveryMode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
+
   const [draftRoleFilter, setDraftRoleFilter] = useState('')
   const [draftCountryFilter, setDraftCountryFilter] = useState('')
   const [draftCityFilter, setDraftCityFilter] = useState('')
@@ -113,6 +145,7 @@ export default function HomePage() {
   const [cityFilter, setCityFilter] = useState('')
   const [maxExperience, setMaxExperience] = useState(10)
   const [maxSalary, setMaxSalary] = useState(200)
+
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dragX, setDragX] = useState(0)
   const [dragStartX, setDragStartX] = useState<number | null>(null)
@@ -142,7 +175,6 @@ export default function HomePage() {
 
       const matchesCountry =
         normalizedCountry === '' || cardCountry.includes(normalizedCountry)
-
       const matchesCity = normalizedCity === '' || cardCity.includes(normalizedCity)
 
       return (
@@ -163,7 +195,8 @@ export default function HomePage() {
       try {
         setLoading(true)
 
-        const endpoint = mode === 'jobs' ? '/FeedController/fetchJobs' : '/FeedController/fetchPeople'
+        const endpoint =
+          mode === 'jobs' ? '/FeedController/fetchJobs' : '/FeedController/fetchPeople'
         const res = await apiRequest(endpoint, {
           method: 'POST',
           body: {
@@ -181,11 +214,8 @@ export default function HomePage() {
           kind: mode,
         }))
 
-        if (mode === 'jobs') {
-          setJobCards(formatted)
-        } else {
-          setPeopleCards(formatted)
-        }
+        if (mode === 'jobs') setJobCards(formatted)
+        else setPeopleCards(formatted)
       } catch (err) {
         console.error(err)
         setError(`Failed to load ${mode}`)
@@ -211,6 +241,19 @@ export default function HomePage() {
     setMaxSalary(draftMaxSalary)
   }
 
+  function resetFiltersAll() {
+    setDraftRoleFilter('')
+    setDraftCountryFilter('')
+    setDraftCityFilter('')
+    setDraftMaxExperience(10)
+    setDraftMaxSalary(200)
+    setRoleFilter('')
+    setCountryFilter('')
+    setCityFilter('')
+    setMaxExperience(10)
+    setMaxSalary(200)
+  }
+
   function resetDrag() {
     setDragX(0)
     setDragStartX(null)
@@ -230,26 +273,20 @@ export default function HomePage() {
     navigate('/login')
   }
 
-  function updateMode(nextMode: 'jobs' | 'people') {
+  function updateMode(nextMode: DiscoveryMode) {
     setSearchParams({ mode: nextMode })
   }
 
   async function handleDecision(direction: SwipeDirection) {
-    if (!currentCard || exitDirection || swipeLockedRef.current) {
-      return
-    }
-
+    if (!currentCard || exitDirection || swipeLockedRef.current) return
     swipeLockedRef.current = true
 
     if (direction === 'accept' && mode === 'jobs') {
       try {
         const response = await apiRequest('/FeedController/jobAction', {
           method: 'POST',
-          body: {
-            jobId: currentCard.id,
-          },
+          body: { jobId: currentCard.id },
         })
-
         if (!response.ok) {
           setError('Failed to apply for job')
           swipeLockedRef.current = false
@@ -266,11 +303,8 @@ export default function HomePage() {
       try {
         const response = await apiRequest('/FeedController/peopleAction', {
           method: 'POST',
-          body: {
-            peopleId: currentCard.id
-          },
+          body: { peopleId: currentCard.id },
         })
-
         if (!response.ok) {
           setError('Failed to connect with person')
           swipeLockedRef.current = false
@@ -278,7 +312,6 @@ export default function HomePage() {
         }
 
         const result = (await response.json()) as { matched?: boolean }
-
         if (result.matched) {
           setMatchState({ open: true, name: currentCard.headline })
           setExitDirection(direction)
@@ -292,10 +325,7 @@ export default function HomePage() {
     }
 
     setExitDirection(direction)
-
-    window.setTimeout(() => {
-      advanceCard()
-    }, 220)
+    window.setTimeout(() => advanceCard(), 260)
   }
 
   function handleKeepSwiping() {
@@ -310,128 +340,123 @@ export default function HomePage() {
   }
 
   function handlePointerDown(clientX: number) {
-    if (!currentCard || exitDirection) {
-      return
-    }
-
+    if (!currentCard || exitDirection) return
     swipeLockedRef.current = false
     setDragStartX(clientX)
     setIsDragging(true)
   }
 
   function handlePointerMove(clientX: number) {
-    if (!isDragging || dragStartX === null || exitDirection) {
-      return
-    }
-
+    if (!isDragging || dragStartX === null || exitDirection) return
     setDragX(clientX - dragStartX)
   }
 
   function handlePointerEnd() {
-    if (!isDragging) {
-      return
-    }
-
+    if (!isDragging) return
     const threshold = 110
-
-    if (dragX >= threshold) {
-      handleDecision('accept')
-      return
-    }
-
-    if (dragX <= -threshold) {
-      handleDecision('reject')
-      return
-    }
-
+    if (dragX >= threshold) return handleDecision('accept')
+    if (dragX <= -threshold) return handleDecision('reject')
     resetDrag()
   }
-  // ⬇️ ADD HERE (just before return)
+
   if (loading) {
     return (
       <LoadingState
-        className="homePage"
-        label={mode === 'jobs' ? 'Loading roles' : 'Loading people'}
+        className="hp-loading"
+        label={mode === 'jobs' ? 'Curating roles' : 'Curating people'}
         detail={
           mode === 'jobs'
-            ? 'Curating the next set of roles for your filters.'
-            : 'Pulling in people profiles that match your current search.'
+            ? 'A short, deliberate set is on its way.'
+            : 'Pulling people whose intent overlaps with yours.'
         }
       />
     )
   }
 
   if (error) {
-    return <div className="homePage">{error}</div>
+    return (
+      <div className="hp-error">
+        <span className="hp-eyebrow">Error</span>
+        <p>{error}</p>
+      </div>
+    )
   }
-  return (
-    <div className="homePage denoisr">
-      {matchState.open ? (
-        <div className="matchOverlay" role="dialog" aria-label="Match found">
-          <div className="matchOverlay__glow" aria-hidden="true" />
-          <div className="matchOverlay__ripple" aria-hidden="true" />
-          <div className="matchOverlay__spark matchOverlay__spark--1" aria-hidden="true" />
-          <div className="matchOverlay__spark matchOverlay__spark--2" aria-hidden="true" />
-          <div className="matchOverlay__spark matchOverlay__spark--3" aria-hidden="true" />
-          <div className="matchOverlay__spark matchOverlay__spark--4" aria-hidden="true" />
 
-          <div className="matchOverlay__cards" aria-hidden="true">
-            <div className="matchOverlay__card matchOverlay__card--left">
-              <div className="matchOverlay__avatar">Y</div>
-              <div className="matchOverlay__cardLabel">You</div>
+  const acceptLabel = mode === 'jobs' ? 'Apply' : 'Send opener'
+  const swipeIndicatorOpacity = Math.min(Math.abs(dragX) / 110, 1)
+
+  return (
+    <div className="hp">
+      {matchState.open ? (
+        <div className="hp-match" role="dialog" aria-label="It's a fit">
+          <div className="hp-match__wash" aria-hidden="true" />
+          <div className="hp-match__cards" aria-hidden="true">
+            <div className="hp-match__card hp-match__card--left">
+              <div className="hp-match__avatar" style={{ background: SWATCHES[0] }}>You</div>
             </div>
-            <div className="matchOverlay__card matchOverlay__card--right">
-              <div className="matchOverlay__avatar">{matchState.name.slice(0, 1)}</div>
-              <div className="matchOverlay__cardLabel">{matchState.name}</div>
+            <div className="hp-match__card hp-match__card--right">
+              <div
+                className="hp-match__avatar"
+                style={{ background: swatchFor(matchState.name) }}
+              >
+                {initialsOf(matchState.name)}
+              </div>
             </div>
           </div>
 
-          <div className="matchOverlay__content">
-            <div className="sectionLabel sectionLabel--mono">MATCHED</div>
-            <h2 className="matchOverlay__title">Connection unlocked. Start your conversation 🎉</h2>
-            <div className="matchOverlay__actions">
+          <div className="hp-match__panel">
+            <span className="hp-eyebrow">Mutual interest · Just now</span>
+            <h2 className="hp-match__title">It's a fit.</h2>
+            <p className="hp-match__sub">
+              {matchState.name.split(' ')[0]} also liked your card. The thread is
+              open whenever you are.
+            </p>
+            <div className="hp-match__actions">
               <button type="button" className="btn btn--solidDark" onClick={handleStartChat}>
-                Start Chat
+                Send opener
               </button>
               <button type="button" className="btn btn--outlinedLight" onClick={handleKeepSwiping}>
-                Keep Swiping
+                Keep swiping
               </button>
             </div>
           </div>
         </div>
       ) : null}
 
-      <div className="container homeShell">
-        <section className="homeFilters card">
-          <div className="sectionLabel sectionLabel--mono">DISCOVERY FILTERS</div>
-          <h1 className="homePanelTitle">Tune for relevance.</h1>
-          <p className="homePanelSub">
-            Denoisr keeps discovery high-signal. Narrow the stream by role, location,
-            experience, and compensation.
-          </p>
+      <div className="hp-shell">
+        {/* ─── Filters (left column) ─── */}
+        <section className="hp-panel hp-filters">
+          <header className="hp-panel__head">
+            <span className="hp-eyebrow">Filters · Tune the deck</span>
+            <h1 className="hp-panel__title">Tune for relevance.</h1>
+            <p className="hp-panel__sub">
+              Narrow by role, place, experience, and compensation. Fewer cards,
+              denser signal.
+            </p>
+          </header>
 
-          <div className="homeFilterList">
-            <label className="field">
-              <span className="field__label">Role</span>
+          <div className="hp-fieldset">
+            <label className="hp-field">
+              <span className="hp-field__label">Role</span>
               <input
-                className="field__input"
-                list="home-role-options"
+                className="hp-input"
+                list="hp-role-options"
                 placeholder="Search role"
                 value={draftRoleFilter}
                 onChange={(e) => setDraftRoleFilter(e.target.value)}
               />
-              <datalist id="home-role-options">
+              <datalist id="hp-role-options">
                 {roleOptions.map((role) => (
                   <option key={role} value={role} />
                 ))}
               </datalist>
             </label>
 
-            <label className="field">
-              <span className="field__label">Experience Required</span>
-              <div className="homeRangeValue">Up to {draftMaxExperience} years</div>
+            <label className="hp-field">
+              <span className="hp-field__label">Experience</span>
+              <div className="hp-rangeValue">Up to {pad2(draftMaxExperience)} yrs</div>
               <input
-                className="homeRange"
+                className="hp-range"
                 type="range"
                 min="1"
                 max="10"
@@ -440,46 +465,46 @@ export default function HomePage() {
               />
             </label>
 
-            <label className="field">
-              <span className="field__label">Country</span>
+            <label className="hp-field">
+              <span className="hp-field__label">Country</span>
               <input
-                className="field__input"
-                list="home-location-options"
+                className="hp-input"
+                list="hp-location-options"
                 placeholder="Country"
                 value={draftCountryFilter}
                 onChange={(e) => setDraftCountryFilter(e.target.value)}
               />
-              <datalist id="home-location-options">
+              <datalist id="hp-location-options">
                 {locationOptions.map((location) => (
                   <option key={location} value={location} />
                 ))}
               </datalist>
             </label>
 
-            <label className="field">
-              <span className="field__label">City</span>
+            <label className="hp-field">
+              <span className="hp-field__label">City</span>
               <input
-                className="field__input"
-                list="home-city-options"
+                className="hp-input"
+                list="hp-city-options"
                 placeholder="City"
                 value={draftCityFilter}
                 onChange={(e) => setDraftCityFilter(e.target.value)}
               />
-              <datalist id="home-city-options">
+              <datalist id="hp-city-options">
                 {locationOptions
-                  .filter((location) => location.includes(','))
-                  .map((location) => location.split(',')[0].trim())
+                  .filter((l) => l.includes(','))
+                  .map((l) => l.split(',')[0].trim())
                   .map((city) => (
                     <option key={city} value={city} />
                   ))}
               </datalist>
             </label>
 
-            <label className="field">
-              <span className="field__label">Salary Range</span>
-              <div className="homeRangeValue">Up to ${draftMaxSalary}k</div>
+            <label className="hp-field">
+              <span className="hp-field__label">Salary</span>
+              <div className="hp-rangeValue">Up to ${draftMaxSalary}k</div>
               <input
-                className="homeRange"
+                className="hp-range"
                 type="range"
                 min="40"
                 max="200"
@@ -489,76 +514,82 @@ export default function HomePage() {
               />
             </label>
 
-            <button type="button" className="btn btn--solidDark" onClick={applyFilters}>
+            <button type="button" className="btn btn--solidDark hp-applyBtn" onClick={applyFilters}>
               Apply filter
             </button>
           </div>
         </section>
 
-        <section className="homeDeck card">
-          <div className="homeMobileModeSwitch nav__modeSwitch" aria-label="Discovery mode switch">
-            <div
-              className={`nav__modeBubble ${mode === 'people' ? 'nav__modeBubble--people' : ''}`}
-              aria-hidden="true"
-            />
-            <button
-              type="button"
-              className={`nav__modeButton ${mode === 'jobs' ? 'nav__modeButton--active' : ''}`}
-              onClick={() => updateMode('jobs')}
-            >
-              Jobs
-            </button>
-            <button
-              type="button"
-              className={`nav__modeButton ${mode === 'people' ? 'nav__modeButton--active' : ''}`}
-              onClick={() => updateMode('people')}
-            >
-              People
-            </button>
-          </div>
-
-          <div className="homeDeck__header">
-            <div>
-              <div className="sectionLabel sectionLabel--mono">
-                {mode === 'jobs' ? 'JOB SEARCH MODE' : 'PEOPLE VIEW MODE'}
-              </div>
-              <h2 className="homePanelTitle">{mode === 'jobs' ? 'Curated roles' : 'Intent-led people'}</h2>
+        {/* ─── Deck (center column) ─── */}
+        <section className="hp-panel hp-deck">
+          <div className="hp-deck__topbar">
+            <div className="hp-mobileMode" aria-label="Discovery mode switch">
+              <button
+                type="button"
+                className={`hp-mobileMode__btn ${mode === 'jobs' ? 'hp-mobileMode__btn--active' : ''}`}
+                onClick={() => updateMode('jobs')}
+              >
+                Jobs
+              </button>
+              <button
+                type="button"
+                className={`hp-mobileMode__btn ${mode === 'people' ? 'hp-mobileMode__btn--active' : ''}`}
+                onClick={() => updateMode('people')}
+              >
+                People
+              </button>
             </div>
-            <div className="homeDeck__count">{filteredCards.length - currentIndex} left</div>
+
+            <div className="hp-deck__count el-meta">
+              <span>{pad2(currentIndex + 1)}</span>
+              <span style={{ color: 'var(--ink-5)' }}>/ {pad2(filteredCards.length)}</span>
+              <span style={{ color: 'var(--ink-5)', margin: '0 6px' }}>·</span>
+              <span>{filteredCards.length - currentIndex} left</span>
+            </div>
           </div>
 
-          <div className="homeMobileFilterRail" aria-label="Mobile filter summaries">
-            <div className="homeMiniFilter">{roleFilter || 'Any role'}</div>
-            <div className="homeMiniFilter">Up to {maxExperience}y</div>
-            <div className="homeMiniFilter">{countryFilter || 'Any country'}</div>
-            <div className="homeMiniFilter">{cityFilter || 'Any city'}</div>
-            <div className="homeMiniFilter">Up to ${maxSalary}k</div>
+          <header className="hp-deck__head">
+            <span className="hp-eyebrow">
+              {mode === 'jobs' ? 'Jobs · Curated for you' : 'People · Intent-led'}
+            </span>
+            <h2 className="hp-deck__title">
+              {mode === 'jobs' ? 'Curated roles.' : 'Aligned people.'}
+            </h2>
+          </header>
+
+          <div className="hp-mobileFilters" aria-label="Active filter summary">
+            <span className="hp-chip">{roleFilter || 'Any role'}</span>
+            <span className="hp-chip">≤ {pad2(maxExperience)}y</span>
+            <span className="hp-chip">{countryFilter || 'Any country'}</span>
+            <span className="hp-chip">{cityFilter || 'Any city'}</span>
+            <span className="hp-chip">≤ ${maxSalary}k</span>
           </div>
 
           {currentCard ? (
             <>
-              <div className="homeCardStage">
+              <div className="hp-stage">
                 {stackedCards
                   .slice(1)
                   .reverse()
                   .map((card, offset) => (
                     <div
                       key={card.id}
-                      className="homeCard homeCard--stack"
+                      className="hp-card hp-card--stack"
                       style={{
                         transform: `translateY(${(offset + 1) * 10}px) scale(${1 - (offset + 1) * 0.03})`,
                       }}
+                      aria-hidden="true"
                     />
                   ))}
 
                 <article
-                  className={`homeCard ${
+                  className={`hp-card hp-card--top ${
                     exitDirection === 'accept'
-                      ? 'homeCard--exitRight'
+                      ? 'hp-card--exitRight'
                       : exitDirection === 'reject'
-                        ? 'homeCard--exitLeft'
+                        ? 'hp-card--exitLeft'
                         : ''
-                  } ${isDragging ? 'homeCard--dragging' : ''} homeCard--active`}
+                  } ${isDragging ? 'hp-card--dragging' : ''}`}
                   style={{
                     transform:
                       exitDirection === null
@@ -569,147 +600,164 @@ export default function HomePage() {
                   onPointerMove={(e) => handlePointerMove(e.clientX)}
                   onPointerUp={handlePointerEnd}
                   onPointerCancel={handlePointerEnd}
-                  onPointerLeave={() => {
-                    if (isDragging) {
-                      handlePointerEnd()
-                    }
-                  }}
+                  onPointerLeave={() => isDragging && handlePointerEnd()}
                 >
-                  <div className="homeCard__decision homeCard__decision--reject">Skip</div>
-                  <div className="homeCard__decision homeCard__decision--accept">Apply</div>
+                  <div
+                    className="hp-card__stamp hp-card__stamp--skip"
+                    style={{ opacity: dragX < 0 ? swipeIndicatorOpacity : 0 }}
+                    aria-hidden="true"
+                  >
+                    SKIP
+                  </div>
+                  <div
+                    className="hp-card__stamp hp-card__stamp--fit"
+                    style={{ opacity: dragX > 0 ? swipeIndicatorOpacity : 0 }}
+                    aria-hidden="true"
+                  >
+                    {mode === 'jobs' ? 'APPLY' : 'FIT'}
+                  </div>
 
-                  <div className="homeCard__meta">{currentCard.subheadline}</div>
-                  <h3 className="homeCard__title">{currentCard.headline}</h3>
-                  <p className="homeCard__subtitle">{currentCard.organization}</p>
+                  <div className="hp-card__head">
+                    <div
+                      className="hp-card__avatar"
+                      style={{ background: swatchFor(currentCard.id) }}
+                      aria-hidden="true"
+                    >
+                      {initialsOf(currentCard.organization || currentCard.headline)}
+                    </div>
+                    <div className="hp-card__meta el-meta">
+                      <span>{currentCard.subheadline}</span>
+                      <span className="dot">·</span>
+                      <span>{currentCard.organization}</span>
+                    </div>
+                  </div>
 
-                  <div className="homeCard__row">
+                  <h3 className="hp-card__title">{currentCard.headline}</h3>
+
+                  <div className="hp-card__row">
                     <span>{currentCard.location}</span>
-                    <span>{currentCard.experience} years</span>
+                    <span className="dot">·</span>
+                    <span>{pad2(currentCard.experience)} yrs</span>
+                    <span className="dot">·</span>
                     <span>${currentCard.salary}k</span>
                   </div>
 
-                  <p className="homeCard__intro">{currentCard.intro}</p>
+                  <p className="hp-card__intro">{currentCard.intro}</p>
 
-                  <div className="homeTagRow">
-                    {currentCard.highlights.map((item) => (
-                      <span key={item} className="homeTag">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
+                  {currentCard.highlights.length ? (
+                    <div className="hp-card__chips">
+                      {currentCard.highlights.map((item) => (
+                        <span key={item} className="hp-chip">{item}</span>
+                      ))}
+                    </div>
+                  ) : null}
 
-                  <div className="homeTagRow homeTagRow--muted">
-                    {currentCard.tags.map((item) => (
-                      <span key={item} className="homeTag homeTag--muted">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
+                  {currentCard.tags.length ? (
+                    <div className="hp-card__tags el-meta">
+                      {currentCard.tags.map((item) => (
+                        <span key={item}>{item}</span>
+                      ))}
+                    </div>
+                  ) : null}
                 </article>
               </div>
 
-              <div className="homeActions">
+              <div className="hp-actions">
                 <button
                   type="button"
-                  className="btn btn--outlinedLight homeActionBtn"
+                  className="hp-actionbtn hp-actionbtn--pass"
+                  aria-label="Skip"
                   onClick={() => handleDecision('reject')}
                 >
-                  Skip
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M5 5l12 12M17 5L5 17" />
+                  </svg>
                 </button>
                 <button
                   type="button"
-                  className="btn btn--solidDark homeActionBtn"
+                  className="hp-actionbtn hp-actionbtn--like"
+                  aria-label={acceptLabel}
                   onClick={() => handleDecision('accept')}
                 >
-                  Apply
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                    <path d="M11 19s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0118 9c0 5.5-7 10-7 10z" />
+                  </svg>
                 </button>
+              </div>
+
+              <div className="hp-actionLabels el-meta">
+                <span>Skip</span>
+                <span>{acceptLabel}</span>
               </div>
             </>
           ) : (
-            <div className="homeEmpty card">
-              <div className="sectionLabel sectionLabel--mono">NO MORE MATCHES</div>
-              <h3 className="homePanelTitle">You reached the end of the filtered stack.</h3>
-              <p className="homePanelSub">
-                Reset the filters or switch mode to continue discovering high-signal opportunities.
+            <div className="hp-empty">
+              <span className="hp-eyebrow">End of the deck</span>
+              <h3 className="hp-deck__title">You reached the bottom.</h3>
+              <p className="hp-panel__sub">
+                Loosen the filters or switch mode to bring in a fresh set.
               </p>
-              <button
-                type="button"
-                className="btn btn--solidDark"
-                onClick={() => {
-                  setDraftRoleFilter('')
-                  setDraftCountryFilter('')
-                  setDraftCityFilter('')
-                  setDraftMaxExperience(10)
-                  setDraftMaxSalary(200)
-                  setRoleFilter('')
-                  setCountryFilter('')
-                  setCityFilter('')
-                  setMaxExperience(10)
-                  setMaxSalary(200)
-                }}
-              >
+              <button type="button" className="btn btn--solidDark" onClick={resetFiltersAll}>
                 Reset filters
               </button>
             </div>
           )}
         </section>
 
-        <aside className="homePreview card">
+        {/* ─── Preview (right column) ─── */}
+        <aside className="hp-panel hp-preview">
           {currentCard ? (
             <DiscoveryPreview card={currentCard} />
           ) : (
             <>
-              <div className="sectionLabel sectionLabel--mono">PREVIEW</div>
-              <h2 className="homePanelTitle">No active card selected.</h2>
-              <p className="homePanelSub">
-                Adjust your filters or switch discovery mode to load a fresh stack.
+              <span className="hp-eyebrow">Preview · Empty</span>
+              <h2 className="hp-preview__title">No active card.</h2>
+              <p className="hp-panel__sub">
+                Adjust filters or switch mode to bring a card into focus.
               </p>
             </>
           )}
         </aside>
       </div>
 
-      <nav className="homeBottomNav" aria-label="Mobile navigation">
-        <button type="button" className="homeBottomNav__item homeBottomNav__item--active">
+      {/* ─── Mobile bottom nav ─── */}
+      <nav className="hp-bottomnav" aria-label="Mobile navigation">
+        <button type="button" className="hp-bottomnav__item hp-bottomnav__item--active">
           <NavIcon name="home" />
           <span>Home</span>
         </button>
-        <button type="button" className="homeBottomNav__item">
+        <button type="button" className="hp-bottomnav__item">
           <NavIcon name="connections" />
           <span>Connections</span>
         </button>
-        <button type="button" className="homeBottomNav__item" onClick={() => navigate('/messages')}>
+        <button type="button" className="hp-bottomnav__item" onClick={() => navigate('/messages')}>
           <NavIcon name="messages" />
           <span>Messages</span>
         </button>
-        <div className="homeBottomNav__profileWrap">
+        <div className="hp-bottomnav__profileWrap">
           <button
             type="button"
-            className={`homeBottomNav__item ${mobileProfileOpen ? 'homeBottomNav__item--active' : ''}`}
+            className={`hp-bottomnav__item ${mobileProfileOpen ? 'hp-bottomnav__item--active' : ''}`}
             aria-expanded={mobileProfileOpen}
-            onClick={() => setMobileProfileOpen((value) => !value)}
+            onClick={() => setMobileProfileOpen((v) => !v)}
           >
             <NavIcon name="profile" />
             <span>Profile</span>
           </button>
 
           {mobileProfileOpen ? (
-            <div className="homeBottomNav__profileMenu">
-              <button type="button" className="homeBottomNav__profileAction">
-                View Profile
-              </button>
-              <button type="button" className="homeBottomNav__profileAction">
-                View Job Applications
-              </button>
-              <button type="button" className="homeBottomNav__profileAction" onClick={() => navigate('/messages')}>
-                View Connections
+            <div className="hp-bottomnav__menu">
+              <button type="button" className="hp-bottomnav__action">View profile</button>
+              <button type="button" className="hp-bottomnav__action">Job applications</button>
+              <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/messages')}>
+                Connections
               </button>
               <button
                 type="button"
-                className="homeBottomNav__profileAction homeBottomNav__profileAction--danger"
+                className="hp-bottomnav__action hp-bottomnav__action--danger"
                 onClick={handleMobileLogout}
               >
-                Logout
+                Log out
               </button>
             </div>
           ) : null}
