@@ -5,12 +5,19 @@
    ───────────────────────────────────────────────────────────── */
 
 .hp {
-  min-height: calc(100svh - 64px);
   background: var(--paper);
-  padding: 32px 0 88px;
+  /* Desktop: lock to viewport so the three panels handle their own scroll */
+  height: calc(100svh - 64px);
+  overflow: hidden;
+  padding: 24px 0;
 }
 @media (max-width: 720px) {
-  .hp { padding: 16px 0 96px; }
+  .hp {
+    /* Mobile: page scrolls naturally; pad-bottom clears the bottom nav */
+    height: auto;
+    overflow: visible;
+    padding: 16px 0 96px;
+  }
 }
 
 /* ── Shell layout ──────────────────────────────────────────── */
@@ -22,7 +29,8 @@
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 36px;
-  align-items: start;
+  height: 100%;
+  align-items: stretch;
 }
 @media (max-width: 1100px) {
   .hp-shell { grid-template-columns: 1fr 1.2fr; }
@@ -33,6 +41,7 @@
     grid-template-columns: 1fr;
     padding: 0 16px;
     gap: 16px;
+    height: auto;
   }
   .hp-panel.hp-filters { display: none; } /* mobile uses the chip rail instead */
 }
@@ -46,6 +55,17 @@
   padding: 26px;
   display: flex;
   flex-direction: column;
+  /* Internal scroll on desktop — the page itself is locked */
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+@media (max-width: 720px) {
+  .hp-panel {
+    /* Mobile: panels stack on a scrollable page; let them expand naturally */
+    overflow: visible;
+    min-height: auto;
+  }
 }
 .hp-panel__head { margin-bottom: 22px; }
 .hp-panel__title {
@@ -176,31 +196,9 @@
   color: var(--ink-4);
 }
 
-/* Mobile mode switch — appears in deck topbar, hidden on desktop */
-.hp-mobileMode {
-  display: none;
-  align-items: center;
-  padding: 3px;
-  background: var(--paper-2);
-  border: 1px solid var(--ink-6);
-  border-radius: var(--radius-pill);
-}
-.hp-mobileMode__btn {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: var(--tr-mono);
-  text-transform: uppercase;
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
-  border: 0;
-  background: transparent;
-  color: var(--ink-3);
-  cursor: pointer;
-}
-.hp-mobileMode__btn--active { background: var(--ink); color: var(--paper); }
-@media (max-width: 720px) {
-  .hp-mobileMode { display: inline-flex; }
-}
+/* Mobile mode switch moved to global Navbar — keep classes for accessibility but render hidden */
+.hp-mobileMode { display: none !important; }
+.hp-mobileMode__btn { display: none; }
 
 /* Mobile filter chip rail */
 .hp-mobileFilters {

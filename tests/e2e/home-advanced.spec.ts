@@ -53,6 +53,22 @@ test.describe('Home — match overlay (people mode)', () => {
   })
 })
 
+test.describe('Home — desktop scroll behaviour', () => {
+  test('page body does not scroll; panels scroll internally', async ({ page }) => {
+    const home = new HomePage(page)
+    await home.gotoWithMocks({ jobs: buildMockCards('jobs', 5) })
+    // .hp lock to viewport with overflow: hidden
+    const hp = page.locator('.hp')
+    const overflow = await hp.evaluate((el) => getComputedStyle(el).overflow)
+    expect(overflow).toContain('hidden')
+    // Each panel has internal overflow-y: auto
+    const filtersOverflow = await page
+      .locator('.hp-filters')
+      .evaluate((el) => getComputedStyle(el).overflowY)
+    expect(filtersOverflow).toBe('auto')
+  })
+})
+
 test.describe('Home — rapid swipe stress', () => {
   test('rapid clicks on skip do not double-advance or break the counter', async ({ page }) => {
     const home = new HomePage(page)
@@ -86,10 +102,21 @@ test.describe('Home — mobile viewport', () => {
     await expect(page.locator('.hp-mobileFilters')).toBeVisible()
   })
 
-  test('mobile mode switch in deck topbar is visible', async ({ page }) => {
+  test('mode switch in the global navbar is visible on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     const home = new HomePage(page)
     await home.gotoWithMocks({ jobs: buildMockCards('jobs') })
-    await expect(page.locator('.hp-mobileMode')).toBeVisible()
+    await expect(page.locator('.nav__modeSwitch')).toBeVisible()
+    // And the active Jobs tab has the unmistakable ink-bg active state
+    const activeBtn = page.locator('.nav__modeButton--active')
+    await expect(activeBtn).toHaveText('Jobs')
+  })
+
+  test('navbar icon row is hidden on mobile (bottom nav covers those)', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    const home = new HomePage(page)
+    await home.gotoWithMocks({ jobs: buildMockCards('jobs') })
+    await expect(page.locator('.nav__appLinks')).toBeHidden()
+    await expect(page.locator('.hp-bottomnav')).toBeVisible()
   })
 })

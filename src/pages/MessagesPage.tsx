@@ -531,7 +531,7 @@ export default function MessagesPage() {
           <NavIcon name="home" />
           <span>Home</span>
         </button>
-        <button type="button" className="mp-bottomnav__item">
+        <button type="button" className="mp-bottomnav__item" onClick={() => navigate('/messages')}>
           <NavIcon name="connections" />
           <span>Connections</span>
         </button>

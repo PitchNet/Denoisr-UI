@@ -132,7 +132,7 @@ export default function HomePage() {
     () => Array.from(new Set([...jobCards, ...peopleCards].map((c) => c.subheadline))),
     [jobCards, peopleCards],
   )
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const mode: DiscoveryMode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
 
   const [draftRoleFilter, setDraftRoleFilter] = useState('')
@@ -277,10 +277,6 @@ export default function HomePage() {
     clearAuthToken()
     setMobileProfileOpen(false)
     navigate('/login')
-  }
-
-  function updateMode(nextMode: DiscoveryMode) {
-    setSearchParams({ mode: nextMode })
   }
 
   async function handleDecision(direction: SwipeDirection) {
@@ -521,23 +517,6 @@ export default function HomePage() {
         {/* ─── Deck (center column) ─── */}
         <section className="hp-panel hp-deck">
           <div className="hp-deck__topbar">
-            <div className="hp-mobileMode" aria-label="Discovery mode switch">
-              <button
-                type="button"
-                className={`hp-mobileMode__btn ${mode === 'jobs' ? 'hp-mobileMode__btn--active' : ''}`}
-                onClick={() => updateMode('jobs')}
-              >
-                Jobs
-              </button>
-              <button
-                type="button"
-                className={`hp-mobileMode__btn ${mode === 'people' ? 'hp-mobileMode__btn--active' : ''}`}
-                onClick={() => updateMode('people')}
-              >
-                People
-              </button>
-            </div>
-
             <div className="hp-deck__count el-meta">
               <span>{pad2(currentIndex + 1)}</span>
               <span style={{ color: 'var(--ink-5)' }}>/ {pad2(filteredCards.length)}</span>
@@ -738,7 +717,7 @@ export default function HomePage() {
           <NavIcon name="home" />
           <span>Home</span>
         </button>
-        <button type="button" className="hp-bottomnav__item">
+        <button type="button" className="hp-bottomnav__item" onClick={() => navigate('/messages')}>
           <NavIcon name="connections" />
           <span>Connections</span>
         </button>

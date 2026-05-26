@@ -185,6 +185,8 @@ html, body {
 .nav__modeButton--active {
   background: var(--ink);
   color: var(--paper);
+  font-weight: 600;
+  box-shadow: 0 1px 6px rgba(40,30,20,0.18);
 }
 
 .nav__appCenterLabel {
@@ -266,9 +268,16 @@ html, body {
 .nav__marketingLink:hover { color: var(--ink); }
 
 @media (max-width: 720px) {
+  /* Bottom nav covers Home / Messages / Profile / Logout on mobile */
+  .nav__appLinks { display: none; }
   .nav__marketingLinks { gap: 16px; }
-  .nav__appLabel { display: none; }
-  .nav__modeSwitch { display: none; }
+
+  /* Mode pill gets a touch larger on mobile so the active state reads clearly */
+  .nav__modeButton { padding: 7px 16px; font-size: 12px; }
+
+  /* On app pages where the right-side icon row is gone, centre the middle child */
+  .nav__inner .nav__modeSwitch,
+  .nav__inner .nav__appCenterLabel { margin: 0 auto 0 auto; }
 }
 
 /* ─────────────────────────────────────────────────────────────
