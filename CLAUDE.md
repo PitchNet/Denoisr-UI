@@ -64,6 +64,8 @@ JWT stored in a cookie (`denoisr_auth_token`), not localStorage. Lifecycle in `s
 
 **Design source of truth:** `.claude/skills/denoisr-design/` (the skill folder). Its `README.md` is the brand spec; `colors_and_type.css` is the token vocabulary. The legacy `design.md` at the repo root is **out of date** and being phased out — it describes an older "pure white / The Future font / magenta + orange" direction that's no longer the brand.
 
+**Before writing or editing any CSS, read `.claude/skills/denoisr-design/engineering-rules.md`.** It codifies the CSS/React pitfalls this codebase has shipped (and caught the hard way): media-query specificity conflicts, mobile-overflow from hardcoded desktop dimensions, the legacy `denoisr.css` override pattern, viewport-test gaps. The file ends with a pre-flight checklist; run it before claiming visual work is done.
+
 **CSS load order (from `src/main.tsx`):**
 1. `src/index.css` — minimal resets
 2. `src/styles/editorial.css` — global Editorial Mono tokens at `:root`, base type, `.btn` / `.nav` / `.footer` / `.info` / `.auth` styles. Also **aliases the legacy `--d-magenta / --d-orange / --d-dark / --d-lavender / --d-shadow-elev` tokens to editorial equivalents** so older pages in `denoisr.css` inherit the new palette without per-page rewrites.

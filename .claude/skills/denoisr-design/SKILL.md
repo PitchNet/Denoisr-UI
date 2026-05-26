@@ -6,6 +6,8 @@ user-invocable: true
 
 Read the README.md file within this skill, and explore the other available files.
 
+**If you are writing production CSS or React for the Denoisr-UI codebase**, also read `engineering-rules.md` *before you start*. It codifies the specific CSS / React pitfalls this codebase has been bitten by — media-query specificity bugs, mobile-overflow from hardcoded desktop dimensions, the legacy `denoisr.css` override pattern, viewport-test gaps. Each rule has a "why" with the actual bug it prevents. Run the pre-flight checklist at the bottom of that file before claiming any visual work is done.
+
 If creating visual artifacts (slides, mocks, throwaway prototypes, etc), copy assets out and create static HTML files for the user to view. Always load `colors_and_type.css` first so the token vocabulary is available. If working on production code, you can copy assets and read the rules here to become an expert in designing with this brand.
 
 If the user invokes this skill without any other guidance, ask them what they want to build or design, ask some questions, and act as an expert designer who outputs HTML artifacts _or_ production code, depending on the need.
