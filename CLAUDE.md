@@ -8,8 +8,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build` — type-check (`tsc -b`) then `vite build`. The TypeScript step is part of the build; treat type errors as build failures.
 - `npm run lint` — flat-config ESLint over the repo
 - `npm run preview` — serve the production build locally
+- `npx playwright test` — run the e2e suite (boots Vite via `webServer` in `playwright.config.ts`)
+- `npx playwright test tests/e2e/landing.spec.ts` — run a single spec
+- `npx playwright test --ui` — open the Playwright UI for debugging
 
-There is no test runner configured.
+## E2E tests
+
+Playwright lives in `tests/`. Structure:
+- `tests/e2e/*.spec.ts` — specs grouped by surface (landing, auth, info-pages, home, home-advanced, dashboard)
+- `tests/pages/*.page.ts` — Page Object Model wrappers; each route has its own POM
+- `playwright.config.ts` — chromium-only, `baseURL` http://localhost:5173, auto-starts the dev server
+
+Protected pages (`/home`, `/dashboard`, `/messages`) are tested with the API mocked via `page.route('**/FeedController/*')`. The `HomePage` POM injects a fake JWT cookie so the route guard lets us in. The Dashboard POM seeds `sessionStorage` with the signup-in-progress flag.
 
 ## Environment
 

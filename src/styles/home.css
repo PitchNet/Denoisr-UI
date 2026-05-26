@@ -34,7 +34,7 @@
     padding: 0 16px;
     gap: 16px;
   }
-  .hp-filters { display: none; } /* mobile uses the chip rail instead */
+  .hp-panel.hp-filters { display: none; } /* mobile uses the chip rail instead */
 }
 
 /* ── Panel base ────────────────────────────────────────────── */
