@@ -661,6 +661,68 @@
 }
 .hp-banner__dismiss:hover { background: rgba(196, 74, 57, 0.12); }
 
+/* ─────────────────────────────────────────────────────────────
+   Mobile card layout — let the card grow with its content
+   instead of being constrained to the 460px desktop stage.
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  /* Stage takes natural height from the (now non-absolute) top card */
+  .hp-stage { min-height: 0; }
+
+  /* Hide the decorative stacked card peek on mobile — saves layout space */
+  .hp-card--stack { display: none; }
+
+  /* Top card flows in normal layout, grows with content */
+  .hp-card--top {
+    position: relative;
+    inset: auto;
+  }
+
+  /* Tighter card spacing on mobile */
+  .hp-card {
+    padding: 22px;
+    gap: 12px;
+  }
+
+  /* Title scaled down so two-line titles don't dominate the card */
+  .hp-card__title {
+    font-size: 24px;
+    letter-spacing: -0.7px;
+    line-height: 1.05;
+  }
+
+  /* Avatar + meta stack vertically on mobile so long mono text wraps cleanly */
+  .hp-card__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .hp-card__avatar { width: 40px; height: 40px; font-size: 13px; }
+  .hp-card__meta {
+    font-size: 10px;
+    line-height: 1.4;
+    letter-spacing: 0.4px;
+    width: 100%;
+  }
+
+  /* Intro caps at 5 lines so cards stay browseable */
+  .hp-card__intro {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Smaller swipe stamps so they fit a narrower card */
+  .hp-card__stamp { font-size: 22px; padding: 6px 12px; }
+
+  /* Action buttons tighter on mobile and smaller hit targets */
+  .hp-actions { gap: 44px; margin-top: 18px; }
+  .hp-actionbtn { width: 54px; height: 54px; }
+  .hp-actionLabels { gap: 44px; }
+  .hp-actionLabels span { width: 54px; }
+}
+
 /* ── Loading + error ───────────────────────────────────────── */
 .hp-loading {
   min-height: calc(100svh - 64px);
