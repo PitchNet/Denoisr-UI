@@ -1,0 +1,202 @@
+/* ─────────────────────────────────────────────────────────────
+   Denoisr · Editorial Mono — foundational tokens
+   Load this CSS first; everything else uses these variables.
+   ───────────────────────────────────────────────────────────── */
+
+/* Webfonts — Geist (sans), Geist Mono (mono), Instrument Serif (italic accents) */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap");
+
+:root {
+  /* ── Color · Paper & ink ─────────────────────────────────── */
+  --paper:      #fbfaf6;   /* page bg, card bg */
+  --paper-2:    #f7f5f1;   /* secondary surface */
+  --paper-3:    #f0eee9;   /* canvas / muted */
+  --ink:        #1a1715;   /* primary text, primary button */
+  --ink-2:      #2a2520;   /* secondary text */
+  --ink-3:      rgba(26,23,21,0.66);  /* body dim */
+  --ink-4:      rgba(26,23,21,0.45);  /* eyebrows, tertiary */
+  --ink-5:      rgba(26,23,21,0.14);  /* hairline borders */
+  --ink-6:      rgba(26,23,21,0.06);  /* faintest dividers */
+
+  /* ── Color · Decision (only used on swipe surfaces) ─────── */
+  --decision-pass:  #c44a39;   /* skip — clay red */
+  --decision-like:  #2c8a55;   /* like — moss green */
+  --decision-boost: var(--ink); /* boost — same as ink */
+
+  /* ── Color · Pastel washes (radial gradients behind cards) */
+  --wash-pink:    rgba(255,210,225,0.55);
+  --wash-violet:  rgba(220,210,255,0.50);
+  --wash-mint:    rgba(220,255,225,0.55);
+  --wash-peach:   rgba(255,225,200,0.55);
+  --wash-sky:     rgba(210,230,255,0.50);
+
+  /* ── Color · Avatar / company swatches (oklch palette) ─── */
+  --swatch-1: oklch(0.78 0.10 220);  /* steel blue */
+  --swatch-2: oklch(0.80 0.11 65);   /* amber */
+  --swatch-3: oklch(0.82 0.08 150);  /* sage */
+  --swatch-4: oklch(0.80 0.08 30);   /* terracotta */
+  --swatch-5: oklch(0.78 0.10 320);  /* dusty magenta */
+  --swatch-6: oklch(0.80 0.09 200);  /* aqua */
+  --swatch-7: oklch(0.80 0.08 90);   /* olive */
+  --swatch-8: oklch(0.78 0.10 250);  /* indigo */
+
+  /* ── Type · Families ────────────────────────────────────── */
+  --font-sans:    "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-serif:   "Instrument Serif", "Times New Roman", Georgia, serif;
+  /* Serif is used SPARINGLY — only for italic accents in pull quotes
+     and the occasional editorial flourish. Not a body face. */
+
+  /* ── Type · Scale (Editorial — big jumps, tight tracking) ─ */
+  --fs-display:   56px;   /* hero numerals, match-moment */
+  --fs-h1:        40px;   /* page hero */
+  --fs-h2:        30px;   /* card title (mobile) */
+  --fs-h3:        22px;   /* row title */
+  --fs-body:      14.5px;
+  --fs-body-sm:   13.5px;
+  --fs-meta:      12px;
+  --fs-mono:      11px;   /* eyebrow, metadata mono labels */
+  --fs-mono-sm:   10px;
+
+  --lh-display:   0.95;
+  --lh-tight:     1.05;
+  --lh-body:      1.45;
+  --lh-relaxed:   1.55;
+
+  --tr-display:   -1.6px; /* tracking — display headlines */
+  --tr-h1:        -1.0px;
+  --tr-h2:        -0.7px;
+  --tr-h3:        -0.4px;
+  --tr-mono:      1.4px;  /* mono eyebrow positive tracking */
+  --tr-mono-tight:0.8px;
+
+  --fw-regular:   400;
+  --fw-medium:    500;
+  --fw-semi:      600;
+  --fw-bold:      700;
+
+  /* ── Spacing scale (4px base, named for intent) ────────── */
+  --space-0:   0;
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   22px;   /* card padding (mobile) */
+  --space-6:   26px;   /* card padding (desktop card) */
+  --space-7:   36px;   /* page margin desktop */
+  --space-8:   52px;
+
+  /* ── Radius ────────────────────────────────────────────── */
+  --radius-xs:   4px;
+  --radius-sm:   10px;
+  --radius-md:   14px;
+  --radius-lg:   18px;
+  --radius-xl:   22px;   /* swipe-card radius */
+  --radius-2xl:  24px;   /* desktop panel radius */
+  --radius-pill: 999px;
+
+  /* ── Borders ───────────────────────────────────────────── */
+  --border-hairline: 1px solid var(--ink-5);
+  --border-faint:    1px solid var(--ink-6);
+  --border-strong:   1.5px solid var(--ink);
+
+  /* ── Shadows — soft, warm, layered (never grey) ────────── */
+  --shadow-card:
+    0 1px 0 rgba(0,0,0,0.04),
+    0 20px 50px -20px rgba(40,30,20,0.18),
+    0 0 0 1px rgba(20,20,20,0.04);
+
+  --shadow-panel:
+    0 1px 0 rgba(0,0,0,0.02),
+    0 10px 30px -10px rgba(40,30,20,0.06);
+
+  --shadow-float:
+    0 8px 24px rgba(0,0,0,0.15);
+
+  --shadow-button:
+    0 4px 16px rgba(40,30,20,0.08);
+
+  /* ── Motion ────────────────────────────────────────────── */
+  --easing-default: cubic-bezier(0.2, 0.7, 0.25, 1);
+  --easing-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast:    120ms;
+  --dur-base:    220ms;
+  --dur-card:    260ms;   /* card exit timing */
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Semantic element styles — drop into any HTML and it inherits.
+   ───────────────────────────────────────────────────────────── */
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, .h1 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semi);
+  font-size: var(--fs-h1);
+  letter-spacing: var(--tr-h1);
+  line-height: var(--lh-tight);
+  text-wrap: pretty;
+  margin: 0;
+}
+h2, .h2 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semi);
+  font-size: var(--fs-h2);
+  letter-spacing: var(--tr-h2);
+  line-height: var(--lh-tight);
+  text-wrap: pretty;
+  margin: 0;
+}
+h3, .h3 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-h3);
+  letter-spacing: var(--tr-h3);
+  line-height: var(--lh-tight);
+  margin: 0;
+}
+p { margin: 0; }
+
+/* Eyebrow — small, mono, uppercase, positive tracking */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+/* Meta — mono, sentence-case, dim */
+.meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--ink-4);
+}
+
+/* Quote — Instrument Serif italic — the ONE place serif appears */
+.pull-quote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: var(--fw-regular);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+/* Wordmark — used for the logo lockup in code */
+.wordmark {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-bold);
+  font-size: 22px;
+  letter-spacing: -0.8px;
+  color: var(--ink);
+}
+.wordmark .dot { color: var(--ink-4); }

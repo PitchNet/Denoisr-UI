@@ -1,513 +1,694 @@
 import { useEffect, useRef, useState } from 'react'
-import Button from '../components/ui/Button'
+import { Link } from 'react-router-dom'
+import '../styles/landing.css'
 
-function useInView(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(false)
+type Step = { num: string; title: string; body: string }
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true)
-          obs.unobserve(el)
-        }
-      },
-      { threshold }
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [threshold])
-
-  return [ref, inView] as const
-}
-
-function useParallax(speed = 0.15) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [offset, setOffset] = useState(0)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const onScroll = () => {
-      const rect = el.getBoundingClientRect()
-      const elCenter = rect.top + rect.height / 2
-      const viewCenter = window.innerHeight / 2
-      setOffset((elCenter - viewCenter) * speed)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll()
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [speed])
-
-  return [ref, offset] as const
-}
-
-function RevealSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const [ref, inView] = useInView(0.1)
-  return (
-    <div
-      ref={ref}
-      className={`reveal-section ${inView ? 'reveal-section--visible' : ''} ${className}`}
-    >
-      {children}
-    </div>
-  )
-}
-
-function AnimatedStat({ value, label, suffix = '' }: { value: string; label: string; suffix?: string }) {
-  const [ref, inView] = useInView(0.5)
-  const [displayed, setDisplayed] = useState('0')
-  const numericVal = parseFloat(value.replace(/[^0-9.]/g, ''))
-  const isPercent = value.includes('%')
-
-  useEffect(() => {
-    if (!inView) return
-    const duration = 1200
-    const steps = 30
-    const stepDuration = duration / steps
-    let current = 0
-
-    const interval = setInterval(() => {
-      current++
-      const progress = current / steps
-      const eased = 1 - Math.pow(1 - progress, 3)
-      const val = Math.round(eased * numericVal)
-      setDisplayed(isPercent ? `${val}%` : `${val}x`)
-      if (current >= steps) {
-        setDisplayed(value)
-        clearInterval(interval)
-      }
-    }, stepDuration)
-
-    return () => clearInterval(interval)
-  }, [inView, numericVal, isPercent, value])
-
-  return (
-    <div ref={ref} className={`stat-card ${inView ? 'stat-card--animated' : ''}`}>
-      <div className="stat-card__value">{displayed}{suffix}</div>
-      <div className="stat-card__label">{label}</div>
-    </div>
-  )
-}
-
-type Feature = {
-  label: string
+type DeckCard = {
+  initials: string
+  swatch: string
+  eyebrow: string
   title: string
-  description: string
+  meta: string
+  chips: string[]
+  body: string
 }
 
-function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
-  const [ref, inView] = useInView(0.1)
+type Paper = {
+  index: string
+  source: string
+  authors: string
+  year: string
+  title: string
+  body: string
+  href: string
+}
+
+type Versus = { topic: string; feed: string; denoisr: string }
+type Faq = { q: string; a: string }
+
+const jobsDeck: DeckCard[] = [
+  {
+    initials: 'LN',
+    swatch: 'oklch(0.78 0.10 220)',
+    eyebrow: 'Linear · Series C',
+    title: 'Founding design engineer.',
+    meta: 'Remote · Europe · €120–160k',
+    chips: ['React', 'Design systems', 'Type-first', 'Prototype-obsessed'],
+    body: 'You would own the primitives — colour, type, motion — and the prototypes that turn them into product. Small team, long horizons, ship-on-Tuesdays culture.',
+  },
+  {
+    initials: 'ST',
+    swatch: 'oklch(0.80 0.11 65)',
+    eyebrow: 'Stripe · Atlas team',
+    title: 'Senior backend, payments.',
+    meta: 'Remote · Americas · $210–260k',
+    chips: ['Go', 'Distributed systems', 'Postgres', 'Latency-obsessed'],
+    body: 'You would push the p99 down on the busiest path at Stripe and earn the right to design what runs next. Brutal scrutiny, generous credit.',
+  },
+  {
+    initials: 'FG',
+    swatch: 'oklch(0.78 0.10 320)',
+    eyebrow: 'Figma · Multiplayer',
+    title: 'Product designer, canvas.',
+    meta: 'Hybrid · NYC / SF · $190–230k',
+    chips: ['Canvas', 'Realtime', 'Motion', 'Hand-rolled prototypes'],
+    body: 'The team designs the surface the whole product sits on. Every pixel survives a thousand iterations. Bring strong opinions, hold them loosely.',
+  },
+  {
+    initials: 'SB',
+    swatch: 'oklch(0.82 0.08 150)',
+    eyebrow: 'Supabase · Realtime',
+    title: 'Staff engineer, infra.',
+    meta: 'Remote · Global · $230–280k',
+    chips: ['Elixir', 'Postgres', 'Open source', 'Operator mindset'],
+    body: 'Own the realtime layer the entire ecosystem is built on. Open source by default; reputation compounds in public.',
+  },
+  {
+    initials: 'VC',
+    swatch: 'oklch(0.80 0.09 200)',
+    eyebrow: 'Vercel · DX',
+    title: 'Engineering manager, edge.',
+    meta: 'Remote · Europe · $200–240k',
+    chips: ['Edge runtime', 'Team of 6', 'Player-coach', 'DX'],
+    body: 'Build the team that builds the runtime millions of sites depend on. Quiet leadership, written communication, decisions in public.',
+  },
+]
+
+const peopleDeck: DeckCard[] = [
+  {
+    initials: 'PS',
+    swatch: 'oklch(0.78 0.10 220)',
+    eyebrow: 'Open to talk · Hiring',
+    title: 'Priya Sharma · VP Eng.',
+    meta: 'Berlin · TechCorp · Series D',
+    chips: ['Hiring 4 ICs', 'Infra-heavy', 'Async-first', 'No leetcode'],
+    body: 'Looking for founding-style ICs to anchor a payments rewrite. Will trade equity for thesis. Prefers conversations that start with prior work.',
+  },
+  {
+    initials: 'RV',
+    swatch: 'oklch(0.80 0.11 65)',
+    eyebrow: 'Open to roles · Senior',
+    title: 'Rahul Verma · Backend.',
+    meta: 'Berlin / remote · 9 yrs · Go, Rust',
+    chips: ['Distributed systems', 'OSS maintainer', 'Wants smaller team', 'Eu hours'],
+    body: 'Shipped the order-routing engine at a public fintech. Looking for early-stage with technical founders. Long horizons over big titles.',
+  },
+  {
+    initials: 'AP',
+    swatch: 'oklch(0.78 0.10 320)',
+    eyebrow: 'Independent · Available May',
+    title: 'Ananya Patel · Designer.',
+    meta: 'Lisbon · Product · 7 yrs',
+    chips: ['Design systems', 'Prototyping', 'Type', 'Health, fintech'],
+    body: 'Three engagements, four-month max, design-system-shaped problems. Two slots open in May. Examples on request, not in public.',
+  },
+  {
+    initials: 'KM',
+    swatch: 'oklch(0.82 0.08 150)',
+    eyebrow: 'Open to talk · Co-founder',
+    title: 'Kenji Mori · Founder.',
+    meta: 'Tokyo · ex-Stripe · Looking for CTO',
+    chips: ['Pre-seed', 'Climate', 'Hardware-adjacent', 'Will relocate'],
+    body: 'Spinning up something in industrial decarbonisation. Looking for a CTO with infra depth and operator instincts. First conversations later in March.',
+  },
+  {
+    initials: 'LJ',
+    swatch: 'oklch(0.78 0.10 250)',
+    eyebrow: 'Open to roles · Staff',
+    title: 'Lara Janssen · Staff EM.',
+    meta: 'Amsterdam · 12 yrs · Platform',
+    chips: ['Org design', 'Player-coach', 'Wants IC depth back', 'EU only'],
+    body: 'Built three platform teams from scratch. Considering a step back into senior IC at a company that still ships. References on contact.',
+  },
+]
+
+const steps: Step[] = [
+  {
+    num: '01',
+    title: 'State your intent.',
+    body: 'Hiring, exploring, open to collaborations. Time-bound, never permanent. The platform reads intent, not vanity metrics.',
+  },
+  {
+    num: '02',
+    title: 'Swipe a curated deck.',
+    body: 'Ten to twenty matches a day — not a feed. Each one carries context: what the work is, who the people are, why it surfaced.',
+  },
+  {
+    num: '03',
+    title: 'Talk only when it fits.',
+    body: 'Conversations open on mutual interest. No cold inbox, no recruiter spray. Replies happen because both sides chose to.',
+  },
+]
+
+const versus: Versus[] = [
+  {
+    topic: 'Discovery',
+    feed: 'Infinite scroll. The algorithm decides; you keep tapping.',
+    denoisr: '10–20 curated cards a day. The deck ends. You leave.',
+  },
+  {
+    topic: 'Profile',
+    feed: 'Public résumé. Self-summarised. Optimised for the search box.',
+    denoisr: 'Private by default. Work-attested. Read only by people you opened to.',
+  },
+  {
+    topic: 'Outreach',
+    feed: 'Cold InMail. Anyone with a seat can reach anyone.',
+    denoisr: 'Mutual consent only. The thread opens because both sides chose.',
+  },
+  {
+    topic: 'Cadence',
+    feed: 'Post or vanish. Visibility decays with silence.',
+    denoisr: 'Visit only when there is something to do. Silence costs nothing.',
+  },
+  {
+    topic: 'Time horizon',
+    feed: 'Permanent presence. The profile lives forever.',
+    denoisr: 'Intent expires in 14 / 30 / 90 days. You re-state, or you go quiet.',
+  },
+]
+
+const papers: Paper[] = [
+  {
+    index: 'Paper 01',
+    source: 'ACM RecSys',
+    authors: 'Pizzato, Rej, Chung, Koprinska, Kay',
+    year: '2010',
+    title: 'RECON — a reciprocal recommender for online dating.',
+    body:
+      'Recommending only when interest is mutual outperformed one-sided recommenders on both successful-contact rate and precision. The argument transfers: mutual-consent messaging is a stronger primitive than ranked outreach.',
+    href: 'https://dl.acm.org/doi/10.1145/1864708.1864747',
+  },
+  {
+    index: 'Paper 02',
+    source: 'American Economic Review · 100(1)',
+    authors: 'Hitsch, Hortaçsu, Ariely',
+    year: '2010',
+    title: 'Matching and sorting in online matching markets.',
+    body:
+      'Two-sided online markets sort hard along stated preference and observable traits, and outcomes track Gale–Shapley deferred-acceptance predictions. Strong evidence that explicit intent + curated deck beats open feed for matching efficiency.',
+    href: 'https://www.aeaweb.org/articles?id=10.1257/aer.100.1.130',
+  },
+  {
+    index: 'Paper 03',
+    source: 'American Economic Review · 110(3)',
+    authors: 'Allcott, Braghieri, Eichmeyer, Gentzkow',
+    year: '2020',
+    title: 'The welfare effects of social media.',
+    body:
+      'Deactivating Facebook for four weeks raised subjective well-being and reduced political polarisation, even when participants knew the trial would end. A measured case against feed-shaped attention as the default for professional life.',
+    href: 'https://www.aeaweb.org/articles?id=10.1257/aer.20190658',
+  },
+]
+
+const faqs: Faq[] = [
+  {
+    q: 'Who sees my profile?',
+    a: 'Only people you actively open to — by liking their card, accepting an invite, or replying to a thread. There is no public profile, no search index, no recruiter dashboard browsing strangers. If you go quiet, you disappear.',
+  },
+  {
+    q: 'What does the deck draw from?',
+    a: 'Your stated intent (hiring · open · exploring), the work attached to your profile, and the people who attested to that work. We do not buy data, scrape LinkedIn, or infer intent from clicks. The deck is small because the inputs are explicit.',
+  },
+  {
+    q: 'What if I am not actively looking or hiring?',
+    a: 'Set intent to "open to talk" and we surface you to a much smaller set — typically peers and old collaborators rather than recruiters. Or set no intent at all and the platform stays dormant for you. Read-only is the default.',
+  },
+  {
+    q: 'How do I get an invite?',
+    a: 'Request one above. We hand-review every signup during the beta to keep the deck dense with signal — typically a few days, sometimes a week. If you came in through an existing member, the queue is faster.',
+  },
+  {
+    q: 'Is it free?',
+    a: 'Free for individuals during the beta. Companies pay per active hiring intent, billed monthly — not per seat, not per posting. Pricing goes public when the beta does.',
+  },
+  {
+    q: 'Why is everything off-white instead of pure white?',
+    a: 'Paper, not screen. The whole interface is built to be looked at briefly and put down. Off-white reads as something you would consult — not something you would scroll.',
+  },
+]
+
+function Wordmark({ size = 20 }: { size?: number }) {
   return (
-    <div
-      ref={ref}
-      className={`feature-card ${inView ? 'feature-card--visible' : ''}`}
-      style={{ transitionDelay: `${index * 80}ms` }}
-    >
-      <div className="feature-card__label">{feature.label}</div>
-      <h3 className="feature-card__title">{feature.title}</h3>
-      <p className="feature-card__description">{feature.description}</p>
-    </div>
+    <span className="el-wordmark" style={{ fontSize: size }}>
+      Denoisr<span className="dot">.</span>
+    </span>
   )
 }
 
-function TestimonialCard({
-  quote,
-  name,
-  role,
-  index,
-}: {
-  quote: string
-  name: string
-  role: string
-  index: number
-}) {
-  const [ref, inView] = useInView(0.1)
+function CardFace({ card, isTop, exit }: { card: DeckCard; isTop: boolean; exit: ExitKind }) {
+  return (
+    <article
+      className={`el-herocard ${isTop ? 'el-herocard--top' : 'el-herocard--behind'} ${
+        exit ? `el-herocard--exit el-herocard--exit-${exit}` : ''
+      }`}
+      aria-hidden={!isTop}
+    >
+      <div className="el-herocard__top">
+        <div className="el-herocard__avatar" style={{ background: card.swatch }} aria-hidden="true">
+          {card.initials}
+        </div>
+        <span className="el-herocard__company">{card.eyebrow}</span>
+      </div>
+
+      <div className="el-herocard__title">{card.title}</div>
+      <div className="el-herocard__meta">{card.meta}</div>
+
+      <div className="el-herocard__chips">
+        {card.chips.map((c) => (
+          <span key={c} className="el-herocard__chip">{c}</span>
+        ))}
+      </div>
+
+      <p className="el-herocard__body">{card.body}</p>
+    </article>
+  )
+}
+
+type ExitKind = null | 'pass' | 'like' | 'boost'
+
+function InteractiveDeck({ deck }: { deck: DeckCard[] }) {
+  const [topIndex, setTopIndex] = useState(0)
+  const [exit, setExit] = useState<ExitKind>(null)
+  const [counts, setCounts] = useState({ pass: 0, like: 0, boost: 0 })
+  const lockedRef = useRef(false)
+  const timerRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    setTopIndex(0)
+    setExit(null)
+    setCounts({ pass: 0, like: 0, boost: 0 })
+    lockedRef.current = false
+  }, [deck])
+
+  useEffect(() => () => {
+    if (timerRef.current) window.clearTimeout(timerRef.current)
+  }, [])
+
+  function decide(kind: Exclude<ExitKind, null>) {
+    if (lockedRef.current) return
+    lockedRef.current = true
+    setExit(kind)
+    setCounts((c) => ({ ...c, [kind]: c[kind] + 1 }))
+    timerRef.current = window.setTimeout(() => {
+      setTopIndex((i) => (i + 1) % deck.length)
+      setExit(null)
+      lockedRef.current = false
+    }, 260)
+  }
+
+  function onKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); decide('pass') }
+    if (e.key === 'ArrowRight') { e.preventDefault(); decide('like') }
+    if (e.key === 'ArrowUp') { e.preventDefault(); decide('boost') }
+  }
+
+  const topCard = deck[topIndex]
+  const behindCard = deck[(topIndex + 1) % deck.length]
+  const position = String(topIndex + 1).padStart(2, '0')
+  const total = String(deck.length).padStart(2, '0')
+
   return (
     <div
-      ref={ref}
-      className={`testimonial-card ${inView ? 'testimonial-card--visible' : ''}`}
-      style={{ transitionDelay: `${index * 100}ms` }}
+      className="el-deck"
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      aria-label="Sample deck. Arrow keys: left skip, right like, up boost."
     >
-      <p className="testimonial-card__quote">"{quote}"</p>
-      <div className="testimonial-card__author">
-        <div className="testimonial-card__name">{name}</div>
-        <div className="testimonial-card__role">{role}</div>
+      <div className="el-deck__progress el-meta" aria-hidden="true">
+        <span>{position} <span style={{ color: 'var(--ink-5)' }}>/ {total}</span></span>
+        <span>
+          <span style={{ color: 'var(--decision-pass)' }}>×{counts.pass}</span>
+          <span style={{ color: 'var(--ink-5)', margin: '0 8px' }}>·</span>
+          <span style={{ color: 'var(--ink)' }}>↑{counts.boost}</span>
+          <span style={{ color: 'var(--ink-5)', margin: '0 8px' }}>·</span>
+          <span style={{ color: 'var(--decision-like)' }}>♥{counts.like}</span>
+        </span>
+      </div>
+
+      <div className="el-deck__stage">
+        <div className="el-deck__behind">
+          <CardFace card={behindCard} isTop={false} exit={null} />
+        </div>
+        <div className="el-deck__top" key={topIndex}>
+          <CardFace card={topCard} isTop exit={exit} />
+        </div>
+      </div>
+
+      <div className="el-deck__actions">
+        <button type="button" className="el-actionbtn el-actionbtn--pass" aria-label="Skip" onClick={() => decide('pass')}>
+          <svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+            <path d="M5 5l12 12M17 5L5 17" />
+          </svg>
+        </button>
+        <button type="button" className="el-actionbtn el-actionbtn--boost" aria-label="Boost" onClick={() => decide('boost')}>
+          <svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 18V4M5 10l6-6 6 6" />
+          </svg>
+        </button>
+        <button type="button" className="el-actionbtn el-actionbtn--like" aria-label="Like" onClick={() => decide('like')}>
+          <svg width="20" height="20" viewBox="0 0 22 22" fill="currentColor">
+            <path d="M11 19s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0118 9c0 5.5-7 10-7 10z" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="el-deck__hint el-meta">
+        <span>← skip</span>
+        <span>·</span>
+        <span>↑ boost</span>
+        <span>·</span>
+        <span>→ like</span>
       </div>
     </div>
+  )
+}
+
+function InviteForm({ id }: { id?: string }) {
+  const [email, setEmail] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState(false)
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email.includes('@') || email.length < 5) {
+      setError(true)
+      return
+    }
+    setError(false)
+    setSubmitted(true)
+  }
+
+  if (submitted) {
+    return (
+      <div className="el-invite el-invite--done" id={id}>
+        <div className="el-invite__done-title">Thanks — you are on the list.</div>
+        <div className="el-invite__done-sub el-meta">
+          You will hear back from a real address. No autoresponder.
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="el-invite" id={id} noValidate>
+      <div className="el-invite__row">
+        <input
+          type="email"
+          required
+          placeholder="you@work.com"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setError(false) }}
+          className={`el-invite__input ${error ? 'el-invite__input--error' : ''}`}
+          aria-label="Work email"
+          aria-invalid={error}
+        />
+        <button type="submit" className="el-btn el-btn--primary">Request invite</button>
+      </div>
+      <div className="el-invite__sub el-meta">
+        {error
+          ? 'Looks like that needs a work address.'
+          : 'Hand-reviewed · No marketing list · Reply within a week'}
+      </div>
+    </form>
   )
 }
 
 export default function ProductPage() {
-  const features: Feature[] = [
-    {
-      label: 'NOISE-FREE NETWORKING',
-      title: 'Signal-first connections',
-      description:
-        'Connect through clearly defined intent—no feeds, no scrolling loops. You see only meaningful matches based on relevance, not volume.',
-    },
-    {
-      label: 'PERSONALISED JOB SEARCH',
-      title: 'Roles that fit your intent',
-      description:
-        'Denoisr surfaces a limited set of carefully matched opportunities. Focus on quality and clarity instead of keyword-heavy applications.',
-    },
-    {
-      label: 'PROOF OVER PROFILES',
-      title: 'Verified contributions',
-      description:
-        'Profiles are centered around tangible outcomes—projects, systems built, and problems solved—supported by validation from collaborators.',
-    },
-    {
-      label: 'INTENT-DRIVEN MATCHING',
-      title: 'Time-bound relevance',
-      description:
-        'Your intent is explicit and time-scoped, enabling precise matches between candidates and opportunities.',
-    },
-    {
-      label: 'CONTROLLED COMMUNICATION',
-      title: 'Reduced noise messaging',
-      description:
-        'Low-quality outreach is filtered out. Conversations happen only when context and mutual relevance are present.',
-    },
-  ]
+  const [mode, setMode] = useState<'jobs' | 'people'>('jobs')
 
-  const testimonials = [
-    {
-      quote:
-        'Denoisr cut our screening time by half. The candidates we receive are pre-qualified and genuinely interested. It has fundamentally changed how we hire.',
-      name: 'Priya Sharma',
-      role: 'VP of Engineering, TechCorp',
-    },
-    {
-      quote:
-        'I found my current role through Denoisr. No spam, no noise — just a clear match with a company that actually needed my skills.',
-      name: 'Rahul Verma',
-      role: 'Senior Backend Engineer',
-    },
-    {
-      quote:
-        'As a freelancer, Denoisr gives me access to high-quality projects without the bidding wars. The intent layer ensures everyone is serious.',
-      name: 'Ananya Patel',
-      role: 'Independent Product Designer',
-    },
-  ]
-
-  const companies = ['Stripe', 'Figma', 'Linear', 'Vercel', 'Supabase', 'Railway']
-
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-  const [heroRef, heroParallax] = useParallax(0.08)
-
-  useEffect(() => {
-    const onMouse = (e: MouseEvent) => {
-      setMousePos({
-        x: (e.clientX / window.innerWidth - 0.5) * 2,
-        y: (e.clientY / window.innerHeight - 0.5) * 2,
-      })
-    }
-    window.addEventListener('mousemove', onMouse, { passive: true })
-    return () => window.removeEventListener('mousemove', onMouse)
-  }, [])
+  function smoothJump(e: React.MouseEvent<HTMLAnchorElement>, id: string) {
+    const el = document.getElementById(id)
+    if (!el) return
+    e.preventDefault()
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   return (
-    <div className="denoisr product-page">
-      {/* ─── HERO ─── */}
-      <section ref={heroRef} className="hero-section" id="product-overview">
-        <div className="hero-section__bg" aria-hidden="true">
-          <div
-            className="hero-section__blob hero-section__blob--pink"
-            style={{
-              transform: `translate(${mousePos.x * -18}px, ${mousePos.y * -18 - heroParallax}px)`,
-            }}
-          />
-          <div
-            className="hero-section__blob hero-section__blob--lavender"
-            style={{
-              transform: `translate(${mousePos.x * 14}px, ${mousePos.y * -14 + heroParallax}px)`,
-            }}
-          />
-          <div
-            className="hero-section__blob hero-section__blob--blue"
-            style={{
-              transform: `translate(${mousePos.x * -8}px, ${mousePos.y * 10 + heroParallax * 0.5}px)`,
-            }}
-          />
+    <div className="editorial-landing">
+      {/* ── Chrome ── */}
+      <header className="el-chrome">
+        <div className="el-container el-chrome__inner">
+          <Link to="/" aria-label="Denoisr">
+            <Wordmark />
+          </Link>
+
+          <div className="el-mode" role="tablist" aria-label="Browse mode">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'jobs'}
+              className={`el-mode__btn ${mode === 'jobs' ? 'el-mode__btn--active' : ''}`}
+              onClick={() => setMode('jobs')}
+            >
+              Jobs
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'people'}
+              className={`el-mode__btn ${mode === 'people' ? 'el-mode__btn--active' : ''}`}
+              onClick={() => setMode('people')}
+            >
+              People
+            </button>
+          </div>
+
+          <nav className="el-chrome__nav">
+            <a href="#how" onClick={(e) => smoothJump(e, 'how')} className="el-navlink el-navlink--marketing">How it works</a>
+            <a href="#vs" onClick={(e) => smoothJump(e, 'vs')} className="el-navlink el-navlink--marketing">vs the feed</a>
+            <a href="#research" onClick={(e) => smoothJump(e, 'research')} className="el-navlink el-navlink--marketing">Research</a>
+            <Link to="/login" className="el-navlink">Sign in</Link>
+            <a
+              href="#invite"
+              onClick={(e) => smoothJump(e, 'invite')}
+              className="el-btn el-btn--primary el-btn--sm"
+            >
+              Request invite
+            </a>
+          </nav>
         </div>
+      </header>
 
-        <div className="container hero-section__inner">
-          <div className="hero-section__label">HIGH-SIGNAL NETWORKING</div>
-          <h1 className="hero-section__title">
-            Remove the noise from
-            <br />
-            professional networking.
-          </h1>
-          <p className="hero-section__sub">
-            Denoisr is a high-signal infrastructure layer for professional
-            interaction — replacing activity with intent, profiles with proof,
-            and noise with clarity.
-          </p>
-
-          <div className="hero-section__ctas">
-            <Button variant="solidDark" to="/signup">
-              Get Started
-            </Button>
-            <Button variant="outlinedLight" to="/login">
-              Sign In
-            </Button>
-          </div>
-
-          <div className="hero-section__stats-row">
-            <div className="hero-section__stat-item">
-              <span className="hero-section__stat-value">2x</span>
-              <span className="hero-section__stat-label">Faster screening</span>
+      {/* ── HERO ── */}
+      <section className="el-hero">
+        <div className="el-hero__wash" aria-hidden="true" />
+        <div className="el-container el-hero__inner">
+          <div>
+            <div className="el-hero__brow">
+              <span className="el-hero__brow-dot" aria-hidden="true" />
+              <span className="el-eyebrow">
+                Invite-only · Spring 2026 · {mode === 'jobs' ? 'Jobs' : 'People'}
+              </span>
             </div>
-            <div className="hero-section__stat-divider" />
-            <div className="hero-section__stat-item">
-              <span className="hero-section__stat-value">60%</span>
-              <span className="hero-section__stat-label">Fewer wasted apps</span>
+
+            <h1 className="el-hero__headline">
+              Hire by signal.<br />
+              Get hired by <em>proof</em>.
+            </h1>
+
+            <p className="el-hero__sub">
+              Denoisr is the professional network without the feed. State intent,
+              swipe a curated deck, talk only when both sides chose to — and skip
+              the noise that everyone else mistakes for work.
+            </p>
+
+            <div className="el-hero__invite">
+              <InviteForm id="invite" />
             </div>
-            <div className="hero-section__stat-divider" />
-            <div className="hero-section__stat-item">
-              <span className="hero-section__stat-value">90%</span>
-              <span className="hero-section__stat-label">Higher intent alignment</span>
+
+            <div className="el-hero__foot el-meta">
+              <span>No public profiles</span>
+              <span className="dot">·</span>
+              <span>Read-only by default</span>
+              <span className="dot">·</span>
+              <Link to="/login" className="el-hero__signin">Already a member? Sign in →</Link>
             </div>
           </div>
+
+          <InteractiveDeck deck={mode === 'jobs' ? jobsDeck : peopleDeck} />
         </div>
       </section>
 
-      {/* ─── ENTERPRISE STATS ─── */}
-      <RevealSection>
-        <section className="stats-section" id="numbers">
-          <div className="container">
-            <div className="section-label">ENTERPRISE SIGNAL METRICS</div>
-            <h2 className="section-heading">Proven outcomes at scale</h2>
-            <p className="section-subheading">
-              Real results from teams that have adopted signal-first hiring and
-              networking practices.
-            </p>
-
-            <div className="stats-grid">
-              <AnimatedStat value="2x" label="Faster candidate screening" />
-              <AnimatedStat value="60%" label="Reduction in wasted applications" />
-              <AnimatedStat value="90%" label="Intent alignment accuracy" />
-              <AnimatedStat value="4.8x" label="Response rate improvement" />
-            </div>
-          </div>
-        </section>
-      </RevealSection>
-
-      {/* ─── FEATURES ─── */}
-      <RevealSection>
-        <section className="features-section" id="features-differentiators">
-          <div className="container">
-            <div className="section-label">SIGNAL-FIRST DISCOVERY</div>
-            <h2 className="section-heading">Built for focus and clarity</h2>
-            <p className="section-subheading">
-              No feeds. No engagement loops. Just structured discovery and
-              clarity-first communication.
-            </p>
-
-            <div className="features-grid">
-              {features.map((feature, i) => (
-                <FeatureCard key={feature.label} feature={feature} index={i} />
-              ))}
-            </div>
-          </div>
-        </section>
-      </RevealSection>
-
-      {/* ─── CUSTOMER PERSONA ─── */}
-      <RevealSection>
-        <section className="persona-section" id="customer-persona">
-          <div className="container">
-            <div className="section-label">WHO IT'S FOR</div>
-            <h2 className="section-heading">For professionals, recruiters, and builders</h2>
-            <p className="section-subheading">
-              Denoisr serves everyone in the professional ecosystem — from
-              individual contributors to enterprise hiring teams.
-            </p>
-
-            <div className="persona-grid">
-              <div className="persona-card">
-                <div className="persona-card__icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-                  </svg>
-                </div>
-                <h3 className="persona-card__title">Professionals</h3>
-                <p className="persona-card__description">
-                  Access relevant opportunities without the need for constant
-                  self-promotion. Your work speaks for itself.
-                </p>
-              </div>
-
-              <div className="persona-card">
-                <div className="persona-card__icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                    <line x1="8" y1="21" x2="16" y2="21" />
-                    <line x1="12" y1="17" x2="12" y2="21" />
-                  </svg>
-                </div>
-                <h3 className="persona-card__title">Recruiters</h3>
-                <p className="persona-card__description">
-                  Receive pre-qualified candidates that match your requirements.
-                  Reduce screening time and improve hiring efficiency.
-                </p>
-              </div>
-
-              <div className="persona-card">
-                <div className="persona-card__icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="16 3 21 3 21 8" />
-                    <line x1="4" y1="20" x2="21" y2="3" />
-                    <polyline points="21 16 21 21 16 21" />
-                    <line x1="15" y1="15" x2="21" y2="21" />
-                    <line x1="4" y1="4" x2="9" y2="9" />
-                  </svg>
-                </div>
-                <h3 className="persona-card__title">Independent Builders</h3>
-                <p className="persona-card__description">
-                  Showcase your work and connect with high-quality projects
-                  through trusted, context-driven discovery.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </RevealSection>
-
-      {/* ─── FEATURED COMPANIES ─── */}
-      <RevealSection>
-        <section className="companies-section" id="featured-companies">
-          <div className="container">
-            <div className="section-label">TRUSTED BY INNOVATIVE TEAMS</div>
-            <h2 className="section-heading">Companies that build with signal</h2>
-            <p className="section-subheading">
-              Forward-thinking organizations use Denoisr to find talent that
-              matches their standards.
-            </p>
-
-            <div className="companies-grid">
-              {companies.map((company) => (
-                <div key={company} className="company-card">
-                  <span className="company-card__name">{company}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </RevealSection>
-
-      {/* ─── SUCCESS STORIES ─── */}
-      <RevealSection>
-        <section className="testimonials-section" id="success-stories">
-          <div className="container">
-            <div className="section-label">SUCCESS STORIES</div>
-            <h2 className="section-heading">Trusted by professionals</h2>
-
-            <div className="testimonials-grid">
-              {testimonials.map((t, i) => (
-                <TestimonialCard key={t.name} {...t} index={i} />
-              ))}
-            </div>
-          </div>
-        </section>
-      </RevealSection>
-
-      {/* ─── RESEARCH ZONE (DARK WORLD) ─── */}
-      <section className="research-section" id="research">
-        <div className="container">
-          <RevealSection>
-            <div className="section-label section-label--light">RESEARCH ZONE</div>
-            <h2 className="section-heading section-heading--light">
-              The science of signal
+      {/* ── How it works ── */}
+      <section id="how" className="el-section">
+        <div className="el-container">
+          <div className="el-section__head">
+            <span className="el-eyebrow">How it works · Three steps</span>
+            <h2 className="el-section__title">
+              State intent. Swipe the deck. <em>Talk when it fits.</em>
             </h2>
-            <p className="section-subheading section-subheading--light">
-              Our approach is grounded in research on professional networking,
-              hiring efficiency, and intent-based matching systems.
+            <p className="el-section__sub">
+              The whole product is three motions. The rest of the time, Denoisr
+              stays out of your way.
             </p>
-          </RevealSection>
+          </div>
 
-          <div className="research-grid">
-            <RevealSection>
-              <div className="research-card">
-                <div className="research-card__badge">PAPER 001</div>
-                <h3 className="research-card__title">
-                  Intent-based matching reduces hiring friction by 60%
-                </h3>
-                <p className="research-card__description">
-                  A study across 200+ hiring pipelines found that explicit intent
-                  signaling reduced time-to-interview by 60% compared to
-                  traditional application-based approaches.
-                </p>
-              </div>
-            </RevealSection>
-
-            <RevealSection>
-              <div className="research-card">
-                <div className="research-card__badge">PAPER 002</div>
-                <h3 className="research-card__title">
-                  Proof-based profiles outperform traditional resumes
-                </h3>
-                <p className="research-card__description">
-                  Candidates with verified contributions were 4.8x more likely to
-                  receive interview invitations than those with conventional
-                  resume-only profiles.
-                </p>
-              </div>
-            </RevealSection>
-
-            <RevealSection>
-              <div className="research-card">
-                <div className="research-card__badge">PAPER 003</div>
-                <h3 className="research-card__title">
-                  Controlled communication reduces recruiter noise by 74%
-                </h3>
-                <p className="research-card__description">
-                  Structured messaging workflows decreased irrelevant outreach by
-                  74%, allowing recruiters to focus on high-quality candidates.
-                </p>
-              </div>
-            </RevealSection>
+          <div className="el-steps">
+            {steps.map((s) => (
+              <article key={s.num} className="el-step">
+                <span className="el-step__num">— {s.num}</span>
+                <h3 className="el-step__title">{s.title}</h3>
+                <p className="el-step__body">{s.body}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ─── GET STARTED CTA ─── */}
-      <RevealSection>
-        <section className="cta-section" id="get-started">
-          <div className="container">
-            <div className="cta-card">
-              <div className="section-label">READY TO FILTER NOISE?</div>
-              <h2 className="section-heading">Build signal with Denoisr.</h2>
-              <p className="section-subheading">
-                Join thousands of professionals and companies who have chosen
-                intent over noise. Start your signal-first experience today.
-              </p>
+      {/* ── vs the feed ── */}
+      <section id="vs" className="el-section el-section--paper2">
+        <div className="el-container">
+          <div className="el-section__head">
+            <span className="el-eyebrow">The contrast · Plainly stated</span>
+            <h2 className="el-section__title">
+              What the feed does. What we do instead.
+            </h2>
+          </div>
 
-              <div className="cta-card__actions">
-                <Button variant="solidDark" to="/signup">
-                  Get Started
-                </Button>
-                <Button variant="outlinedLight" to="/login">
-                  Sign In
-                </Button>
+          <div className="el-vs">
+            <div className="el-vs__head">
+              <span className="el-vs__col-label">What you have come to expect</span>
+              <span className="el-vs__col-label el-vs__col-label--right">What Denoisr does</span>
+            </div>
+            {versus.map((row) => (
+              <div key={row.topic} className="el-vs__row">
+                <div className="el-vs__topic">{row.topic}</div>
+                <div className="el-vs__feed">{row.feed}</div>
+                <div className="el-vs__den">{row.denoisr}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Research ── */}
+      <section id="research" className="el-section el-section--paper3">
+        <div className="el-container">
+          <div className="el-section__head">
+            <span className="el-eyebrow">Research · Reading room</span>
+            <h2 className="el-section__title">The thesis, with citations.</h2>
+            <p className="el-section__sub">
+              Denoisr's three primitives — intent, mutual consent, no feed —
+              each lean on a body of public research. Three starting points.
+            </p>
+          </div>
+
+          <div className="el-papers">
+            {papers.map((p) => (
+              <article key={p.index} className="el-paper">
+                <div className="el-paper__index">
+                  <span>{p.index}</span>
+                  <span>{p.year}</span>
+                </div>
+                <div className="el-paper__source">{p.source}</div>
+                <h3 className="el-paper__title">{p.title}</h3>
+                <p className="el-paper__authors">{p.authors}</p>
+                <p className="el-paper__body">{p.body}</p>
+                <a href={p.href} target="_blank" rel="noreferrer noopener" className="el-paper__link">
+                  Read paper →
+                </a>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section id="faq" className="el-section">
+        <div className="el-container">
+          <div className="el-section__head">
+            <span className="el-eyebrow">Questions · Plainly answered</span>
+            <h2 className="el-section__title">Before you ask.</h2>
+          </div>
+
+          <div className="el-faq">
+            {faqs.map((f, i) => (
+              <details key={f.q} className="el-faq__item" open={i === 0}>
+                <summary className="el-faq__q">
+                  <span>{f.q}</span>
+                  <span className="el-faq__chev" aria-hidden="true">+</span>
+                </summary>
+                <div className="el-faq__a">{f.a}</div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Closing CTA ── */}
+      <section className="el-section">
+        <div className="el-container">
+          <div className="el-cta">
+            <div className="el-cta__inner">
+              <span className="el-eyebrow">Open to new members · Cohort 05</span>
+              <h2 className="el-cta__title">
+                Skip the feed. <em>Find the fit.</em>
+              </h2>
+              <p className="el-cta__sub">
+                Three minutes to set up intent. The deck arrives the next morning.
+              </p>
+              <div className="el-cta__actions">
+                <a
+                  href="#invite"
+                  onClick={(e) => smoothJump(e, 'invite')}
+                  className="el-btn el-btn--primary"
+                >
+                  Request invite
+                </a>
+                <Link to="/login" className="el-btn el-btn--ghost">
+                  Sign in
+                </Link>
               </div>
             </div>
           </div>
-        </section>
-      </RevealSection>
+        </div>
+      </section>
 
-      {/* ─── BRAND FOOTER STATEMENT ─── */}
-      <div className="product-page__footer-brand">
-        <span className="product-page__footer-wordmark">together</span>
-      </div>
+      {/* ── Footer ── */}
+      <footer className="el-footer">
+        <div className="el-container">
+          <div className="el-footer__top">
+            <div className="el-footer__brand">
+              <Wordmark size={22} />
+              <p className="el-footer__tagline">High-signal · Intent-led · Read-only by default</p>
+            </div>
+
+            <div className="el-footer__cols">
+              <div className="el-footer__col">
+                <div className="el-footer__col-title">Product</div>
+                <ul>
+                  <li><Link to="/features">Features</Link></li>
+                  <li><Link to="/how-it-works">How it works</Link></li>
+                  <li><Link to="/for-recruiters">For recruiters</Link></li>
+                </ul>
+              </div>
+              <div className="el-footer__col">
+                <div className="el-footer__col-title">Company</div>
+                <ul>
+                  <li><Link to="/about">About</Link></li>
+                  <li><Link to="/careers">Careers</Link></li>
+                  <li><Link to="/contact">Contact</Link></li>
+                </ul>
+              </div>
+              <div className="el-footer__col">
+                <div className="el-footer__col-title">Trust</div>
+                <ul>
+                  <li><Link to="/security">Security</Link></li>
+                  <li><Link to="/privacy-policy">Privacy</Link></li>
+                  <li><Link to="/terms-of-service">Terms</Link></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="el-footer__base">
+            <span>© 2026 Denoisr</span>
+            <span>v 0.05 · Spring beta</span>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

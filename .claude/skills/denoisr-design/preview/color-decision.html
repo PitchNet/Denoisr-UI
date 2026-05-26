@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}html,body{margin:0;padding:0;background:#fbfaf6;color:#1a1715;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .card{padding:22px 26px;min-height:100%;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+  .eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(26,23,21,.5)}
+  .meta{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:rgba(26,23,21,.5)}
+  .row{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+  .wash-pink{position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,210,225,.55),transparent 70%);pointer-events:none}
+  .wash-violet{position:absolute;bottom:-40px;left:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(closest-side,rgba(220,210,255,.5),transparent 70%);pointer-events:none}
+</style></head><body><div class="card">
+  <div class="eyebrow">Decision · swipe-only colors</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+    
+  <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+    <div style="height:60px;border-radius:10px;background:#c44a39;border:1px solid rgba(26,23,21,.06)"></div>
+    <div style="font-family:'Geist Mono';font-size:10.5px;color:#1a1715">--decision-pass</div>
+    <div style="font-family:'Geist Mono';font-size:9.5px;color:rgba(26,23,21,.55)">#C44A39 · skip</div>
+  </div>
+    
+  <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+    <div style="height:60px;border-radius:10px;background:#2c8a55;border:1px solid rgba(26,23,21,.06)"></div>
+    <div style="font-family:'Geist Mono';font-size:10.5px;color:#1a1715">--decision-like</div>
+    <div style="font-family:'Geist Mono';font-size:9.5px;color:rgba(26,23,21,.55)">#2C8A55 · like / apply</div>
+  </div>
+    
+  <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+    <div style="height:60px;border-radius:10px;background:#1a1715;border:1px solid rgba(26,23,21,.06)"></div>
+    <div style="font-family:'Geist Mono';font-size:10.5px;color:#1a1715">--decision-boost</div>
+    <div style="font-family:'Geist Mono';font-size:9.5px;color:rgba(26,23,21,.55)">--ink · boost</div>
+  </div>
+  </div>
+  <div class="meta">Only appear on SKIP / LIKE / BOOST stamps during a drag. Never used in idle UI.</div></div></body></html>

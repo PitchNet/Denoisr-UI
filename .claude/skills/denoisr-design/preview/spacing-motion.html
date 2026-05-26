@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}html,body{margin:0;padding:0;background:#fbfaf6;color:#1a1715;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .card{padding:22px 26px;min-height:100%;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+  .eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(26,23,21,.5)}
+  .meta{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;color:rgba(26,23,21,.5)}
+</style></head><body><div class="card">
+  <style>
+    @keyframes drift{0%{transform:translateX(0) rotate(0)}40%{transform:translateX(60px) rotate(8deg)}50%{transform:translateX(60px) rotate(8deg)}90%{transform:translateX(0) rotate(0)}}
+    .demo{animation:drift 2.6s cubic-bezier(.2,.7,.25,1) infinite}
+  </style>
+  <div class="eyebrow">Motion · cards drift back on under-threshold</div>
+  <div style="display:flex;align-items:center;gap:18px;padding:6px 0">
+    <div style="width:96px;height:64px;background:#fbfaf6;border:1px solid rgba(26,23,21,.08);border-radius:14px;box-shadow:0 1px 0 rgba(0,0,0,.04), 0 12px 30px -14px rgba(40,30,20,.18)" class="demo"></div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div style="font-family:'Geist Mono';font-size:11px;color:#1a1715">--easing-default · cubic-bezier(.2,.7,.25,1)</div>
+      <div style="font-family:'Geist Mono';font-size:11px;color:rgba(26,23,21,.55)">--dur-card · 260ms (exit) · 120ms (hover)</div>
+      <div style="font-size:12.5px;color:rgba(26,23,21,.66);max-width:380px;line-height:1.45">Cards exit at 260ms with the default easing. Hover never transforms — only color shifts.</div>
+    </div>
+  </div></div></body></html>

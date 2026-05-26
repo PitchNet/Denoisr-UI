@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Denoisr · mobile UI kit</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#f0eee9;font-family:'Geist',system-ui,sans-serif;color:#1a1715;-webkit-font-smoothing:antialiased}
+  .head{padding:40px 48px 14px;display:flex;align-items:baseline;justify-content:space-between}
+  .head h1{font-size:36px;font-weight:600;letter-spacing:-1px;margin:0}
+  .head .sub{font-family:'Geist Mono';font-size:11px;letter-spacing:1.4px;color:rgba(26,23,21,.5);text-transform:uppercase}
+  .strip{padding:8px 48px 64px;display:flex;gap:36px;overflow-x:auto;scroll-snap-type:x mandatory}
+  .frame{scroll-snap-align:start;flex-shrink:0}
+  .label{font-family:'Geist Mono';font-size:11px;letter-spacing:1.2px;color:rgba(26,23,21,.55);text-transform:uppercase;text-align:center;margin-top:14px}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="head">
+  <h1>Mobile · UI kit</h1>
+  <div class="sub">Denoisr · Editorial Mono · iOS 402×874</div>
+</div>
+<div id="root" class="strip"></div>
+
+<script src="data.js"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="swipe-card.jsx"></script>
+<script type="text/babel" src="card-variants.jsx"></script>
+<script type="text/babel" src="mobile-screens.jsx"></script>
+
+<script type="text/babel">
+function Frame({ label, children }) {
+  return (
+    <div className="frame">
+      <IOSDevice width={402} height={874}>{children}</IOSDevice>
+      <div className="label">{label}</div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <Frame label="01 · Jobs swipe"><MobileJobsSwipe initialMode="Jobs" /></Frame>
+      <Frame label="02 · People swipe"><MobileJobsSwipe initialMode="People" /></Frame>
+      <Frame label="03 · Match moment"><MobileMatch /></Frame>
+      <Frame label="04 · Tune (filters)"><MobileFilters /></Frame>
+      <Frame label="05 · Matches"><MobileMatches /></Frame>
+      <Frame label="06 · Profile"><MobileProfile /></Frame>
+    </>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

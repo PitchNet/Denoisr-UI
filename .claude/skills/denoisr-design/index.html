@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Denoisr — design canvas</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; }
+  body { font-family: 'Geist', system-ui, sans-serif; }
+  * { -webkit-font-smoothing: antialiased; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="data.js"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="swipe-card.jsx"></script>
+<script type="text/babel" src="card-variants.jsx"></script>
+<script type="text/babel" src="mobile-screens.jsx"></script>
+<script type="text/babel" src="web-dashboard.jsx"></script>
+
+<script type="text/babel" data-presets="react">
+
+// ─────────────────────────────────────────────────────────────
+// Canvas composition
+// ─────────────────────────────────────────────────────────────
+
+function ArtFrame({ children, dark }) {
+  // simple coloured backdrop behind each card-variant artboard
+  return (
+    <div style={{
+      width: '100%', height: '100%',
+      background: dark ? '#0a0a09' : '#f7f5f1',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 24, boxSizing: 'border-box',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      {!dark && (
+        <>
+          <div style={{ position: 'absolute', top: -60, right: -40, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(255,210,225,.45), transparent 70%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: -60, left: -40, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(215,210,255,.4), transparent 70%)', pointerEvents: 'none' }} />
+        </>
+      )}
+      {children}
+    </div>
+  );
+}
+
+function CardSwipeDemo({ Variant, kind, subject, dark }) {
+  const [item, setItem] = React.useState(subject);
+  const pool = kind === 'job' ? window.DENOISR_JOBS : window.DENOISR_PEOPLE;
+  const swipe = () => {
+    const idx = pool.findIndex(p => p.id === item.id);
+    setItem(pool[(idx + 1) % pool.length]);
+  };
+  return (
+    <ArtFrame dark={dark}>
+      <SwipeCard onSwipe={swipe} width={300} height={460}>
+        {({ decision }) => <Variant {...(kind === 'job' ? { job: item } : { person: item })} decision={decision} />}
+      </SwipeCard>
+    </ArtFrame>
+  );
+}
+
+// iPhone artboard wrapper — scales the 402×874 device down to fit nicely
+function PhoneArt({ children }) {
+  const SCALE = 0.78;
+  return (
+    <div style={{
+      width: '100%', height: '100%',
+      background: '#e9e6df',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden',
+    }}>
+      <div style={{ transform: `scale(${SCALE})`, transformOrigin: 'center' }}>
+        <IOSDevice width={402} height={874}>
+          {children}
+        </IOSDevice>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas>
+
+      <DCSection id="intro" title="Denoisr — design exploration" subtitle="Tinder-style discovery for jobs and professional connections. Real drag-to-swipe on every card; left = skip, right = like / apply, up = boost.">
+        <DCArtboard id="brief" label="Brief" width={520} height={460}>
+          <div style={{
+            width: '100%', height: '100%', padding: 40, boxSizing: 'border-box',
+            background: '#fbfaf6', display: 'flex', flexDirection: 'column', gap: 14,
+            fontFamily: 'Geist, system-ui, sans-serif', color: '#1a1715',
+            position: 'relative', overflow: 'hidden',
+          }}>
+            <div style={{ position: 'absolute', top: -60, right: -40, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(255,210,225,.5), transparent 70%)' }} />
+            <div style={{ fontFamily: 'Geist Mono, ui-monospace, monospace', fontSize: 11, letterSpacing: 1.6, color: 'rgba(26,23,21,.55)', textTransform: 'uppercase' }}>
+              Project · Denoisr
+            </div>
+            <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1.4, lineHeight: 1, textWrap: 'pretty' }}>
+              A swipeable, high-signal alternative to the professional feed.
+            </div>
+            <div style={{ marginTop: 4, fontSize: 14.5, lineHeight: 1.55, color: 'rgba(26,23,21,.7)' }}>
+              Two modes: <b>Jobs</b> (apply by swiping right on curated roles) and <b>People</b> (co-founder, peers, recruiters, coffee chats). Mobile-first, with a parallel web dashboard that keeps the same vocabulary.
+            </div>
+            <div style={{ marginTop: 18, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, position: 'relative' }}>
+              {[
+                ['Left', 'Skip the role / person'],
+                ['Right', 'Apply or reach out'],
+                ['Up', 'Boost — super-interested'],
+              ].map(([k, v]) => (
+                <div key={k} style={{ padding: '14px 14px', borderRadius: 14, background: '#fff', border: '1px solid rgba(26,23,21,.06)' }}>
+                  <div style={{ fontFamily: 'Geist Mono, ui-monospace, monospace', fontSize: 10, letterSpacing: 1.4, color: 'rgba(26,23,21,.55)', textTransform: 'uppercase' }}>{k}</div>
+                  <div style={{ marginTop: 6, fontSize: 13, color: '#1a1715' }}>{v}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ fontFamily: 'Geist Mono, ui-monospace, monospace', fontSize: 11, color: 'rgba(26,23,21,.5)', letterSpacing: 0.5 }}>
+              Drag any card. Click expand on any artboard to scrub the full prototype.
+            </div>
+          </div>
+        </DCArtboard>
+        <DCPostIt top={-26} left={544} rotate={4} width={200}>
+          Drag the cards — they really swipe. Buttons below the deck work too.
+        </DCPostIt>
+      </DCSection>
+
+      {/* ────────────────── CARD VARIANTS ────────────────── */}
+      <DCSection id="variants" title="Card variants — three aesthetics" subtitle="Same swipe primitive, three visual directions. Pick one (or mix) and we extend that DNA across the rest of the product.">
+        <DCArtboard id="a-job" label="A · Editorial Mono — Job" width={360} height={540}>
+          <CardSwipeDemo Variant={VariantA_Job} kind="job" subject={window.DENOISR_JOBS[0]} />
+        </DCArtboard>
+        <DCArtboard id="a-person" label="A · Editorial Mono — Person" width={360} height={540}>
+          <CardSwipeDemo Variant={VariantA_Person} kind="person" subject={window.DENOISR_PEOPLE[0]} />
+        </DCArtboard>
+        <DCArtboard id="b-job" label="B · Paper & Ink — Job" width={360} height={540}>
+          <CardSwipeDemo Variant={VariantB_Job} kind="job" subject={window.DENOISR_JOBS[1]} />
+        </DCArtboard>
+        <DCArtboard id="b-person" label="B · Paper & Ink — Person" width={360} height={540}>
+          <CardSwipeDemo Variant={VariantB_Person} kind="person" subject={window.DENOISR_PEOPLE[3]} />
+        </DCArtboard>
+        <DCArtboard id="c-job" label="C · Dark Studio — Job" width={360} height={540}>
+          <CardSwipeDemo Variant={VariantC_Job} kind="job" subject={window.DENOISR_JOBS[2]} dark />
+        </DCArtboard>
+        <DCArtboard id="c-person" label="C · Dark Studio — Person" width={360} height={540}>
+          <CardSwipeDemo Variant={VariantC_Person} kind="person" subject={window.DENOISR_PEOPLE[1]} dark />
+        </DCArtboard>
+      </DCSection>
+
+      {/* ────────────────── MOBILE FLOW ────────────────── */}
+      <DCSection id="mobile" title="Mobile · the full flow" subtitle="Variant A, applied across the core surfaces. Swipe deck, filters, the match moment, your matches, and your own profile.">
+        <DCArtboard id="m-jobs" label="Jobs · swipe deck" width={360} height={720}>
+          <PhoneArt><MobileJobsSwipe initialMode="Jobs" /></PhoneArt>
+        </DCArtboard>
+        <DCArtboard id="m-people" label="People · swipe deck" width={360} height={720}>
+          <PhoneArt><MobileJobsSwipe initialMode="People" /></PhoneArt>
+        </DCArtboard>
+        <DCArtboard id="m-match" label="Match moment" width={360} height={720}>
+          <PhoneArt><MobileMatch /></PhoneArt>
+        </DCArtboard>
+        <DCArtboard id="m-filters" label="Tune · filters" width={360} height={720}>
+          <PhoneArt><MobileFilters /></PhoneArt>
+        </DCArtboard>
+        <DCArtboard id="m-matches" label="Matches & conversations" width={360} height={720}>
+          <PhoneArt><MobileMatches /></PhoneArt>
+        </DCArtboard>
+        <DCArtboard id="m-profile" label="Your profile" width={360} height={720}>
+          <PhoneArt><MobileProfile /></PhoneArt>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ────────────────── WEB ────────────────── */}
+      <DCSection id="web" title="Web · dashboard mode" subtitle="The same vocabulary, scaled out to a 3-column desktop discovery surface. Drag the centre card to apply or skip.">
+        <DCArtboard id="w-jobs" label="Jobs mode (extends the screenshot)" width={1280} height={760}>
+          <WebDashboard initialMode="Jobs" />
+        </DCArtboard>
+        <DCArtboard id="w-people" label="People mode" width={1280} height={760}>
+          <WebDashboard initialMode="People" />
+        </DCArtboard>
+      </DCSection>
+
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+</body>
+</html>
