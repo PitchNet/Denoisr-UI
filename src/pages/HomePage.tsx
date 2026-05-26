@@ -192,9 +192,10 @@ export default function HomePage() {
 
   useEffect(() => {
     async function fetchFeed() {
-      try {
-        setLoading(true)
+      setLoading(true)
+      setError(null)
 
+      try {
         const endpoint =
           mode === 'jobs' ? '/FeedController/fetchJobs' : '/FeedController/fetchPeople'
         const res = await apiRequest(endpoint, {
@@ -207,8 +208,13 @@ export default function HomePage() {
             salary: maxSalary || null,
           },
         })
-        const data = await res.json()
 
+        if (!res.ok) {
+          setError(`Failed to load ${mode}`)
+          return
+        }
+
+        const data = await res.json()
         const formatted: DiscoveryCard[] = data.map((item: any) => ({
           ...item,
           kind: mode,
@@ -280,6 +286,7 @@ export default function HomePage() {
   async function handleDecision(direction: SwipeDirection) {
     if (!currentCard || exitDirection || swipeLockedRef.current) return
     swipeLockedRef.current = true
+    setError(null)
 
     if (direction === 'accept' && mode === 'jobs') {
       try {
@@ -370,15 +377,6 @@ export default function HomePage() {
             : 'Pulling people whose intent overlaps with yours.'
         }
       />
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="hp-error">
-        <span className="hp-eyebrow">Error</span>
-        <p>{error}</p>
-      </div>
     )
   }
 
@@ -564,6 +562,20 @@ export default function HomePage() {
             <span className="hp-chip">{cityFilter || 'Any city'}</span>
             <span className="hp-chip">≤ ${maxSalary}k</span>
           </div>
+
+          {error ? (
+            <div className="hp-banner" role="alert">
+              <span>{error}</span>
+              <button
+                type="button"
+                className="hp-banner__dismiss"
+                onClick={() => setError(null)}
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          ) : null}
 
           {currentCard ? (
             <>

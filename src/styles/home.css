@@ -633,6 +633,36 @@
 .hp-bottomnav__action:hover { background: var(--paper-2); color: var(--ink); }
 .hp-bottomnav__action--danger { color: var(--decision-pass); }
 
+/* ── Inline error banner ───────────────────────────────────── */
+.hp-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(196, 74, 57, 0.08);
+  border: 1px solid rgba(196, 74, 57, 0.25);
+  border-radius: var(--radius-md);
+  color: var(--decision-pass);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.hp-banner__dismiss {
+  background: transparent;
+  border: 0;
+  color: var(--decision-pass);
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--dur-fast) var(--easing-default);
+}
+.hp-banner__dismiss:hover { background: rgba(196, 74, 57, 0.12); }
+
 /* ── Loading + error ───────────────────────────────────────── */
 .hp-loading {
   min-height: calc(100svh - 64px);
