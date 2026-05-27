@@ -15,7 +15,8 @@
   .hp {
     /* Mobile: page scrolls naturally; pad-bottom clears the bottom nav */
     height: auto;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: visible;
     padding: 16px 0 96px;
   }
 }
@@ -65,6 +66,7 @@
     /* Mobile: panels stack on a scrollable page; let them expand naturally */
     overflow: visible;
     min-height: auto;
+    padding: 18px;
   }
 }
 .hp-panel__head { margin-bottom: 22px; }
@@ -689,6 +691,16 @@
     font-size: 24px;
     letter-spacing: -0.7px;
     line-height: 1.05;
+  }
+
+  .hp-panel__title {
+    font-size: 20px;
+    letter-spacing: -0.5px;
+  }
+
+  .hp-deck__title {
+    font-size: 24px;
+    letter-spacing: -0.7px;
   }
 
   /* Avatar + meta stack vertically on mobile so long mono text wraps cleanly */
