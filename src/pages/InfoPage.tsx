@@ -4,25 +4,27 @@ type InfoPageProps = {
   paragraphs: string[]
 }
 
-export default function InfoPage({
-  label,
-  title,
-  paragraphs,
-}: InfoPageProps) {
+export default function InfoPage({ label, title, paragraphs }: InfoPageProps) {
   return (
-    <div className="infoPage">
-      <div className="container">
-        <div className="card infoCard">
-          <div className="sectionLabel sectionLabel--mono">{label}</div>
-          <h1 className="infoTitle sectionTitle">{title}</h1>
-          <div className="infoBody">
-            {paragraphs.map((p) => (
-              <p key={p}>{p}</p>
-            ))}
-          </div>
+    <div className="info">
+      <div className="info__wash" aria-hidden="true" />
+      <article className="info__article">
+        <header className="info__head">
+          <span className="info__eyebrow">{label}</span>
+          <h1 className="info__title">{title}</h1>
+        </header>
+
+        <div className="info__body">
+          {paragraphs.map((p) => (
+            <p key={p} className="info__p">{p}</p>
+          ))}
         </div>
-      </div>
+
+        <footer className="info__foot">
+          <span>Denoisr<span className="info__foot-dot">.</span></span>
+          <span className="info__foot-meta">Editorial · Issue 01</span>
+        </footer>
+      </article>
     </div>
   )
 }
-

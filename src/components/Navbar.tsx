@@ -33,7 +33,7 @@ export default function Navbar() {
           aria-label="Denoisr home"
           onClick={() => setProfileOpen(false)}
         >
-          Denoisr.
+          Denoisr<span style={{ color: 'var(--ink-4)' }}>.</span>
         </Link>
 
         {isAppPage ? (
@@ -66,7 +66,7 @@ export default function Navbar() {
             )}
 
             <div className="nav__appLinks" aria-label="Primary navigation">
-              <button type="button" className={`nav__appLink ${isHome ? 'nav__appLink--active' : ''}`}>
+              <button type="button" className={`nav__appLink ${isHome ? 'nav__appLink--active' : ''}`} onClick={() => navigate('/home?mode=jobs')}>
                 <NavIcon name="connections" />
                 <span className="nav__appLabel">Home</span>
               </button>
@@ -105,7 +105,24 @@ export default function Navbar() {
               </button>
             </div>
           </>
-        ) : null}
+        ) : (
+          <nav className="nav__marketingLinks" aria-label="Marketing navigation">
+            <Link to="/features" className="nav__marketingLink">Features</Link>
+            <Link to="/how-it-works" className="nav__marketingLink">How it works</Link>
+            {isLoggedIn ? (
+              <Link to="/home" className="btn btn--solidDark" style={{ height: 36, padding: '0 16px', fontSize: 13.5 }}>
+                Open app
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="nav__marketingLink">Sign in</Link>
+                <Link to="/signup" className="btn btn--solidDark" style={{ height: 36, padding: '0 16px', fontSize: 13.5 }}>
+                  Get started
+                </Link>
+              </>
+            )}
+          </nav>
+        )}
       </div>
     </header>
   )

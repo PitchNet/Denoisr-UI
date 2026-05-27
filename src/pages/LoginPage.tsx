@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { storeAuthTokenFromResponse } from '../auth'
-import Button from '../components/ui/Button'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -23,75 +22,70 @@ export default function LoginPage() {
       })
 
       if (!response.ok) {
-        setError('Wrong email/password')
+        setError('Wrong email or password.')
         return
       }
 
       await storeAuthTokenFromResponse(response)
-
       navigate('/home')
     } catch {
-      setError('Wrong email/password')
+      setError('Wrong email or password.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="authPage">
-      <div className="container authCard">
-        <div className="authTop">
-          <Link to="/" className="authBack">
-            Back to Denoisr
-          </Link>
-          <div className="sectionLabel sectionLabel--mono">LOGIN</div>
-          <h1 className="authTitle">Welcome back.</h1>
-          <p className="authSub">
-            A signal-first network for hiring and opportunities.
+    <div className="auth">
+      <div className="auth__wash" aria-hidden="true" />
+      <article className="auth__card">
+        <header className="auth__head">
+          <span className="auth__eyebrow">Sign in · Members</span>
+          <h1 className="auth__title">Welcome back.</h1>
+          <p className="auth__sub">
+            A short, deliberate list awaits — log in to pick up where you left.
           </p>
-        </div>
+        </header>
 
-        <form className="authForm" onSubmit={handleSubmit}>
-          <label className="field">
-            <span className="field__label">Email</span>
+        <form className="auth__form" onSubmit={handleSubmit} noValidate>
+          <label className="auth__field">
+            <span className="auth__label">Email</span>
             <input
-              className="field__input"
+              className="auth__input"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); setError('') }}
+              autoComplete="email"
               required
             />
           </label>
 
-          <label className="field">
-            <span className="field__label">Password</span>
+          <label className="auth__field">
+            <span className="auth__label">Password</span>
             <input
-              className="field__input"
+              className="auth__input"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); setError('') }}
+              autoComplete="current-password"
               required
             />
           </label>
 
           {error ? (
-            <p className="authError" role="alert">
-              {error}
-            </p>
+            <div className="auth__error" role="alert">{error}</div>
           ) : null}
 
-          <Button variant="solidDark" type="submit">
-            {isSubmitting ? 'Logging in...' : 'Login'}
-          </Button>
+          <button type="submit" className="btn btn--solidDark auth__submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Signing in…' : 'Sign in'}
+          </button>
         </form>
 
-        <div className="authFooter">
-          <span className="authFooter__text">New to Denoisr?</span>
-          <Button to="/signup" variant="outlinedLight">
-            Signup
-          </Button>
-        </div>
-      </div>
+        <footer className="auth__foot">
+          <span className="auth__foot-text">New here?</span>
+          <Link to="/signup" className="auth__foot-link">Request invite →</Link>
+        </footer>
+      </article>
     </div>
   )
 }

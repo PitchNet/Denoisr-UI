@@ -5,6 +5,7 @@ import { clearAuthToken, getAuthenticatedUserId } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import NavIcon from '../components/ui/NavIcon'
 import { supabase } from '../supabase'
+import '../styles/messages.css'
 
 type Connection = {
   id: string
@@ -30,6 +31,23 @@ type ThreadMessage = {
   meta: string
 }
 
+const SWATCHES = [
+  'oklch(0.78 0.10 220)',
+  'oklch(0.80 0.11 65)',
+  'oklch(0.82 0.08 150)',
+  'oklch(0.80 0.08 30)',
+  'oklch(0.78 0.10 320)',
+  'oklch(0.80 0.09 200)',
+  'oklch(0.80 0.08 90)',
+  'oklch(0.78 0.10 250)',
+]
+
+function swatchFor(id: string) {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
+  return SWATCHES[h % SWATCHES.length]
+}
+
 export default function MessagesPage() {
   const navigate = useNavigate()
   const messagesThreadBodyRef = useRef<HTMLDivElement>(null)
@@ -45,9 +63,7 @@ export default function MessagesPage() {
 
   async function loadThreadMessages(conversation: Connection, showLoader = true) {
     try {
-      if (showLoader) {
-        setThreadLoading(true)
-      }
+      if (showLoader) setThreadLoading(true)
 
       const response = await apiRequest('/FeedController/getMessages', {
         method: 'POST',
@@ -69,7 +85,7 @@ export default function MessagesPage() {
         created_at: string
       }>
 
-      const formattedMessages: ThreadMessage[] = data.map((message) => ({
+      const formatted: ThreadMessage[] = data.map((message) => ({
         id: message.id,
         author:
           currentUserId !== '' && message.sender_id === currentUserId ? 'You' : conversation.name,
@@ -88,31 +104,25 @@ export default function MessagesPage() {
         }),
       }))
 
-      setThreadMessages(formattedMessages)
+      setThreadMessages(formatted)
       setError(null)
     } catch {
       setError('Failed to load messages')
     } finally {
-      if (showLoader) {
-        setThreadLoading(false)
-      }
+      if (showLoader) setThreadLoading(false)
     }
   }
 
   const activeConversation = useMemo(
-    () => connections.find((connection) => connection.id === activeConversationId) ?? null,
+    () => connections.find((c) => c.id === activeConversationId) ?? null,
     [activeConversationId, connections],
   )
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setActiveConversationId(null)
-      }
+      if (event.key === 'Escape') setActiveConversationId(null)
     }
-
     window.addEventListener('keydown', handleKeyDown)
-
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
@@ -120,9 +130,7 @@ export default function MessagesPage() {
     try {
       if (showLoader) setLoading(true)
 
-      const response = await apiRequest('/FeedController/getConnections', {
-        method: 'GET',
-      })
+      const response = await apiRequest('/FeedController/getConnections', { method: 'GET' })
 
       if (!response.ok) {
         setError('Failed to load connections')
@@ -130,14 +138,11 @@ export default function MessagesPage() {
       }
 
       const data = (await response.json()) as Array<Record<string, unknown>>
-      const formattedConnections: Connection[] = data.map((item, index) => ({
+      const formatted: Connection[] = data.map((item, index) => ({
         id: String(item.id ?? item.personId ?? item.userId ?? `connection-${index}`),
-        conversationId:
-          item.conversationId === undefined ? undefined : String(item.conversationId),
-        name: String(item.name ?? item.headline ?? 'Unknown connection'),
-        preview: String(
-          item.preview ?? item.lastMessage ?? item.intro ?? 'Start a contextual conversation.',
-        ),
+        conversationId: item.conversationId === undefined ? undefined : String(item.conversationId),
+        name: String(item.name ?? item.headline ?? 'Unknown'),
+        preview: String(item.preview ?? item.lastMessage ?? item.intro ?? 'Start a contextual conversation.'),
         avatar: String(item.avatar ?? item.name ?? 'U')
           .split(' ')
           .filter(Boolean)
@@ -149,41 +154,30 @@ export default function MessagesPage() {
         status: String(item.status ?? 'Connected'),
         openable: index === 0,
         chips: Array.isArray(item.chips)
-          ? item.chips.filter((chip): chip is string => typeof chip === 'string')
+          ? item.chips.filter((c): c is string => typeof c === 'string')
           : undefined,
         details: Array.isArray(item.details)
           ? item.details
-              .map((detail) => {
+              .map((d) => {
                 if (
-                  typeof detail === 'object' &&
-                  detail !== null &&
-                  'title' in detail &&
-                  'body' in detail &&
-                  typeof detail.title === 'string' &&
-                  typeof detail.body === 'string'
+                  typeof d === 'object' &&
+                  d !== null &&
+                  'title' in d &&
+                  'body' in d &&
+                  typeof d.title === 'string' &&
+                  typeof d.body === 'string'
                 ) {
-                  return {
-                    title: detail.title,
-                    body: detail.body,
-                  }
+                  return { title: d.title, body: d.body }
                 }
-
                 return null
               })
-              .filter(
-                (
-                  detail,
-                ): detail is {
-                  title: string
-                  body: string
-                } => detail !== null,
-              )
+              .filter((d): d is { title: string; body: string } => d !== null)
           : undefined,
       }))
 
-      setConnections(formattedConnections.length > 0 ? formattedConnections : [])
+      setConnections(formatted.length > 0 ? formatted : [])
       setError(null)
-      return formattedConnections
+      return formatted
     } catch {
       setError('Failed to load connections')
       return []
@@ -194,15 +188,11 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (threadLoading || threadMessages.length === 0) return
-
     const container = messagesThreadBodyRef.current
     if (container) {
       const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100
       if (isAtBottom) {
-        container.scrollTo({
-          top: container.scrollHeight,
-          behavior: 'smooth',
-        })
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
       }
     }
   }, [threadMessages, threadLoading])
@@ -211,9 +201,7 @@ export default function MessagesPage() {
     if (activeConversationId) {
       const timer = setTimeout(() => {
         const container = messagesThreadBodyRef.current
-        if (container) {
-          container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
-        }
+        if (container) container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
       }, 500)
       return () => clearTimeout(timer)
     }
@@ -246,13 +234,9 @@ export default function MessagesPage() {
 
     const channel = supabase
       .channel(`messages:${activeConversation?.conversationId ?? activeConversation?.id}`)
-      .on(
-        'postgres_changes',
-        subscriptionConfig,
-        () => {
-          loadThreadMessages(activeConversation!, false)
-        },
-      )
+      .on('postgres_changes', subscriptionConfig, () => {
+        loadThreadMessages(activeConversation!, false)
+      })
       .subscribe()
 
     return () => {
@@ -272,9 +256,7 @@ export default function MessagesPage() {
   }
 
   async function handleSendMessage() {
-    if (!activeConversation || draftMessage.trim() === '' || isSending) {
-      return
-    }
+    if (!activeConversation || draftMessage.trim() === '' || isSending) return
 
     setIsSending(true)
 
@@ -282,10 +264,7 @@ export default function MessagesPage() {
       const content = draftMessage.trim()
       const response = await apiRequest('/FeedController/sendMessage', {
         method: 'POST',
-        body: {
-          recipientId: activeConversation.id,
-          content,
-        },
+        body: { recipientId: activeConversation.id, content },
       })
 
       if (!response.ok) {
@@ -293,15 +272,8 @@ export default function MessagesPage() {
         return
       }
 
-      setConnections((currentConnections) =>
-        currentConnections.map((connection) =>
-          connection.id === activeConversation.id
-            ? {
-                ...connection,
-                preview: content,
-              }
-            : connection,
-        ),
+      setConnections((current) =>
+        current.map((c) => (c.id === activeConversation.id ? { ...c, preview: content } : c)),
       )
       setDraftMessage('')
       const refreshed = await fetchConnections(false)
@@ -315,36 +287,37 @@ export default function MessagesPage() {
     }
   }
 
-  function renderConversationItem(connection: Connection, mobile = false) {
+  function renderConversationItem(connection: Connection) {
+    const isActive = activeConversationId === connection.id
     const content = (
       <>
-        <div className="messagesAvatar">{connection.avatar}</div>
-        <div className="messagesListItem__body">
-          <div className="messagesListItem__name">{connection.name}</div>
-          <div className="messagesListItem__preview">{connection.preview}</div>
+        <div
+          className="mp-item__avatar"
+          style={{ background: swatchFor(connection.id) }}
+          aria-hidden="true"
+        >
+          {connection.avatar}
+        </div>
+        <div className="mp-item__body">
+          <div className="mp-item__topline">
+            <span className="mp-item__name">{connection.name}</span>
+            <span className="mp-item__status">{connection.status}</span>
+          </div>
+          <p className="mp-item__preview">{connection.preview}</p>
         </div>
       </>
     )
 
-    const classes = `messagesListItem ${
-      activeConversationId === connection.id ? 'messagesListItem--active' : ''
-    } ${mobile ? 'messagesListItem--mobile' : ''}`.trim()
+    const cls = `mp-item ${isActive ? 'mp-item--active' : ''} ${!connection.openable ? 'mp-item--locked' : ''}`.trim()
 
     if (!connection.openable) {
       return (
-        <article key={connection.id} className={classes}>
-          {content}
-        </article>
+        <article key={connection.id} className={cls}>{content}</article>
       )
     }
 
     return (
-      <button
-        key={connection.id}
-        type="button"
-        className={`${classes} messagesListItemButton`}
-        onClick={() => openConversation(connection.id)}
-      >
+      <button key={connection.id} type="button" className={cls} onClick={() => openConversation(connection.id)}>
         {content}
       </button>
     )
@@ -353,147 +326,147 @@ export default function MessagesPage() {
   if (loading) {
     return (
       <LoadingState
-        className="messagesPage"
-        label="Loading conversations"
-        detail="Bringing your active network threads into view."
+        className="mp-loading"
+        label="Loading threads"
+        detail="Pulling in the connections you have an open line with."
       />
     )
   }
 
   if (error && connections.length === 0) {
-    return <div className="messagesPage messagesPage__error">{error}</div>
+    return (
+      <div className="mp-error">
+        <span className="mp-eyebrow">Error</span>
+        <p>{error}</p>
+      </div>
+    )
   }
 
   return (
-    <div className="messagesPage denoisr">
-      <div className="container messagesShell">
-        <section className="messagesMobileHeader">
-          {activeConversation ? (
-            <div className="messagesMobileHeader__row">
-              <button
-                type="button"
-                className="messagesBackBtn"
-                onClick={() => setActiveConversationId(null)}
-                aria-label="Close conversation"
-              >
-                ←
-              </button>
-              <div>
-                <div className="sectionLabel sectionLabel--mono">ACTIVE THREAD</div>
-                <h1 className="messagesTitle messagesTitle--mobile">{activeConversation.name}</h1>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div>
-                <div className="sectionLabel sectionLabel--mono">MESSAGES</div>
-                <h1 className="messagesTitle">Messages</h1>
-              </div>
-              <div className="messagesHeaderIcons" aria-hidden="true">
-                <span className="messagesHeaderDot" />
-                <span className="messagesHeaderDot messagesHeaderDot--filled" />
-              </div>
-            </>
-          )}
-        </section>
+    <div className="mp">
+      {/* ── Mobile header ── */}
+      {!activeConversation ? (
+        <div className="mp-mobileHead">
+          <div>
+            <span className="mp-eyebrow">Messages · Inbox</span>
+            <h1 className="mp-mobileHead__title">Threads.</h1>
+          </div>
+        </div>
+      ) : null}
 
-        <aside className="messagesSidebar card">
-          <div className="messagesSidebar__searchWrap">
-            <input className="field__input messagesSearch" type="search" placeholder="Search conversations" />
+      <div className="mp-shell">
+        {/* ── Sidebar (connection list) ── */}
+        <aside
+          className={`mp-sidebar ${activeConversation ? 'mp-sidebar--hiddenMobile' : ''}`}
+        >
+          <header className="mp-sidebar__head">
+            <span className="mp-eyebrow">Connections · Mutual</span>
+            <h2 className="mp-sidebar__title">Open lines.</h2>
+          </header>
+
+          <div className="mp-search">
+            <input
+              type="search"
+              className="mp-searchInput"
+              placeholder="Search by name or thread"
+              aria-label="Search conversations"
+            />
           </div>
 
-          <button type="button" className="messagesRequestsRow">
-            <span>View Sent Connection Requests</span>
-            <span className="messagesRequestsArrow" aria-hidden="true">→</span>
+          <button type="button" className="mp-requestsRow">
+            <span>Sent connection requests</span>
+            <span aria-hidden="true">→</span>
           </button>
 
-          <div className="messagesList" aria-label="Connection list">
-            {connections.map((connection) => renderConversationItem(connection))}
+          <div className="mp-list" aria-label="Conversation list">
+            {connections.map((c) => renderConversationItem(c))}
           </div>
         </aside>
 
-        <section className="messagesThread card">
+        {/* ── Thread ── */}
+        <section
+          className={`mp-thread ${!activeConversation ? 'mp-thread--hiddenMobile' : ''}`}
+        >
           {!activeConversation ? (
-            <>
-              <div className="messagesThread__mobileList">
-                <button type="button" className="messagesRequestsRow messagesRequestsRow--mobileOnly">
-                  <span>View Sent Connection Requests</span>
-                  <span className="messagesRequestsArrow" aria-hidden="true">→</span>
-                </button>
-
-                <div className="messagesList messagesList--mobile" aria-label="Active conversations">
-                  {connections.map((connection) => renderConversationItem(connection, true))}
-                </div>
-              </div>
-
-              <header className="messagesThread__header">
-                <div>
-                  <div className="sectionLabel sectionLabel--mono">ACTIVE THREAD</div>
-                  <h2 className="messagesThread__title">Messages</h2>
-                </div>
-                <div className="messagesThread__status">No conversation selected</div>
-              </header>
-
-              <div className="messagesThread__body messagesThread__body--empty">
-                <div className="messagesEmptyState">
-                  <div className="sectionLabel sectionLabel--mono">CHAT WINDOW</div>
-                  <h3 className="messagesEmptyState__title">Select a conversation to start chatting</h3>
-                </div>
-              </div>
-
-              <footer className="messagesComposer">
-                <div className="messagesComposer__box">
-                  <div className="messagesComposer__label">Draft message</div>
-                  <div className="messagesComposer__placeholder">Type a thoughtful, high-context reply...</div>
-                </div>
-              </footer>
-            </>
+            <div className="mp-empty">
+              <span className="mp-eyebrow">Chat · Empty</span>
+              <h2 className="mp-empty__title">Pick a thread.</h2>
+              <p className="mp-empty__body">
+                Threads open only on mutual interest. Until then, the inbox stays
+                quiet — which is the point.
+              </p>
+            </div>
           ) : (
             <>
-              <header className="messagesThread__header">
-                <div>
-                  <div className="sectionLabel sectionLabel--mono">ACTIVE THREAD</div>
-                  <h2 className="messagesThread__title">{activeConversation.name}</h2>
+              <header className="mp-thread__head">
+                <div className="mp-thread__headLeft">
+                  <button
+                    type="button"
+                    className="mp-backbtn"
+                    onClick={() => setActiveConversationId(null)}
+                    aria-label="Close conversation"
+                  >
+                    ←
+                  </button>
+                  <div>
+                    <span className="mp-eyebrow">Active thread</span>
+                    <h2 className="mp-thread__title">{activeConversation.name}</h2>
+                  </div>
                 </div>
-                <div className="messagesThread__status">{activeConversation.status}</div>
+                <span className="mp-thread__status">{activeConversation.status}</span>
               </header>
 
-               <div className="messagesThread__body" ref={messagesThreadBodyRef}>
-                 <div className="messagesThread__inner">
-                   {threadLoading ? (
-                     <div className="messagesThreadLoading">Loading messages...</div>
-                   ) : threadMessages.length > 0 ? (
-                     threadMessages.map((message) => (
-                       <article
-                         key={message.id}
-                         className={`messageBubble ${
-                           message.side === 'right' ? 'messageBubble--outbound' : 'messageBubble--inbound'
-                         }`}
-                       >
-                         <div className="messageBubble__author">{message.author}</div>
-                         <p className="messageBubble__text">{message.text}</p>
-                         <div className="messageBubble__meta">{message.meta}</div>
-                       </article>
-                     ))
-                   ) : (
-                     <div className="messagesThreadLoading">No messages yet.</div>
-                   )}
-                 </div>
-               </div>
+              <div className="mp-thread__body" ref={messagesThreadBodyRef}>
+                <div className="mp-thread__inner">
+                  {threadLoading ? (
+                    <div className="mp-thread__loading el-meta">Loading messages…</div>
+                  ) : threadMessages.length > 0 ? (
+                    threadMessages.map((message) => (
+                      <article
+                        key={message.id}
+                        className={`mp-bubble ${
+                          message.side === 'right' ? 'mp-bubble--out' : 'mp-bubble--in'
+                        }`}
+                      >
+                        <p className="mp-bubble__text">{message.text}</p>
+                        <div className="mp-bubble__meta">
+                          <span>{message.author}</span>
+                          <span className="dot">·</span>
+                          <span>{message.meta}</span>
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <div className="mp-thread__loading el-meta">
+                      No messages yet — send the first opener.
+                    </div>
+                  )}
+                </div>
+              </div>
 
-              <footer className="messagesComposer">
-                <div className="messagesComposer__box messagesComposer__box--active">
-                  <label className="messagesComposer__field">
-                    <div className="messagesComposer__label">Draft message</div>
-                    <textarea
-                      className="messagesComposer__input"
-                      placeholder="Type a thoughtful, high-context reply..."
-                      value={draftMessage}
-                      onChange={(e) => setDraftMessage(e.target.value)}
-                    />
-                  </label>
-                  <button type="button" className="btn btn--solidDark messagesComposer__sendBtn" onClick={handleSendMessage}>
-                    {isSending ? 'Sending...' : 'Send'}
+              <footer className="mp-composer">
+                <textarea
+                  className="mp-composer__input"
+                  placeholder="Write something high-context. No fluff."
+                  value={draftMessage}
+                  onChange={(e) => setDraftMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault()
+                      handleSendMessage()
+                    }
+                  }}
+                  rows={2}
+                />
+                <div className="mp-composer__row">
+                  <span className="mp-composer__hint el-meta">⌘ + ↵ to send</span>
+                  <button
+                    type="button"
+                    className="btn btn--solidDark mp-composer__send"
+                    onClick={handleSendMessage}
+                    disabled={isSending || draftMessage.trim() === ''}
+                  >
+                    {isSending ? 'Sending…' : 'Send'}
                   </button>
                 </div>
               </footer>
@@ -501,40 +474,45 @@ export default function MessagesPage() {
           )}
         </section>
 
-        <aside className="messagesDetails card">
+        {/* ── Profile context rail ── */}
+        <aside className="mp-context">
           {!activeConversation ? (
             <>
-              <div className="sectionLabel sectionLabel--mono">PROFILE CONTEXT</div>
-              <div className="messagesDetails__empty">
-                <div className="messagesDetails__emptyIcon">
-                  <NavIcon name="connections" />
-                </div>
-                <p className="messagesDetails__emptyText">Connect, chat, and stay in touch with your network.</p>
+              <span className="mp-eyebrow">Profile · Context</span>
+              <div className="mp-context__empty">
+                <p>Open a thread to see who's on the other side.</p>
               </div>
             </>
           ) : (
             <>
-              <div className="sectionLabel sectionLabel--mono">PROFILE CONTEXT</div>
-              <div className="messagesDetails__hero">
-                <div className="messagesAvatar messagesAvatar--lg">{activeConversation.avatar}</div>
+              <span className="mp-eyebrow">Profile · Context</span>
+
+              <div className="mp-context__hero">
+                <div
+                  className="mp-context__avatar"
+                  style={{ background: swatchFor(activeConversation.id) }}
+                  aria-hidden="true"
+                >
+                  {activeConversation.avatar}
+                </div>
                 <div>
-                  <h2 className="messagesDetails__name">{activeConversation.name}</h2>
-                  <p className="messagesDetails__role">{activeConversation.role}</p>
+                  <h3 className="mp-context__name">{activeConversation.name}</h3>
+                  <p className="mp-context__role">{activeConversation.role}</p>
                 </div>
               </div>
 
-              <div className="messagesDetails__chips">
-                {activeConversation.chips?.map((chip) => (
-                  <span key={chip} className="homeTag">
-                    {chip}
-                  </span>
-                ))}
-              </div>
+              {activeConversation.chips?.length ? (
+                <div className="mp-context__chips">
+                  {activeConversation.chips.map((chip) => (
+                    <span key={chip} className="mp-chip">{chip}</span>
+                  ))}
+                </div>
+              ) : null}
 
               {activeConversation.details?.map((block) => (
-                <div key={block.title} className="messagesDetails__block">
-                  <div className="messagesDetails__blockTitle">{block.title}</div>
-                  <p className="messagesDetails__blockBody">{block.body}</p>
+                <div key={block.title} className="mp-context__block">
+                  <span className="mp-eyebrow">{block.title}</span>
+                  <p>{block.body}</p>
                 </div>
               ))}
             </>
@@ -542,47 +520,44 @@ export default function MessagesPage() {
         </aside>
       </div>
 
-      <nav className="homeBottomNav" aria-label="Mobile navigation">
-        <button type="button" className="homeBottomNav__item" onClick={() => navigate('/home')}>
+      {/* ── Mobile bottom nav ── */}
+      <nav className="mp-bottomnav" aria-label="Mobile navigation">
+        <button type="button" className="mp-bottomnav__item" onClick={() => navigate('/home')}>
           <NavIcon name="home" />
           <span>Home</span>
         </button>
-        <button type="button" className="homeBottomNav__item">
+        <button type="button" className="mp-bottomnav__item" onClick={() => navigate('/messages')}>
           <NavIcon name="connections" />
           <span>Connections</span>
         </button>
-        <button type="button" className="homeBottomNav__item homeBottomNav__item--active">
+        <button type="button" className="mp-bottomnav__item mp-bottomnav__item--active">
           <NavIcon name="messages" />
           <span>Messages</span>
         </button>
-        <div className="homeBottomNav__profileWrap">
+        <div className="mp-bottomnav__profileWrap">
           <button
             type="button"
-            className={`homeBottomNav__item ${mobileProfileOpen ? 'homeBottomNav__item--active' : ''}`}
+            className={`mp-bottomnav__item ${mobileProfileOpen ? 'mp-bottomnav__item--active' : ''}`}
             aria-expanded={mobileProfileOpen}
-            onClick={() => setMobileProfileOpen((value) => !value)}
+            onClick={() => setMobileProfileOpen((v) => !v)}
           >
             <NavIcon name="profile" />
             <span>Profile</span>
           </button>
 
           {mobileProfileOpen ? (
-            <div className="homeBottomNav__profileMenu">
-              <button type="button" className="homeBottomNav__profileAction">
-                View Profile
-              </button>
-              <button type="button" className="homeBottomNav__profileAction">
-                View Job Applications
-              </button>
-              <button type="button" className="homeBottomNav__profileAction" onClick={() => navigate('/messages')}>
-                View Connections
+            <div className="mp-bottomnav__menu">
+              <button type="button" className="mp-bottomnav__action">View profile</button>
+              <button type="button" className="mp-bottomnav__action">Job applications</button>
+              <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/messages')}>
+                Connections
               </button>
               <button
                 type="button"
-                className="homeBottomNav__profileAction homeBottomNav__profileAction--danger"
+                className="mp-bottomnav__action mp-bottomnav__action--danger"
                 onClick={handleMobileLogout}
               >
-                Logout
+                Log out
               </button>
             </div>
           ) : null}

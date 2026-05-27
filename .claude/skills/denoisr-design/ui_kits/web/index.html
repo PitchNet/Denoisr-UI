@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Denoisr · web UI kit</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#f0eee9;font-family:'Geist',system-ui,sans-serif;color:#1a1715;-webkit-font-smoothing:antialiased}
+  .head{padding:24px 40px 16px;display:flex;align-items:baseline;justify-content:space-between}
+  .head h1{font-size:30px;font-weight:600;letter-spacing:-0.8px;margin:0}
+  .head .sub{font-family:'Geist Mono';font-size:11px;letter-spacing:1.4px;color:rgba(26,23,21,.5);text-transform:uppercase}
+  .switcher{display:flex;gap:8px;background:rgba(26,23,21,.06);border-radius:999px;padding:3px;width:fit-content;margin:0 40px 16px}
+  .switcher button{font-family:'Geist Mono';font-size:12px;letter-spacing:0.8px;padding:8px 18px;border-radius:999px;border:none;background:transparent;color:rgba(26,23,21,.55);cursor:pointer}
+  .switcher button.active{background:#fbfaf6;color:#1a1715;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .stage{margin:0 40px 40px;height:780px;border-radius:24px;overflow:hidden;box-shadow:0 1px 0 rgba(0,0,0,.04), 0 20px 50px -20px rgba(40,30,20,.18), 0 0 0 1px rgba(20,20,20,.04)}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="head">
+  <h1>Web · dashboard kit</h1>
+  <div class="sub">Denoisr · Editorial Mono · 1280×760</div>
+</div>
+<div id="root"></div>
+
+<script src="data.js"></script>
+<script type="text/babel" src="swipe-card.jsx"></script>
+<script type="text/babel" src="card-variants.jsx"></script>
+<script type="text/babel" src="web-dashboard.jsx"></script>
+
+<script type="text/babel">
+function App() {
+  const [mode, setMode] = React.useState('Jobs');
+  return (
+    <>
+      <div className="switcher">
+        {['Jobs', 'People'].map((m) => (
+          <button key={m} className={mode === m ? 'active' : ''} onClick={() => setMode(m)}>{m.toUpperCase()}</button>
+        ))}
+      </div>
+      <div className="stage"><WebDashboard initialMode={mode} key={mode} /></div>
+    </>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
