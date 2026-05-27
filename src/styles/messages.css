@@ -5,7 +5,10 @@
    ───────────────────────────────────────────────────────────── */
 
 .mp {
-  background: var(--paper);
+  background:
+    radial-gradient(50% 55% at 100% 0%, rgba(255,210,225,0.45), transparent 70%),
+    radial-gradient(45% 50% at 0% 100%, rgba(220,210,255,0.40), transparent 70%),
+    var(--paper);
   /* Lock to viewport — only the thread body scrolls */
   height: calc(100svh - 64px);
   overflow: hidden;
