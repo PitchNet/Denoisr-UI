@@ -13,7 +13,7 @@
   flex-direction: column;
   padding-top: 24px;
 }
-@media (max-width: 720px) { .mp { padding-top: 0; } }
+@media (max-width: 720px) { .mp { padding-top: 8px; } }
 
 /* ── Shell layout ──────────────────────────────────────────── */
 .mp-shell {
@@ -245,6 +245,15 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+.mp-thread__headLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.mp-thread__headLeft > div {
+  min-width: 0;
 }
 .mp-thread__title {
   margin-top: 4px;

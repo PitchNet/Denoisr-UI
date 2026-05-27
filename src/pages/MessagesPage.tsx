@@ -345,29 +345,14 @@ export default function MessagesPage() {
   return (
     <div className="mp">
       {/* ── Mobile header ── */}
-      <div className="mp-mobileHead">
-        {activeConversation ? (
-          <div className="mp-mobileHead__row">
-            <button
-              type="button"
-              className="mp-backbtn"
-              onClick={() => setActiveConversationId(null)}
-              aria-label="Close conversation"
-            >
-              ←
-            </button>
-            <div>
-              <span className="mp-eyebrow">Active thread</span>
-              <h1 className="mp-mobileHead__title">{activeConversation.name}</h1>
-            </div>
-          </div>
-        ) : (
+      {!activeConversation ? (
+        <div className="mp-mobileHead">
           <div>
             <span className="mp-eyebrow">Messages · Inbox</span>
             <h1 className="mp-mobileHead__title">Threads.</h1>
           </div>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       <div className="mp-shell">
         {/* ── Sidebar (connection list) ── */}
@@ -414,9 +399,19 @@ export default function MessagesPage() {
           ) : (
             <>
               <header className="mp-thread__head">
-                <div>
-                  <span className="mp-eyebrow">Active thread</span>
-                  <h2 className="mp-thread__title">{activeConversation.name}</h2>
+                <div className="mp-thread__headLeft">
+                  <button
+                    type="button"
+                    className="mp-backbtn"
+                    onClick={() => setActiveConversationId(null)}
+                    aria-label="Close conversation"
+                  >
+                    ←
+                  </button>
+                  <div>
+                    <span className="mp-eyebrow">Active thread</span>
+                    <h2 className="mp-thread__title">{activeConversation.name}</h2>
+                  </div>
                 </div>
                 <span className="mp-thread__status">{activeConversation.status}</span>
               </header>
