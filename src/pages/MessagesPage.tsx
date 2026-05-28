@@ -152,7 +152,7 @@ export default function MessagesPage() {
           .toUpperCase(),
         role: String(item.currentRole ?? item.role ?? 'Professional'),
         status: String(item.status ?? 'Connected'),
-        openable: index === 0,
+        openable: true,
         chips: Array.isArray(item.chips)
           ? item.chips.filter((c): c is string => typeof c === 'string')
           : undefined,
