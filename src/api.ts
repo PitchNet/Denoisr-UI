@@ -24,15 +24,49 @@ export function getAuthTokenFromCookies() {
   return decodeURIComponent(authCookie.split('=').slice(1).join('='))
 }
 
-export function apiRequest(path: string, options: ApiRequestOptions = {}) {
+export async function apiRequest(path: string, options: ApiRequestOptions = {}) {
   const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+  const url = `${baseUrl}${path}`
 
-  return fetch(`${baseUrl}${path}`, {
-    method: options.method ?? 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${getAuthTokenFromCookies()}`,
-    },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  })
+  const MAX_RETRIES = 10
+  const BASE_DELAY = 500
+
+  let lastError: Error | null = null
+  let lastResponse: Response | null = null
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method: options.method ?? 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getAuthTokenFromCookies()}`,
+        },
+        body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      })
+
+      if (response.ok) return response
+
+      if (response.status >= 400 && response.status < 500) {
+        return response
+      }
+
+      lastResponse = response
+
+      if (attempt < MAX_RETRIES) {
+        const delay = BASE_DELAY * Math.pow(2, attempt) + Math.random() * BASE_DELAY
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err))
+
+      if (attempt < MAX_RETRIES) {
+        const delay = BASE_DELAY * Math.pow(2, attempt) + Math.random() * BASE_DELAY
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+  }
+
+  if (lastResponse) return lastResponse
+  throw lastError ?? new Error('Request failed')
 }
