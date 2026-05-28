@@ -143,7 +143,11 @@ export default function MessagesPage() {
         id: String(item.id ?? item.personId ?? item.userId ?? `connection-${index}`),
         conversationId: item.conversationId === undefined ? undefined : String(item.conversationId),
         name: String(item.name ?? item.headline ?? 'Unknown'),
-        preview: String(item.preview ?? item.lastMessage ?? item.intro ?? 'Start a contextual conversation.'),
+        preview: !item.lastMessage
+          ? 'Say hi to your new connection.'
+          : typeof item.lastMessage === 'string'
+            ? item.lastMessage
+            : String((item.lastMessage as Record<string, unknown>).content ?? item.lastMessage),
         avatar: String(item.avatar ?? item.name ?? 'U')
           .split(' ')
           .filter(Boolean)
