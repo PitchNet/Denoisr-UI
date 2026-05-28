@@ -60,6 +60,7 @@ export default function MessagesPage() {
   const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([])
   const [isSending, setIsSending] = useState(false)
   const [threadLoading, setThreadLoading] = useState(false)
+  const activeConversationRef = useRef<Connection | null>(null)
 
   async function loadThreadMessages(conversation: Connection, showLoader = true) {
     try {
@@ -212,19 +213,29 @@ export default function MessagesPage() {
   }, [])
 
   useEffect(() => {
+    activeConversationRef.current = activeConversation
+  }, [activeConversation])
+
+  useEffect(() => {
     if (!activeConversationId) {
       setThreadMessages([])
       return
     }
 
-    loadThreadMessages(activeConversation!, true)
+    // Clear messages immediately when switching conversations
+    setThreadMessages([])
 
-    const subscriptionConfig = activeConversation?.conversationId
+    const conversation = activeConversation!
+    activeConversationRef.current = conversation
+
+    loadThreadMessages(conversation, true)
+
+    const subscriptionConfig = conversation.conversationId
       ? {
           event: 'INSERT' as const,
           schema: 'public',
           table: 'messages',
-          filter: `conversation_id=eq.${activeConversation.conversationId}`,
+          filter: `conversation_id=eq.${conversation.conversationId}`,
         }
       : {
           event: 'INSERT' as const,
@@ -233,9 +244,12 @@ export default function MessagesPage() {
         }
 
     const channel = supabase
-      .channel(`messages:${activeConversation?.conversationId ?? activeConversation?.id}`)
+      .channel(`messages:${conversation.conversationId ?? conversation.id}`)
       .on('postgres_changes', subscriptionConfig, () => {
-        loadThreadMessages(activeConversation!, false)
+        const latest = activeConversationRef.current
+        if (latest && latest.id === conversation.id) {
+          loadThreadMessages(latest, false)
+        }
       })
       .subscribe()
 
