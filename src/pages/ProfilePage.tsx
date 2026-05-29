@@ -58,6 +58,13 @@ function pad2(n: number) {
   return String(Math.max(0, Math.floor(n))).padStart(2, '0')
 }
 
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  if (parts.length === 1 && parts[0].length > 0) return parts[0].slice(0, 2).toUpperCase()
+  return '?'
+}
+
 function getMissingFields(profile: ProfileData | null): string[] {
   if (!profile) return []
 
@@ -306,16 +313,10 @@ export default function ProfilePage() {
       <header className="pr-hero pr-hero--mobile">
         <div className="pr-hero__wash" aria-hidden="true" />
         <div className="pr-hero__inner">
-          <div className="pr-avatarWrap">
-            <div className="pr-avatar pr-avatar--upload" style={{ background: avatarSwatch }} aria-hidden="true">
-              <span className="pr-avatar__icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                  <circle cx="12" cy="13" r="4" />
-                </svg>
-              </span>
-              <span className="pr-avatar__label">Upload photo</span>
-            </div>
+            <div className="pr-avatarWrap">
+              <div className="pr-avatar" style={{ background: avatarSwatch }}>
+                <span className="pr-avatar__initials">{getInitials(profile.headline)}</span>
+              </div>
 
             <div className="pr-kebab" ref={kebabRef}>
               <button type="button" className="pr-kebab__toggle" onClick={() => setKebabOpen((v) => !v)} aria-label="Profile actions">
@@ -394,14 +395,8 @@ export default function ProfilePage() {
         <aside className="pr-col pr-col--left">
           <div className="pr-col__card pr-col__card--identity">
             <div className="pr-avatarWrap">
-              <div className="pr-avatar pr-avatar--upload pr-avatar--desktop" style={{ background: avatarSwatch }} aria-hidden="true">
-                <span className="pr-avatar__icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
-                </span>
-                <span className="pr-avatar__label">Upload photo</span>
+              <div className="pr-avatar pr-avatar--desktop" style={{ background: avatarSwatch }}>
+                <span className="pr-avatar__initials">{getInitials(profile.headline)}</span>
               </div>
 
               <div className="pr-kebab" ref={kebabDesktopRef}>

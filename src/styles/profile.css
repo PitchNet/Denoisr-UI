@@ -172,6 +172,14 @@
 }
 .pr-avatar--upload:hover { opacity: 0.85; }
 
+.pr-avatar__initials {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: inherit;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+
 .pr-avatar__icon {
   display: flex;
   align-items: center;
