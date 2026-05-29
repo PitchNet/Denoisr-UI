@@ -306,6 +306,7 @@ export default function ProfilePage() {
   }
 
   const avatarSwatch = swatchFor(profile.headline || 'U')
+  const photoUrl = profile.photo || sessionStorage.getItem('denoisr-profile-photo') || ''
 
   return (
     <div className="pr">
@@ -314,8 +315,11 @@ export default function ProfilePage() {
         <div className="pr-hero__wash" aria-hidden="true" />
         <div className="pr-hero__inner">
             <div className="pr-avatarWrap">
-              <div className="pr-avatar" style={{ background: avatarSwatch }}>
-                <span className="pr-avatar__initials">{getInitials(profile.headline)}</span>
+              <div
+                className={`pr-avatar${photoUrl ? ' pr-avatar--photo' : ''}`}
+                style={{ background: photoUrl ? `url(${photoUrl}) center/cover` : avatarSwatch }}
+              >
+                {photoUrl ? null : <span className="pr-avatar__initials">{getInitials(profile.headline)}</span>}
               </div>
 
             <div className="pr-kebab" ref={kebabRef}>
@@ -395,8 +399,11 @@ export default function ProfilePage() {
         <aside className="pr-col pr-col--left">
           <div className="pr-col__card pr-col__card--identity">
             <div className="pr-avatarWrap">
-              <div className="pr-avatar pr-avatar--desktop" style={{ background: avatarSwatch }}>
-                <span className="pr-avatar__initials">{getInitials(profile.headline)}</span>
+              <div
+                className={`pr-avatar pr-avatar--desktop${photoUrl ? ' pr-avatar--photo' : ''}`}
+                style={{ background: photoUrl ? `url(${photoUrl}) center/cover` : avatarSwatch }}
+              >
+                {photoUrl ? null : <span className="pr-avatar__initials">{getInitials(profile.headline)}</span>}
               </div>
 
               <div className="pr-kebab" ref={kebabDesktopRef}>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { apiRequest } from '../api'
+import { apiRequest, getAuthTokenFromCookies } from '../api'
 import LoadingState from '../components/ui/LoadingState'
 import PhotoEditor from '../components/ui/PhotoEditor'
 import '../styles/profile.css'
@@ -118,6 +118,7 @@ export default function ProfileEditPage() {
 
   const [showPhotoEditor, setShowPhotoEditor] = useState(false)
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
+  const [photoUrl, setPhotoUrl] = useState('')
 
   const [highlightEntries, setHighlightEntries] = useState<HighlightEntry[]>([
     { query: '', selectedValue: '', menuOpen: false },
@@ -257,7 +258,9 @@ export default function ProfileEditPage() {
         setExperience(profile.experience)
         setSalary(profile.salary)
         setIntro(profile.intro)
-        if (profile.photo) setPhotoPreviewUrl(profile.photo)
+        const storedPhoto = profile.photo || sessionStorage.getItem('denoisr-profile-photo') || ''
+        setPhotoUrl(storedPhoto)
+        if (storedPhoto) setPhotoPreviewUrl(storedPhoto)
 
         setHighlightEntries(
           profile.highlights.length > 0
@@ -444,7 +447,29 @@ export default function ProfileEditPage() {
   function handlePhotoSave(file: File) {
     const url = URL.createObjectURL(file)
     setPhotoPreviewUrl(url)
-    setShowPhotoEditor(false)
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+    const token = getAuthTokenFromCookies()
+
+    fetch(`${baseUrl}/ProfileController/uploadImage`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then((data: { url?: string }) => {
+        if (data.url) {
+          sessionStorage.setItem('denoisr-profile-photo', data.url)
+          setPhotoUrl(data.url)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setShowPhotoEditor(false)
+      })
   }
 
   function handlePhotoCancel() {
@@ -487,6 +512,7 @@ export default function ProfileEditPage() {
           description: entry.description.trim(),
         }))
         .filter((entry) => entry.name !== ''),
+      photo: photoUrl,
     }
 
     try {
