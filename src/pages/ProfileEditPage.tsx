@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import LoadingState from '../components/ui/LoadingState'
+import PhotoEditor from '../components/ui/PhotoEditor'
 import '../styles/profile.css'
 import '../styles/profile-edit.css'
 
@@ -114,6 +115,9 @@ export default function ProfileEditPage() {
   const [experience, setExperience] = useState(0)
   const [salary, setSalary] = useState(0)
   const [intro, setIntro] = useState('')
+
+  const [showPhotoEditor, setShowPhotoEditor] = useState(false)
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
 
   const [highlightEntries, setHighlightEntries] = useState<HighlightEntry[]>([
     { query: '', selectedValue: '', menuOpen: false },
@@ -253,6 +257,7 @@ export default function ProfileEditPage() {
         setExperience(profile.experience)
         setSalary(profile.salary)
         setIntro(profile.intro)
+        if (profile.photo) setPhotoPreviewUrl(profile.photo)
 
         setHighlightEntries(
           profile.highlights.length > 0
@@ -436,6 +441,16 @@ export default function ProfileEditPage() {
     )
   }
 
+  function handlePhotoSave(file: File) {
+    const url = URL.createObjectURL(file)
+    setPhotoPreviewUrl(url)
+    setShowPhotoEditor(false)
+  }
+
+  function handlePhotoCancel() {
+    setShowPhotoEditor(false)
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSaving(true)
@@ -516,6 +531,7 @@ export default function ProfileEditPage() {
   }
 
   const avatarSwatch = swatchFor(headline || 'U')
+  const avatarBg = photoPreviewUrl ? `url(${photoPreviewUrl}) center/cover` : avatarSwatch
 
   return (
     <div className="pe">
@@ -524,14 +540,22 @@ export default function ProfileEditPage() {
         <div className="pr-hero__wash" aria-hidden="true" />
         <div className="pr-hero__inner">
           <div className="pr-avatarWrap">
-            <div className="pr-avatar pr-avatar--upload" style={{ background: avatarSwatch }} aria-hidden="true">
-              <span className="pr-avatar__icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                  <circle cx="12" cy="13" r="4" />
-                </svg>
-              </span>
-              <span className="pr-avatar__label">Upload photo</span>
+            <div
+              className={`pr-avatar ${photoPreviewUrl ? 'pr-avatar--photo' : 'pr-avatar--upload'}`}
+              style={{ background: avatarBg, cursor: 'pointer' }}
+              onClick={() => setShowPhotoEditor(true)}
+            >
+              {photoPreviewUrl ? null : (
+                <>
+                  <span className="pr-avatar__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                  </span>
+                  <span className="pr-avatar__label">Upload photo</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -579,15 +603,23 @@ export default function ProfileEditPage() {
         <aside className="pr-col pr-col--left">
           <div className="pr-col__card pr-col__card--identity">
             <div className="pr-avatarWrap">
-              <div className="pr-avatar pr-avatar--upload pr-avatar--desktop" style={{ background: avatarSwatch }} aria-hidden="true">
-                <span className="pr-avatar__icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
-                </span>
-                <span className="pr-avatar__label">Upload photo</span>
-              </div>
+            <div
+              className={`pr-avatar pr-avatar--desktop ${photoPreviewUrl ? 'pr-avatar--photo' : 'pr-avatar--upload'}`}
+              style={{ background: avatarBg, cursor: 'pointer' }}
+              onClick={() => setShowPhotoEditor(true)}
+            >
+              {photoPreviewUrl ? null : (
+                <>
+                  <span className="pr-avatar__icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                  </span>
+                  <span className="pr-avatar__label">Upload photo</span>
+                </>
+              )}
+            </div>
             </div>
 
             <div className="pe-field">
@@ -905,6 +937,10 @@ export default function ProfileEditPage() {
           })}
         </aside>
       </div>
+
+      {showPhotoEditor ? (
+        <PhotoEditor onSave={handlePhotoSave} onCancel={handlePhotoCancel} />
+      ) : null}
     </div>
   )
 }

@@ -180,6 +180,12 @@
   letter-spacing: 1px;
 }
 
+.pr-avatar--photo {
+  cursor: pointer;
+  transition: opacity var(--dur-fast) var(--easing-default);
+}
+.pr-avatar--photo:hover { opacity: 0.8; }
+
 .pr-avatar__icon {
   display: flex;
   align-items: center;
