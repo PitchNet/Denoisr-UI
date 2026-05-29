@@ -225,31 +225,41 @@ export default function PhotoEditor({ onSave, onCancel }: PhotoEditorProps) {
 
         <div className="pe-photoBody">
           <div className="pe-cropContainer" ref={containerRef}>
-            <img
-              ref={imgRef}
-              src={imageSrc}
-              alt="Photo to crop"
-              className="pe-cropImg"
-              style={{ width: displaySize.w || undefined, height: displaySize.h || undefined }}
-              onLoad={onImageLoad}
-            />
-            {displaySize.w > 0 && (
-              <div
-                className="pe-cropOverlay"
-                style={cropStyle}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
-              >
-                <div className="pe-cropGrid">
-                  <div className="pe-cropGrid__h" />
-                  <div className="pe-cropGrid__h" />
-                  <div className="pe-cropGrid__v" />
-                  <div className="pe-cropGrid__v" />
+            <div
+              className="pe-cropInner"
+              style={{
+                width: displaySize.w || undefined,
+                height: displaySize.h || undefined,
+                position: 'relative',
+                flexShrink: 0,
+              }}
+            >
+              <img
+                ref={imgRef}
+                src={imageSrc}
+                alt="Photo to crop"
+                className="pe-cropImg"
+                style={{ width: '100%', height: '100%' }}
+                onLoad={onImageLoad}
+              />
+              {displaySize.w > 0 && (
+                <div
+                  className="pe-cropOverlay"
+                  style={cropStyle}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerUp}
+                >
+                  <div className="pe-cropGrid">
+                    <div className="pe-cropGrid__h" />
+                    <div className="pe-cropGrid__h" />
+                    <div className="pe-cropGrid__v" />
+                    <div className="pe-cropGrid__v" />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className="pe-previewCol">
