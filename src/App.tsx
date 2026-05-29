@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import MessagesPage from './pages/MessagesPage'
+import ProfilePage from './pages/ProfilePage'
 import ProductPage from './pages/ProductPage'
 import SignupPage from './pages/SignupPage'
 import AboutPage from './pages/AboutPage'
@@ -25,6 +26,7 @@ import TermsOfServicePage from './pages/TermsOfServicePage'
 function AppShell() {
   const { pathname } = useLocation()
   const isEditorialLanding = pathname === '/'
+  const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/dashboard'
 
   return (
     <div className="denoisrApp">
@@ -40,6 +42,7 @@ function AppShell() {
             <Route path="/home" element={<HomePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
@@ -55,7 +58,7 @@ function AppShell() {
           <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         </Routes>
       </main>
-      {isEditorialLanding ? null : <Footer />}
+      {isEditorialLanding || isAppPage ? null : <Footer />}
     </div>
   )
 }

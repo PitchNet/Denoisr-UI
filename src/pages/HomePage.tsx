@@ -738,7 +738,7 @@ export default function HomePage() {
 
           {mobileProfileOpen ? (
             <div className="hp-bottomnav__menu">
-              <button type="button" className="hp-bottomnav__action">View profile</button>
+              <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
               <button type="button" className="hp-bottomnav__action">Job applications</button>
               <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/messages')}>
                 Connections

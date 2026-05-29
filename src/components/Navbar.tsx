@@ -11,7 +11,8 @@ export default function Navbar() {
   const isLoggedIn = isAuthenticated()
   const isHome = pathname === '/home'
   const isMessages = pathname === '/messages'
-  const isAppPage = isHome || isMessages
+  const isProfile = pathname === '/profile'
+  const isAppPage = isHome || isMessages || isProfile
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
 
   function updateMode(nextMode: 'jobs' | 'people') {
@@ -77,7 +78,7 @@ export default function Navbar() {
               <div className="nav__profileMenuWrap">
                 <button
                   type="button"
-                  className={`nav__appLink ${profileOpen ? 'nav__appLink--active' : ''}`}
+                  className={`nav__appLink ${profileOpen || isProfile ? 'nav__appLink--active' : ''}`}
                   aria-expanded={profileOpen}
                   onClick={() => setProfileOpen((value) => !value)}
                 >
@@ -87,7 +88,7 @@ export default function Navbar() {
 
                 {profileOpen ? (
                   <div className="nav__profileDropdown">
-                    <button type="button" className="nav__profileDropdownBtn">
+                    <button type="button" className="nav__profileDropdownBtn" onClick={() => navigate('/profile')}>
                       View Profile
                     </button>
                     <button type="button" className="nav__profileDropdownBtn">
