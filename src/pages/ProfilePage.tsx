@@ -22,6 +22,19 @@ type ProfileData = {
     title: string
     items: string[]
   }>
+  workExperience: Array<{
+    company: string
+    role: string
+    duration: string
+    description: string
+  }>
+  projects: Array<{
+    name: string
+    url: string
+    description: string
+  }>
+  photo: string
+  resume: string
 }
 
 const SWATCHES = [
@@ -45,6 +58,30 @@ function pad2(n: number) {
   return String(Math.max(0, Math.floor(n))).padStart(2, '0')
 }
 
+function getMissingFields(profile: ProfileData | null): string[] {
+  if (!profile) return []
+
+  const missing: string[] = []
+
+  if (!profile.headline) missing.push('name')
+  if (!profile.subheadline) missing.push('role')
+  if (!profile.organization) missing.push('organization')
+  if (!profile.location) missing.push('location')
+  if (!profile.experience) missing.push('experience')
+  if (!profile.salary) missing.push('salary')
+  if (!profile.intro) missing.push('intro')
+  if (profile.highlights.length < 3) missing.push('highlights (add 3+)')
+  if (profile.tags.length < 2) missing.push('tags (add 2+)')
+  if (profile.sections.length < 2 || profile.sections.some((s) => s.items.length < 2))
+    missing.push('proof & intent sections')
+  if (profile.workExperience.length === 0) missing.push('work experience')
+  if (profile.projects.length === 0) missing.push('projects')
+  if (!profile.photo) missing.push('photo')
+  if (!profile.resume) missing.push('resume')
+
+  return missing
+}
+
 function calculateCompleteness(profile: ProfileData | null): number {
   if (!profile) return 0
 
@@ -62,6 +99,8 @@ function calculateCompleteness(profile: ProfileData | null): number {
     (field) => field !== undefined && field !== null && field !== '' && field !== '0',
   ).length
 
+  const baseScore = filledFields / fields.length
+
   const highlightsScore = Math.min(profile.highlights.length / 3, 1)
   const tagsScore = Math.min(profile.tags.length / 2, 1)
 
@@ -70,11 +109,20 @@ function calculateCompleteness(profile: ProfileData | null): number {
     return acc + Math.min(filledItems / 2, 1)
   }, 0) / Math.max(profile.sections.length, 1)
 
+  const workScore = profile.workExperience.length > 0 ? 1 : 0
+  const projectsScore = profile.projects.length > 0 ? 1 : 0
+  const photoScore = profile.photo ? 1 : 0
+  const resumeScore = profile.resume ? 1 : 0
+
   const totalScore =
-    (filledFields / fields.length) * 0.5 +
-    highlightsScore * 0.2 +
-    tagsScore * 0.1 +
-    sectionsScore * 0.2
+    baseScore * 0.35 +
+    highlightsScore * 0.1 +
+    tagsScore * 0.05 +
+    sectionsScore * 0.15 +
+    workScore * 0.1 +
+    projectsScore * 0.1 +
+    photoScore * 0.075 +
+    resumeScore * 0.075
 
   return Math.round(totalScore * 100)
 }
@@ -102,6 +150,7 @@ export default function ProfilePage() {
   const completeness = useMemo(() => calculateCompleteness(profile), [profile])
   const scoreLabel = useMemo(() => getScoreLabel(completeness), [completeness])
   const scoreColor = useMemo(() => getScoreColor(completeness), [completeness])
+  const missingFields = useMemo(() => getMissingFields(profile), [profile])
 
   useEffect(() => {
     async function fetchProfile() {
@@ -157,6 +206,45 @@ export default function ProfilePage() {
                     s !== null && s.title !== '' && s.items.length > 0,
                 )
             : [],
+          workExperience: Array.isArray(data.workExperience)
+            ? data.workExperience
+                .map((w) => {
+                  if (typeof w === 'object' && w !== null) {
+                    const work = w as Record<string, unknown>
+                    return {
+                      company: String(work.company ?? ''),
+                      role: String(work.role ?? ''),
+                      duration: String(work.duration ?? ''),
+                      description: String(work.description ?? ''),
+                    }
+                  }
+                  return null
+                })
+                .filter(
+                  (w): w is { company: string; role: string; duration: string; description: string } =>
+                    w !== null && w.company !== '',
+                )
+            : [],
+          projects: Array.isArray(data.projects)
+            ? data.projects
+                .map((p) => {
+                  if (typeof p === 'object' && p !== null) {
+                    const project = p as Record<string, unknown>
+                    return {
+                      name: String(project.name ?? ''),
+                      url: String(project.url ?? ''),
+                      description: String(project.description ?? ''),
+                    }
+                  }
+                  return null
+                })
+                .filter(
+                  (p): p is { name: string; url: string; description: string } =>
+                    p !== null && p.name !== '',
+                )
+            : [],
+          photo: String(data.photo ?? ''),
+          resume: String(data.resume ?? ''),
         })
       } catch {
         setError('Failed to load profile')
@@ -259,7 +347,7 @@ export default function ProfilePage() {
             <p className="pr-score__label">
               {scoreLabel}.{' '}
               {completeness < 100
-                ? 'Add more details to strengthen your profile.'
+                ? `Missing: ${missingFields.join(', ')}.`
                 : 'Your profile is complete.'}
             </p>
           </div>
@@ -319,6 +407,51 @@ export default function ProfilePage() {
             </div>
           </section>
         )}
+
+        {/* ── Work Experience ── */}
+        <section className="pr-section">
+          <span className="pr-eyebrow">Work experience</span>
+          <div className="pr-work">
+            {profile.workExperience.length > 0 ? (
+              profile.workExperience.map((work, index) => (
+                <div key={`${work.company}-${index}`} className="pr-work__item">
+                  <div className="pr-work__header">
+                    <span className="pr-work__company">{work.company}</span>
+                    <span className="pr-work__duration">{work.duration}</span>
+                  </div>
+                  {work.role && <span className="pr-work__role">{work.role}</span>}
+                  {work.description && <p className="pr-work__desc">{work.description}</p>}
+                </div>
+              ))
+            ) : (
+              <div className="pr-empty" />
+            )}
+          </div>
+        </section>
+
+        {/* ── Projects ── */}
+        <section className="pr-section">
+          <span className="pr-eyebrow">Projects</span>
+          <div className="pr-projects">
+            {profile.projects.length > 0 ? (
+              profile.projects.map((project, index) => (
+                <div key={`${project.name}-${index}`} className="pr-projects__item">
+                  <div className="pr-projects__header">
+                    <span className="pr-projects__name">{project.name}</span>
+                    {project.url && (
+                      <a href={project.url} target="_blank" rel="noopener noreferrer" className="pr-projects__link">
+                        View →
+                      </a>
+                    )}
+                  </div>
+                  {project.description && <p className="pr-projects__desc">{project.description}</p>}
+                </div>
+              ))
+            ) : (
+              <div className="pr-empty" />
+            )}
+          </div>
+        </section>
 
         {/* ── Sections (Proof of work, Intent and fit) ── */}
         {profile.sections.map((section) => (
