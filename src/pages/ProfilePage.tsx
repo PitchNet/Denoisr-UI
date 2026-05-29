@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { clearAuthToken } from '../auth'
@@ -257,11 +257,24 @@ export default function ProfilePage() {
   }, [])
 
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
+  const [kebabOpen, setKebabOpen] = useState(false)
+  const kebabRef = useRef<HTMLDivElement>(null)
+  const kebabDesktopRef = useRef<HTMLDivElement>(null)
 
   function handleLogout() {
     clearAuthToken()
     navigate('/login')
   }
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      const target = e.target as Node
+      const isInside = kebabRef.current?.contains(target) || kebabDesktopRef.current?.contains(target)
+      if (!isInside) setKebabOpen(false)
+    }
+    if (kebabOpen) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [kebabOpen])
 
   if (loading) {
     return (
@@ -293,14 +306,33 @@ export default function ProfilePage() {
       <header className="pr-hero pr-hero--mobile">
         <div className="pr-hero__wash" aria-hidden="true" />
         <div className="pr-hero__inner">
-          <div className="pr-avatar pr-avatar--upload" style={{ background: avatarSwatch }} aria-hidden="true">
-            <span className="pr-avatar__icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                <circle cx="12" cy="13" r="4" />
-              </svg>
-            </span>
-            <span className="pr-avatar__label">Upload photo</span>
+          <div className="pr-avatarWrap">
+            <div className="pr-avatar pr-avatar--upload" style={{ background: avatarSwatch }} aria-hidden="true">
+              <span className="pr-avatar__icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              </span>
+              <span className="pr-avatar__label">Upload photo</span>
+            </div>
+
+            <div className="pr-kebab" ref={kebabRef}>
+              <button type="button" className="pr-kebab__toggle" onClick={() => setKebabOpen((v) => !v)} aria-label="Profile actions">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                  <circle cx="9" cy="3.5" r="1.5" />
+                  <circle cx="9" cy="9" r="1.5" />
+                  <circle cx="9" cy="14.5" r="1.5" />
+                </svg>
+              </button>
+              {kebabOpen && (
+                <div className="pr-kebab__menu">
+                  <button type="button" className="pr-kebab__action" onClick={() => { setKebabOpen(false); navigate('/dashboard'); }}>
+                    Edit profile
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <h1 className="pr-hero__name">{profile.headline || 'Unnamed'}</h1>
@@ -328,19 +360,66 @@ export default function ProfilePage() {
         </div>
       </header>
 
+      {/* ── Completeness (mobile) ── */}
+      <div className="pr-score-mobile">
+        <div className="pr-score">
+          <div className="pr-score__header">
+            <span className="pr-eyebrow">Profile completeness</span>
+            <span className="pr-score__value">
+              {completeness}
+              <span className="pr-score__total">/100</span>
+            </span>
+          </div>
+          <div className="pr-score__bar">
+            <div
+              className="pr-score__fill"
+              style={{
+                width: `${completeness}%`,
+                backgroundColor: scoreColor,
+              }}
+            />
+          </div>
+          <p className="pr-score__label">
+            {scoreLabel}.{' '}
+            {completeness < 100
+              ? `Missing: ${missingFields.join(', ')}.`
+              : 'Your profile is complete.'}
+          </p>
+        </div>
+      </div>
+
       {/* ── 3-column desktop shell ── */}
       <div className="pr-shell">
         {/* ── Left column: Photo, Resume, Highlights, Tags ── */}
         <aside className="pr-col pr-col--left">
-          <div className="pr-col__card">
-            <div className="pr-avatar pr-avatar--upload pr-avatar--desktop" style={{ background: avatarSwatch }} aria-hidden="true">
-              <span className="pr-avatar__icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                  <circle cx="12" cy="13" r="4" />
-                </svg>
-              </span>
-              <span className="pr-avatar__label">Upload photo</span>
+          <div className="pr-col__card pr-col__card--identity">
+            <div className="pr-avatarWrap">
+              <div className="pr-avatar pr-avatar--upload pr-avatar--desktop" style={{ background: avatarSwatch }} aria-hidden="true">
+                <span className="pr-avatar__icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                </span>
+                <span className="pr-avatar__label">Upload photo</span>
+              </div>
+
+              <div className="pr-kebab" ref={kebabDesktopRef}>
+                <button type="button" className="pr-kebab__toggle" onClick={() => setKebabOpen((v) => !v)} aria-label="Profile actions">
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                    <circle cx="9" cy="3.5" r="1.5" />
+                    <circle cx="9" cy="9" r="1.5" />
+                    <circle cx="9" cy="14.5" r="1.5" />
+                  </svg>
+                </button>
+                {kebabOpen && (
+                  <div className="pr-kebab__menu">
+                    <button type="button" className="pr-kebab__action" onClick={() => { setKebabOpen(false); navigate('/dashboard'); }}>
+                      Edit profile
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <h1 className="pr-hero__name pr-hero__name--desktop">{profile.headline || 'Unnamed'}</h1>
@@ -460,17 +539,11 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
-
-          <div className="pr-actions pr-actions--desktop">
-            <button type="button" className="btn btn--solidDark" onClick={() => navigate('/dashboard')}>
-              Edit profile
-            </button>
-          </div>
         </section>
 
         {/* ── Right column: Score, Sections ── */}
         <aside className="pr-col pr-col--right">
-          <div className="pr-col__card">
+          <div className="pr-col__card pr-col__card--score-desktop">
             <div className="pr-score">
               <div className="pr-score__header">
                 <span className="pr-eyebrow">Profile completeness</span>

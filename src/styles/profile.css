@@ -119,6 +119,14 @@
   justify-content: center;
 }
 
+/* Hide the desktop identity card on mobile — hero already shows it */
+@media (max-width: 720px) {
+  .pr-col__card.pr-col__card--identity { display: none; }
+}
+@media (min-width: 721px) {
+  .pr-col__card.pr-col__card--identity { display: flex; }
+}
+
 /* ── Body / sections (mobile) ─────────────────────────────── */
 .pr-body {
   max-width: 540px;
@@ -185,6 +193,71 @@
   .pr-avatar__label { font-size: 8px; }
 }
 
+/* ── Avatar wrap (centers the avatar, holds kebab in top right) ── */
+.pr-avatarWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── Kebab menu ──────────────────────────────────────────── */
+.pr-kebab {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.pr-kebab__toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-5);
+  background: var(--paper);
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--easing-default),
+              color var(--dur-fast) var(--easing-default);
+}
+.pr-kebab__toggle:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.pr-kebab__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 160px;
+  background: var(--paper);
+  border: 1px solid var(--ink-5);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pr-kebab__action {
+  background: transparent;
+  border: 0;
+  text-align: left;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pr-kebab__action:hover { background: var(--paper-2); color: var(--ink); }
+
 /* ── Name / role / meta ─────────────────────────────────────── */
 .pr-hero__name {
   font-family: var(--font-sans);
@@ -222,12 +295,22 @@
 .pr-score {
   width: 100%;
   max-width: 380px;
-  margin-top: 24px;
   padding: 18px 20px;
   background: var(--paper);
   border: 1px solid var(--ink-6);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-panel);
+}
+
+.pr-score-mobile { display: block; padding: 0 18px 16px; }
+@media (min-width: 721px) {
+  .pr-score-mobile { display: none; }
+}
+.pr-score-mobile .pr-score { max-width: 100%; }
+
+.pr-col__card--score-desktop { display: flex; }
+@media (max-width: 720px) {
+  .pr-col__card--score-desktop { display: none; }
 }
 
 .pr-score__header {
