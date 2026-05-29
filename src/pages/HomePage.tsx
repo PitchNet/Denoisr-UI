@@ -12,6 +12,7 @@ type SwipeDirection = 'accept' | 'reject'
 type MatchState = {
   open: boolean
   name: string
+  photo: string
 }
 
 type DiscoveryCard = {
@@ -26,6 +27,7 @@ type DiscoveryCard = {
   intro: string
   highlights: string[]
   tags: string[]
+  photo: string
   sections: Array<{
     title: string
     items: string[]
@@ -152,7 +154,7 @@ export default function HomePage() {
   const [isDragging, setIsDragging] = useState(false)
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
-  const [matchState, setMatchState] = useState<MatchState>({ open: false, name: '' })
+  const [matchState, setMatchState] = useState<MatchState>({ open: false, name: '', photo: '' })
   const swipeLockedRef = useRef(false)
 
   const activeCards = mode === 'jobs' ? jobCards : peopleCards
@@ -316,7 +318,7 @@ export default function HomePage() {
 
         const result = (await response.json()) as { matched?: boolean }
         if (result.matched) {
-          setMatchState({ open: true, name: currentCard.headline })
+          setMatchState({ open: true, name: currentCard.headline, photo: currentCard.photo })
           setExitDirection(direction)
           return
         }
@@ -332,12 +334,12 @@ export default function HomePage() {
   }
 
   function handleKeepSwiping() {
-    setMatchState({ open: false, name: '' })
+    setMatchState({ open: false, name: '', photo: '' })
     advanceCard()
   }
 
   function handleStartChat() {
-    setMatchState({ open: false, name: '' })
+    setMatchState({ open: false, name: '', photo: '' })
     advanceCard()
     navigate('/messages')
   }
@@ -390,10 +392,10 @@ export default function HomePage() {
             </div>
             <div className="hp-match__card hp-match__card--right">
               <div
-                className="hp-match__avatar"
-                style={{ background: swatchFor(matchState.name) }}
+                className={`hp-match__avatar${matchState.photo ? ' hp-match__avatar--photo' : ''}`}
+                style={matchState.photo ? { backgroundImage: `url(${matchState.photo})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: swatchFor(matchState.name) }}
               >
-                {initialsOf(matchState.name)}
+                {matchState.photo ? null : initialsOf(matchState.name)}
               </div>
             </div>
           </div>
@@ -610,11 +612,11 @@ export default function HomePage() {
 
                   <div className="hp-card__head">
                     <div
-                      className="hp-card__avatar"
-                      style={{ background: swatchFor(currentCard.id) }}
+                      className={`hp-card__avatar${mode === 'people' && currentCard.photo ? ' hp-card__avatar--photo' : ''}`}
+                      style={mode === 'people' && currentCard.photo ? { backgroundImage: `url(${currentCard.photo})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: swatchFor(currentCard.id) }}
                       aria-hidden="true"
                     >
-                      {initialsOf(currentCard.organization || currentCard.headline)}
+                      {mode === 'people' && currentCard.photo ? null : initialsOf(currentCard.organization || currentCard.headline)}
                     </div>
                     <div className="hp-card__meta el-meta">
                       <span>{currentCard.subheadline}</span>

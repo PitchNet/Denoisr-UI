@@ -312,6 +312,10 @@
   font-size: 14px;
   flex-shrink: 0;
 }
+.hp-card__avatar--photo {
+  background-size: cover !important;
+  background-position: center !important;
+}
 .hp-card__meta {
   flex: 1;
   min-width: 0;
@@ -557,6 +561,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.hp-match__avatar--photo {
+  background-size: cover !important;
+  background-position: center !important;
 }
 .hp-match__panel {
   position: relative;
