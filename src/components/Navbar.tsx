@@ -88,13 +88,13 @@ export default function Navbar() {
 
                 {profileOpen ? (
                   <div className="nav__profileDropdown">
-                    <button type="button" className="nav__profileDropdownBtn" onClick={() => navigate('/profile')}>
+                    <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/profile'); }}>
                       View Profile
                     </button>
-                    <button type="button" className="nav__profileDropdownBtn">
+                    <button type="button" className="nav__profileDropdownBtn" onClick={() => setProfileOpen(false)}>
                       View Job Applications
                     </button>
-                    <button type="button" className="nav__profileDropdownBtn" onClick={() => navigate('/messages')}>
+                    <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/messages'); }}>
                       View Connections
                     </button>
                   </div>
