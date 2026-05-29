@@ -1,7 +1,7 @@
 /* ─────────────────────────────────────────────────────────────
    Denoisr · /profile — Editorial Mono
    Full-page profile view with completeness score.
-   Mobile-first, single-column layout.
+   Mobile: single column. Desktop: 3-column layout.
    ───────────────────────────────────────────────────────────── */
 
 .pr {
@@ -24,6 +24,14 @@
   text-transform: uppercase;
   color: var(--ink-4);
   margin-bottom: 8px;
+}
+
+/* ── Mobile hero (hidden on desktop) ──────────────────────── */
+.pr-hero--mobile {
+  display: block;
+}
+@media (min-width: 721px) {
+  .pr-hero--mobile { display: none; }
 }
 
 /* ── Hero ───────────────────────────────────────────────────── */
@@ -51,6 +59,82 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+/* ── 3-column desktop shell ──────────────────────────────── */
+.pr-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 24px 0;
+}
+@media (min-width: 721px) {
+  .pr-shell {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 22px;
+    padding: 32px 36px 0;
+  }
+}
+
+.pr-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+@media (min-width: 721px) {
+  .pr-col { min-width: 0; }
+  .pr-col--left { flex: 0 0 280px; }
+  .pr-col--center { flex: 1.15; }
+  .pr-col--right { flex: 1; }
+}
+
+.pr-col__card {
+  background: var(--paper);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-panel);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Desktop avatar + meta (inside left column) ──────────── */
+.pr-avatar--desktop {
+  width: 96px;
+  height: 96px;
+  font-size: 32px;
+  align-self: center;
+  margin-bottom: 4px;
+}
+.pr-hero__name--desktop {
+  text-align: center;
+  margin: 0;
+}
+.pr-hero__meta--desktop {
+  justify-content: center;
+}
+
+/* ── Body / sections (mobile) ─────────────────────────────── */
+.pr-body {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+@media (max-width: 720px) {
+  .pr-body { padding: 0 18px; gap: 24px; }
+}
+
+.pr-section {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Avatar ─────────────────────────────────────────────────── */
@@ -432,6 +516,9 @@
   display: flex;
   justify-content: center;
   padding-top: 12px;
+}
+.pr-actions--desktop {
+  margin-top: 8px;
 }
 
 /* ── Loading / error states ─────────────────────────────────── */

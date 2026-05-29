@@ -289,8 +289,8 @@ export default function ProfilePage() {
 
   return (
     <div className="pr">
-      {/* ── Hero / avatar section ── */}
-      <header className="pr-hero">
+      {/* ── Mobile hero (hidden on desktop) ── */}
+      <header className="pr-hero pr-hero--mobile">
         <div className="pr-hero__wash" aria-hidden="true" />
         <div className="pr-hero__inner">
           <div className="pr-avatar pr-avatar--upload" style={{ background: avatarSwatch }} aria-hidden="true">
@@ -325,152 +325,189 @@ export default function ProfilePage() {
               </>
             )}
           </div>
-
-          {/* ── Completeness score ── */}
-          <div className="pr-score">
-            <div className="pr-score__header">
-              <span className="pr-eyebrow">Profile completeness</span>
-              <span className="pr-score__value">
-                {completeness}
-                <span className="pr-score__total">/100</span>
-              </span>
-            </div>
-            <div className="pr-score__bar">
-              <div
-                className="pr-score__fill"
-                style={{
-                  width: `${completeness}%`,
-                  backgroundColor: scoreColor,
-                }}
-              />
-            </div>
-            <p className="pr-score__label">
-              {scoreLabel}.{' '}
-              {completeness < 100
-                ? `Missing: ${missingFields.join(', ')}.`
-                : 'Your profile is complete.'}
-            </p>
-          </div>
         </div>
       </header>
 
-      {/* ── Profile sections ── */}
-      <div className="pr-body">
-        {/* ── Resume placeholder ── */}
-        <section className="pr-section">
-          <span className="pr-eyebrow">Resume</span>
-          <div className="pr-resume">
-            <div className="pr-resume__placeholder">
-              <span className="pr-resume__icon">
+      {/* ── 3-column desktop shell ── */}
+      <div className="pr-shell">
+        {/* ── Left column: Photo, Resume, Highlights, Tags ── */}
+        <aside className="pr-col pr-col--left">
+          <div className="pr-col__card">
+            <div className="pr-avatar pr-avatar--upload pr-avatar--desktop" style={{ background: avatarSwatch }} aria-hidden="true">
+              <span className="pr-avatar__icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
+                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                  <circle cx="12" cy="13" r="4" />
                 </svg>
               </span>
-              <span className="pr-resume__text">Upload your resume</span>
-              <span className="pr-resume__hint">Coming soon</span>
+              <span className="pr-avatar__label">Upload photo</span>
+            </div>
+
+            <h1 className="pr-hero__name pr-hero__name--desktop">{profile.headline || 'Unnamed'}</h1>
+
+            <p className="pr-hero__role">
+              {profile.subheadline || 'Role not set'}
+              {profile.organization ? ` · ${profile.organization}` : ''}
+            </p>
+
+            <div className="pr-hero__meta pr-hero__meta--desktop">
+              <span>{profile.location || 'Location not set'}</span>
+              {profile.experience > 0 && (
+                <>
+                  <span className="dot">·</span>
+                  <span>{pad2(profile.experience)} yrs</span>
+                </>
+              )}
+              {profile.salary > 0 && (
+                <>
+                  <span className="dot">·</span>
+                  <span>${profile.salary}k</span>
+                </>
+              )}
             </div>
           </div>
-        </section>
 
-        {/* ── Intro ── */}
-        {profile.intro && (
-          <section className="pr-section">
-            <span className="pr-eyebrow">About</span>
-            <p className="pr-intro">{profile.intro}</p>
-          </section>
-        )}
-
-        {/* ── Highlights ── */}
-        {profile.highlights.length > 0 && (
-          <section className="pr-section">
-            <span className="pr-eyebrow">Highlights</span>
-            <div className="pr-chips">
-              {profile.highlights.map((item) => (
-                <span key={item} className="pr-chip">{item}</span>
-              ))}
+          <div className="pr-col__card">
+            <span className="pr-eyebrow">Resume</span>
+            <div className="pr-resume">
+              <div className="pr-resume__placeholder">
+                <span className="pr-resume__icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                </span>
+                <span className="pr-resume__text">Upload your resume</span>
+                <span className="pr-resume__hint">Coming soon</span>
+              </div>
             </div>
-          </section>
-        )}
+          </div>
 
-        {/* ── Tags ── */}
-        {profile.tags.length > 0 && (
-          <section className="pr-section">
-            <span className="pr-eyebrow">Tags</span>
-            <div className="pr-tags">
-              {profile.tags.map((item) => (
-                <span key={item} className="pr-tag">{item}</span>
-              ))}
+          {profile.highlights.length > 0 && (
+            <div className="pr-col__card">
+              <span className="pr-eyebrow">Highlights</span>
+              <div className="pr-chips">
+                {profile.highlights.map((item) => (
+                  <span key={item} className="pr-chip">{item}</span>
+                ))}
+              </div>
             </div>
-          </section>
-        )}
+          )}
 
-        {/* ── Work Experience ── */}
-        <section className="pr-section">
-          <span className="pr-eyebrow">Work experience</span>
-          <div className="pr-work">
-            {profile.workExperience.length > 0 ? (
-              profile.workExperience.map((work, index) => (
-                <div key={`${work.company}-${index}`} className="pr-work__item">
-                  <div className="pr-work__header">
-                    <span className="pr-work__company">{work.company}</span>
-                    <span className="pr-work__duration">{work.duration}</span>
+          {profile.tags.length > 0 && (
+            <div className="pr-col__card">
+              <span className="pr-eyebrow">Tags</span>
+              <div className="pr-tags">
+                {profile.tags.map((item) => (
+                  <span key={item} className="pr-tag">{item}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
+
+        {/* ── Center column: Intro, Work Experience, Projects ── */}
+        <section className="pr-col pr-col--center">
+          {profile.intro && (
+            <div className="pr-col__card">
+              <span className="pr-eyebrow">About</span>
+              <p className="pr-intro">{profile.intro}</p>
+            </div>
+          )}
+
+          <div className="pr-col__card">
+            <span className="pr-eyebrow">Work experience</span>
+            <div className="pr-work">
+              {profile.workExperience.length > 0 ? (
+                profile.workExperience.map((work, index) => (
+                  <div key={`${work.company}-${index}`} className="pr-work__item">
+                    <div className="pr-work__header">
+                      <span className="pr-work__company">{work.company}</span>
+                      <span className="pr-work__duration">{work.duration}</span>
+                    </div>
+                    {work.role && <span className="pr-work__role">{work.role}</span>}
+                    {work.description && <p className="pr-work__desc">{work.description}</p>}
                   </div>
-                  {work.role && <span className="pr-work__role">{work.role}</span>}
-                  {work.description && <p className="pr-work__desc">{work.description}</p>}
-                </div>
-              ))
-            ) : (
-              <div className="pr-empty" />
-            )}
+                ))
+              ) : (
+                <div className="pr-empty" />
+              )}
+            </div>
           </div>
-        </section>
 
-        {/* ── Projects ── */}
-        <section className="pr-section">
-          <span className="pr-eyebrow">Projects</span>
-          <div className="pr-projects">
-            {profile.projects.length > 0 ? (
-              profile.projects.map((project, index) => (
-                <div key={`${project.name}-${index}`} className="pr-projects__item">
-                  <div className="pr-projects__header">
-                    <span className="pr-projects__name">{project.name}</span>
-                    {project.url && (
-                      <a href={project.url} target="_blank" rel="noopener noreferrer" className="pr-projects__link">
-                        View →
-                      </a>
-                    )}
+          <div className="pr-col__card">
+            <span className="pr-eyebrow">Projects</span>
+            <div className="pr-projects">
+              {profile.projects.length > 0 ? (
+                profile.projects.map((project, index) => (
+                  <div key={`${project.name}-${index}`} className="pr-projects__item">
+                    <div className="pr-projects__header">
+                      <span className="pr-projects__name">{project.name}</span>
+                      {project.url && (
+                        <a href={project.url} target="_blank" rel="noopener noreferrer" className="pr-projects__link">
+                          View →
+                        </a>
+                      )}
+                    </div>
+                    {project.description && <p className="pr-projects__desc">{project.description}</p>}
                   </div>
-                  {project.description && <p className="pr-projects__desc">{project.description}</p>}
-                </div>
-              ))
-            ) : (
-              <div className="pr-empty" />
-            )}
+                ))
+              ) : (
+                <div className="pr-empty" />
+              )}
+            </div>
+          </div>
+
+          <div className="pr-actions pr-actions--desktop">
+            <button type="button" className="btn btn--solidDark" onClick={() => navigate('/dashboard')}>
+              Edit profile
+            </button>
           </div>
         </section>
 
-        {/* ── Sections (Proof of work, Intent and fit) ── */}
-        {profile.sections.map((section) => (
-          <section key={section.title} className="pr-section">
-            <span className="pr-eyebrow">{section.title}</span>
-            <ul className="pr-list">
-              {section.items.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </section>
-        ))}
+        {/* ── Right column: Score, Sections ── */}
+        <aside className="pr-col pr-col--right">
+          <div className="pr-col__card">
+            <div className="pr-score">
+              <div className="pr-score__header">
+                <span className="pr-eyebrow">Profile completeness</span>
+                <span className="pr-score__value">
+                  {completeness}
+                  <span className="pr-score__total">/100</span>
+                </span>
+              </div>
+              <div className="pr-score__bar">
+                <div
+                  className="pr-score__fill"
+                  style={{
+                    width: `${completeness}%`,
+                    backgroundColor: scoreColor,
+                  }}
+                />
+              </div>
+              <p className="pr-score__label">
+                {scoreLabel}.{' '}
+                {completeness < 100
+                  ? `Missing: ${missingFields.join(', ')}.`
+                  : 'Your profile is complete.'}
+              </p>
+            </div>
+          </div>
 
-        {/* ── Edit button ── */}
-        <div className="pr-actions">
-          <button type="button" className="btn btn--solidDark" onClick={() => navigate('/dashboard')}>
-            Edit profile
-          </button>
-        </div>
+          {profile.sections.map((section) => (
+            <div key={section.title} className="pr-col__card">
+              <span className="pr-eyebrow">{section.title}</span>
+              <ul className="pr-list">
+                {section.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </aside>
       </div>
 
       {/* ── Mobile bottom nav ── */}
