@@ -565,7 +565,7 @@ export default function MessagesPage() {
 
           {mobileProfileOpen ? (
             <div className="mp-bottomnav__menu">
-              <button type="button" className="mp-bottomnav__action">View profile</button>
+              <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
               <button type="button" className="mp-bottomnav__action">Job applications</button>
               <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/messages')}>
                 Connections
