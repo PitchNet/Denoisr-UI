@@ -327,7 +327,7 @@ export default function ProfilePage() {
               </button>
               {kebabOpen && (
                 <div className="pr-kebab__menu">
-                  <button type="button" className="pr-kebab__action" onClick={() => { setKebabOpen(false); navigate('/dashboard'); }}>
+                  <button type="button" className="pr-kebab__action" onClick={() => { setKebabOpen(false); navigate('/profile/edit'); }}>
                     Edit profile
                   </button>
                 </div>
@@ -414,7 +414,7 @@ export default function ProfilePage() {
                 </button>
                 {kebabOpen && (
                   <div className="pr-kebab__menu">
-                    <button type="button" className="pr-kebab__action" onClick={() => { setKebabOpen(false); navigate('/dashboard'); }}>
+                    <button type="button" className="pr-kebab__action" onClick={() => { setKebabOpen(false); navigate('/profile/edit'); }}>
                       Edit profile
                     </button>
                   </div>

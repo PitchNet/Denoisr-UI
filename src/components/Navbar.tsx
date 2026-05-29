@@ -11,7 +11,7 @@ export default function Navbar() {
   const isLoggedIn = isAuthenticated()
   const isHome = pathname === '/home'
   const isMessages = pathname === '/messages'
-  const isProfile = pathname === '/profile'
+  const isProfile = pathname === '/profile' || pathname === '/profile/edit'
   const isAppPage = isHome || isMessages || isProfile
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
 

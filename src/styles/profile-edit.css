@@ -1,0 +1,252 @@
+/* ─────────────────────────────────────────────────────────────
+   Denoisr · /profile/edit — Editorial Mono
+   Edit-mode profile page. Shares .pr-* layout from profile.css.
+   ───────────────────────────────────────────────────────────── */
+
+.pe {
+  background:
+    radial-gradient(50% 55% at 100% 0%, rgba(255,210,225,0.45), transparent 70%),
+    radial-gradient(45% 50% at 0% 100%, rgba(220,210,255,0.40), transparent 70%),
+    var(--paper);
+  min-height: calc(100svh - 64px);
+  padding: 0 0 96px;
+}
+
+/* ── Form ──────────────────────────────────────────────────── */
+.pe-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Field ──────────────────────────────────────────────────── */
+.pe-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+}
+.pe-field--grow { flex: 1; }
+
+.pe-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+.pe-input {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-5);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color var(--dur-fast) var(--easing-default);
+  width: 100%;
+}
+.pe-input::placeholder { color: var(--ink-4); }
+.pe-input:focus { border-color: var(--ink); }
+
+.pe-textarea {
+  height: auto;
+  min-height: 90px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.pe-textarea--sm { min-height: 60px; }
+
+.pe-hidden {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  width: 0; height: 0;
+}
+
+.pe-hint {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-4);
+  margin: 0 0 4px;
+}
+
+/* ── 2-column row ──────────────────────────────────────────── */
+.pe-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .pe-row2 { grid-template-columns: 1fr; }
+}
+
+/* ── Repeatable rows ───────────────────────────────────────── */
+.pe-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+.pe-row--compact {
+  align-items: flex-start;
+}
+
+.pe-rowActions {
+  display: flex;
+  gap: 6px;
+  padding-bottom: 1px;
+  flex-shrink: 0;
+}
+.pe-rowActions--compact {
+  padding-top: 22px;
+}
+
+.pe-iconBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-5);
+  background: var(--paper);
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--easing-default),
+              color var(--dur-fast) var(--easing-default),
+              border-color var(--dur-fast) var(--easing-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pe-iconBtn:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink); }
+.pe-iconBtn--ink {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.pe-iconBtn--ink:hover { background: #000; color: var(--paper); }
+.pe-iconBtn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pe-iconBtn--sm {
+  width: auto;
+  height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+  gap: 4px;
+}
+.pe-iconBtn--xs {
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+}
+
+/* ── Suggestion dropdown ───────────────────────────────────── */
+.pe-suggest {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border: 1px solid var(--ink-5);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  z-index: 20;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.pe-suggest__opt {
+  background: transparent;
+  border: 0;
+  text-align: left;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--easing-default);
+}
+.pe-suggest__opt:hover { background: var(--paper-2); color: var(--ink); }
+
+/* ── Sub-block (work / projects) ───────────────────────────── */
+.pe-subblock {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  background: var(--paper);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+}
+.pe-subblock__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pe-subblock__actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--ink-6);
+}
+
+/* ── Section items (right column) ──────────────────────────── */
+.pe-sectionItems {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Save / cancel actions ──────────────────────────────────── */
+.pe-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pe-actions--desktop {
+  margin-top: 4px;
+}
+
+.pe-saveError {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  color: var(--decision-pass);
+  padding: 10px 14px;
+  background: rgba(196, 74, 57, 0.06);
+  border-radius: var(--radius-sm);
+}
+
+/* ── Loading / error ───────────────────────────────────────── */
+.pe-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100svh - 64px);
+}
+
+.pe-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100svh - 64px);
+  gap: 12px;
+  text-align: center;
+  padding: 24px;
+}
