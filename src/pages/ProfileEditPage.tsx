@@ -5,6 +5,23 @@ import LoadingState from '../components/ui/LoadingState'
 import '../styles/profile.css'
 import '../styles/profile-edit.css'
 
+const SWATCHES = [
+  'oklch(0.78 0.10 220)',
+  'oklch(0.80 0.11 65)',
+  'oklch(0.82 0.08 150)',
+  'oklch(0.80 0.08 30)',
+  'oklch(0.78 0.10 320)',
+  'oklch(0.80 0.09 200)',
+  'oklch(0.80 0.08 90)',
+  'oklch(0.78 0.10 250)',
+]
+
+function swatchFor(id: string) {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
+  return SWATCHES[h % SWATCHES.length]
+}
+
 type ProfileData = {
   id: string
   kind: string
@@ -498,6 +515,8 @@ export default function ProfileEditPage() {
     )
   }
 
+  const avatarSwatch = swatchFor(headline || 'U')
+
   return (
     <div className="pe">
       {/* ── Mobile hero ── */}
@@ -505,7 +524,7 @@ export default function ProfileEditPage() {
         <div className="pr-hero__wash" aria-hidden="true" />
         <div className="pr-hero__inner">
           <div className="pr-avatarWrap">
-            <div className="pr-avatar pr-avatar--upload" aria-hidden="true">
+            <div className="pr-avatar pr-avatar--upload" style={{ background: avatarSwatch }} aria-hidden="true">
               <span className="pr-avatar__icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
@@ -560,7 +579,7 @@ export default function ProfileEditPage() {
         <aside className="pr-col pr-col--left">
           <div className="pr-col__card pr-col__card--identity">
             <div className="pr-avatarWrap">
-              <div className="pr-avatar pr-avatar--upload pr-avatar--desktop" aria-hidden="true">
+              <div className="pr-avatar pr-avatar--upload pr-avatar--desktop" style={{ background: avatarSwatch }} aria-hidden="true">
                 <span className="pr-avatar__icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
