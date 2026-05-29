@@ -306,7 +306,7 @@ export default function ProfilePage() {
   }
 
   const avatarSwatch = swatchFor(profile.headline || 'U')
-  const photoUrl = profile.photo || sessionStorage.getItem('denoisr-profile-photo') || ''
+  const photoUrl = profile.photo || ''
 
   return (
     <div className="pr">

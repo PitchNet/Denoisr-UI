@@ -258,7 +258,7 @@ export default function ProfileEditPage() {
         setExperience(profile.experience)
         setSalary(profile.salary)
         setIntro(profile.intro)
-        const storedPhoto = profile.photo || sessionStorage.getItem('denoisr-profile-photo') || ''
+        const storedPhoto = profile.photo || ''
         setPhotoUrl(storedPhoto)
         if (storedPhoto) setPhotoPreviewUrl(storedPhoto)
 
@@ -462,7 +462,6 @@ export default function ProfileEditPage() {
       .then((res) => res.json())
       .then((data: { url?: string }) => {
         if (data.url) {
-          sessionStorage.setItem('denoisr-profile-photo', data.url)
           setPhotoUrl(data.url)
         }
       })
