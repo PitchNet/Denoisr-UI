@@ -13,6 +13,7 @@ type Connection = {
   name: string
   preview: string
   avatar: string
+  photo: string
   role: string
   status: string
   openable: boolean
@@ -148,13 +149,16 @@ export default function MessagesPage() {
           : typeof item.lastMessage === 'string'
             ? item.lastMessage
             : String((item.lastMessage as Record<string, unknown>).content ?? item.lastMessage),
-        avatar: String(item.avatar ?? item.name ?? 'U')
-          .split(' ')
-          .filter(Boolean)
-          .slice(0, 2)
-          .map((part) => part[0])
-          .join('')
-          .toUpperCase(),
+        avatar: String(item.avatar ?? '')
+          ? String(item.avatar)
+          : String(item.name ?? 'U')
+              .split(' ')
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((part) => part[0])
+              .join('')
+              .toUpperCase(),
+        photo: String(item.photo ?? ''),
         role: String(item.currentRole ?? item.role ?? 'Professional'),
         status: String(item.status ?? 'Connected'),
         openable: true,
@@ -310,11 +314,11 @@ export default function MessagesPage() {
     const content = (
       <>
         <div
-          className="mp-item__avatar"
-          style={{ background: swatchFor(connection.id) }}
+          className={`mp-item__avatar${connection.photo ? ' mp-item__avatar--photo' : ''}`}
+          style={connection.photo ? { backgroundImage: `url(${connection.photo})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: swatchFor(connection.id) }}
           aria-hidden="true"
         >
-          {connection.avatar}
+          {connection.photo ? null : connection.avatar}
         </div>
         <div className="mp-item__body">
           <div className="mp-item__topline">
@@ -507,11 +511,11 @@ export default function MessagesPage() {
 
               <div className="mp-context__hero">
                 <div
-                  className="mp-context__avatar"
-                  style={{ background: swatchFor(activeConversation.id) }}
+                  className={`mp-context__avatar${activeConversation.photo ? ' mp-context__avatar--photo' : ''}`}
+                  style={activeConversation.photo ? { backgroundImage: `url(${activeConversation.photo})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: swatchFor(activeConversation.id) }}
                   aria-hidden="true"
                 >
-                  {activeConversation.avatar}
+                  {activeConversation.photo ? null : activeConversation.avatar}
                 </div>
                 <div>
                   <h3 className="mp-context__name">{activeConversation.name}</h3>

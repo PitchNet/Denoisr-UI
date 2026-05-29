@@ -313,8 +313,8 @@
   flex-shrink: 0;
 }
 .hp-card__avatar--photo {
-  background-size: cover !important;
-  background-position: center !important;
+  background-size: cover;
+  background-position: center;
 }
 .hp-card__meta {
   flex: 1;
@@ -563,8 +563,8 @@
   justify-content: center;
 }
 .hp-match__avatar--photo {
-  background-size: cover !important;
-  background-position: center !important;
+  background-size: cover;
+  background-position: center;
 }
 .hp-match__panel {
   position: relative;

@@ -196,6 +196,10 @@
   justify-content: center;
   flex-shrink: 0;
 }
+.mp-item__avatar--photo {
+  background-size: cover;
+  background-position: center;
+}
 .mp-item__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .mp-item__topline {
   display: flex;
@@ -442,6 +446,10 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+.mp-context__avatar--photo {
+  background-size: cover;
+  background-position: center;
 }
 .mp-context__name {
   font-family: var(--font-sans);
