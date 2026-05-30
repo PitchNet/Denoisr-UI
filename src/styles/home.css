@@ -379,9 +379,53 @@
   transform: rotate(8deg);
 }
 .hp-card__stamp--fit {
-  left: 26px;
+  right: 14px;
   color: var(--decision-like);
-  transform: rotate(-8deg);
+  border-color: var(--decision-like);
+}
+
+/* ── Inside-card sections (mobile only) ───────────────────── */
+.hp-card__sections {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 4px;
+  border-top: 1px solid var(--ink-6);
+}
+.hp-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hp-card__section .hp-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.hp-card__sectionList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hp-card__sectionList p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  position: relative;
+  padding-left: 14px;
+}
+.hp-card__sectionList p::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--ink-4);
+}
+
+@media (min-width: 721px) {
+  .hp-card__sections { display: none; }
 }
 
 /* ── Action buttons ────────────────────────────────────────── */
@@ -713,6 +757,7 @@
   .hp-card--top {
     position: relative;
     inset: auto;
+    overflow-y: visible;
   }
 
   /* Tighter card spacing on mobile */
@@ -759,6 +804,14 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  /* Hide the preview panel on mobile — sections are inside the card */
+  .hp-preview { display: none; }
+
+  /* Show inside-card actions + sections on mobile */
+  .hp-card__actions { display: flex; }
+  .hp-card__actionLabels { display: flex; }
+  .hp-card__sections { display: flex; }
 
   /* Smaller swipe stamps so they fit a narrower card */
   .hp-card__stamp { font-size: 22px; padding: 6px 12px; }

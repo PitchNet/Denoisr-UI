@@ -652,6 +652,21 @@ export default function HomePage() {
                       ))}
                     </div>
                   ) : null}
+
+                  {currentCard.sections.length ? (
+                    <div className="hp-card__sections">
+                      {currentCard.sections.map((section) => (
+                        <section key={section.title} className="hp-card__section">
+                          <span className="hp-eyebrow">{section.title}</span>
+                          <div className="hp-card__sectionList">
+                            {section.items.map((item) => (
+                              <p key={item}>{item}</p>
+                            ))}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                  ) : null}
                 </article>
               </div>
 
