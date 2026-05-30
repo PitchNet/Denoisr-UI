@@ -229,6 +229,26 @@ export default function CompanyPage() {
     setEditJob(JSON.parse(JSON.stringify(jobs[index])))
   }
 
+  function startJobCreate() {
+    const blank: Job = {
+      id: crypto.randomUUID(),
+      kind: 'jobs',
+      headline: '',
+      subheadline: '',
+      organization: '',
+      location: '',
+      experience: 0,
+      salary: 0,
+      intro: '',
+      highlights: [],
+      tags: [],
+      sections: [],
+    }
+    setJobs([...jobs, blank])
+    setEditingJobIndex(jobs.length)
+    setEditJob(blank)
+  }
+
   function handleJobField(field: keyof Job, value: string | number | string[] | JobSection[]) {
     if (!editJob) return
     setEditJob({ ...editJob, [field]: value })
@@ -469,7 +489,10 @@ export default function CompanyPage() {
         )}
         {!loading && mode === 'view' && (
           <div className="cp-card cp-jobs">
-            <span className="cp-eyebrow">Open positions</span>
+            <div className="cp-jobsHeader">
+              <span className="cp-eyebrow">Open positions</span>
+              <button type="button" className="btn btn--solidDark" onClick={startJobCreate} style={{ height: 32, padding: '0 12px', fontSize: 11 }}>Create job</button>
+            </div>
             {jobs.length === 0 ? (
               <p className="cp-detail" style={{ fontStyle: 'italic' }}>No jobs posted yet.</p>
             ) : (

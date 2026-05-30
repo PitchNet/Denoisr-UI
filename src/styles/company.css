@@ -186,6 +186,12 @@
 
 /* ── Jobs ── */
 .cp-jobs { margin-top: 24px; }
+.cp-jobsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cp-jobsHeader .cp-eyebrow { margin: 0; }
 .cp-jobList {
   display: flex;
   flex-direction: column;

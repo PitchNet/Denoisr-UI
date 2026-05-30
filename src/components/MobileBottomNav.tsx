@@ -80,7 +80,6 @@ export default function MobileBottomNav({ activePage }: Props) {
             <div className="mbn__divider" />
             <span className="mbn__groupLabel">Manage</span>
             <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/company'); }}>Company</button>
-            <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/jobs'); }}>Jobs</button>
             <div className="mbn__divider" />
             <button
               type="button"

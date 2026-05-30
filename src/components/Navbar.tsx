@@ -113,18 +113,15 @@ export default function Navbar() {
                     ) : null}
                     <span className="nav__dropdownLabel">Account</span>
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/profile'); }}>
-                      View Profile
+                      Profile
                     </button>
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/applications'); }}>
-                      View Job Applications
+                      Job Applications
                     </button>
                     <div className="nav__dropdownDivider" />
                     <span className="nav__dropdownLabel">Manage</span>
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/company'); }}>
                       Company
-                    </button>
-                    <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/jobs'); }}>
-                      Jobs
                     </button>
                     <div className="nav__dropdownDivider" />
                     <button type="button" className="nav__profileDropdownBtn nav__profileDropdownBtn--danger" onClick={handleLogout}>
