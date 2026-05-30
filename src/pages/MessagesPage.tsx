@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { clearAuthToken, getAuthenticatedUserId } from '../auth'
+import { clearAuthToken, getAuthenticatedUserId, getStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import NavIcon from '../components/ui/NavIcon'
 import { supabase } from '../supabase'
@@ -51,6 +51,7 @@ function swatchFor(id: string) {
 
 export default function MessagesPage() {
   const navigate = useNavigate()
+  const cachedProfile = getStoredProfile()
   const messagesThreadBodyRef = useRef<HTMLDivElement>(null)
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
@@ -569,6 +570,26 @@ export default function MessagesPage() {
 
           {mobileProfileOpen ? (
             <div className="mp-bottomnav__menu">
+              {cachedProfile ? (
+                <div className="mp-bottomnav__dropdownProfile">
+                  <div
+                    className="mp-bottomnav__dropdownAvatar"
+                  style={{
+                    background: cachedProfile.photo
+                      ? `url(${cachedProfile.photo}) center/cover`
+                      : 'var(--ink-2)',
+                  }}
+                  >
+                    {!cachedProfile.photo ? (
+                      <span>{cachedProfile.headline.charAt(0).toUpperCase()}</span>
+                    ) : null}
+                  </div>
+                  <div className="nav__dropdownProfileMeta">
+                    <div className="nav__dropdownProfileName">{cachedProfile.headline}</div>
+                    <div className="nav__dropdownProfileRole">{cachedProfile.subheadline}</div>
+                  </div>
+                </div>
+              ) : null}
               <span className="mp-bottomnav__groupLabel">Account</span>
               <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
               <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/applications')}>Job applications</button>

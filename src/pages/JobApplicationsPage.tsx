@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { clearAuthToken } from '../auth'
+import { clearAuthToken, getStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import NavIcon from '../components/ui/NavIcon'
 import '../styles/profile.css'
@@ -55,6 +55,7 @@ function initialsOf(name: string) {
 
 export default function JobApplicationsPage() {
   const navigate = useNavigate()
+  const cachedProfile = getStoredProfile()
   const [applications, setApplications] = useState<JobApplication[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -224,6 +225,26 @@ export default function JobApplicationsPage() {
 
           {mobileProfileOpen ? (
             <div className="ja-bottomnav__menu">
+              {cachedProfile ? (
+                <div className="ja-bottomnav__dropdownProfile">
+                  <div
+                    className="ja-bottomnav__dropdownAvatar"
+                  style={{
+                    background: cachedProfile.photo
+                      ? `url(${cachedProfile.photo}) center/cover`
+                      : 'var(--ink-2)',
+                  }}
+                  >
+                    {!cachedProfile.photo ? (
+                      <span>{cachedProfile.headline.charAt(0).toUpperCase()}</span>
+                    ) : null}
+                  </div>
+                  <div className="nav__dropdownProfileMeta">
+                    <div className="nav__dropdownProfileName">{cachedProfile.headline}</div>
+                    <div className="nav__dropdownProfileRole">{cachedProfile.subheadline}</div>
+                  </div>
+                </div>
+              ) : null}
               <span className="ja-bottomnav__groupLabel">Account</span>
               <button type="button" className="ja-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
               <button type="button" className="ja-bottomnav__action">Job applications</button>

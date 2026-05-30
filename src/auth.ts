@@ -1,6 +1,8 @@
-import { getAuthTokenFromCookies } from './api'
+import { getAuthTokenFromCookies, apiRequest } from './api'
 
 const AUTH_COOKIE_NAME = 'denoisr_auth_token'
+const PROFILE_COOKIE_NAME = 'denoisr_profile'
+const PROFILE_COOKIE_MAX_AGE_SECONDS = 60 * 10080
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 10080
 const SIGNUP_PLACEHOLDER_TOKEN = 'signup-token'
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
@@ -12,6 +14,7 @@ type AuthResponse = {
 
 export function setAuthToken(token: string) {
   document.cookie = `${AUTH_COOKIE_NAME}=${encodeURIComponent(token)}; Max-Age=${AUTH_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`
+  clearStoredProfile()
 }
 
 export function getAuthToken() {
@@ -61,6 +64,7 @@ export function hasSignupInProgress() {
 
 export function clearAuthToken() {
   document.cookie = `${AUTH_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
+  clearStoredProfile()
 }
 
 export async function storeAuthTokenFromResponse(response: Response) {
@@ -106,4 +110,47 @@ export function setStoredFilters(mode: 'jobs' | 'people', values: FilterValues) 
 export function clearStoredFilters(mode: 'jobs' | 'people') {
   const name = `denoisr_filters_${mode}`
   document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`
+}
+
+export type CachedProfile = {
+  headline: string
+  subheadline: string
+  organization: string
+  photo: string
+  [key: string]: unknown
+}
+
+export function getStoredProfile(): CachedProfile | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${PROFILE_COOKIE_NAME}=([^;]*)`))
+  if (!match) return null
+  try {
+    const parsed = JSON.parse(decodeURIComponent(match[1]))
+    if (typeof parsed === 'object' && parsed !== null && typeof parsed.headline === 'string') {
+      return parsed as CachedProfile
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+export function setStoredProfile(profile: CachedProfile) {
+  const json = JSON.stringify(profile)
+  document.cookie = `${PROFILE_COOKIE_NAME}=${encodeURIComponent(json)}; Max-Age=${PROFILE_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`
+}
+
+export function clearStoredProfile() {
+  document.cookie = `${PROFILE_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
+}
+
+export async function fetchAndCacheProfile() {
+  try {
+    const response = await apiRequest('/ProfileController/getProfile', { method: 'GET' })
+    if (!response.ok) return
+    const data = (await response.json()) as Record<string, unknown>
+    if (typeof data !== 'object' || data === null) return
+    setStoredProfile(data as CachedProfile)
+  } catch {
+    // silently fail — profile will be fetched on next page load
+  }
 }

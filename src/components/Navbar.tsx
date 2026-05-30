@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { clearAuthToken, isAuthenticated } from '../auth'
+import { clearAuthToken, isAuthenticated, getStoredProfile } from '../auth'
 import NavIcon from './ui/NavIcon'
 
 export default function Navbar() {
@@ -15,6 +15,7 @@ export default function Navbar() {
   const isApplications = pathname === '/applications'
   const isAppPage = isHome || isMessages || isProfile || isApplications
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
+  const cachedProfile = getStoredProfile()
 
   function updateMode(nextMode: 'jobs' | 'people') {
     setSearchParams({ mode: nextMode })
@@ -89,6 +90,26 @@ export default function Navbar() {
 
                 {profileOpen ? (
                   <div className="nav__profileDropdown">
+                    {cachedProfile ? (
+                      <div className="nav__dropdownProfile">
+                        <div
+                          className="nav__dropdownAvatar"
+                          style={{
+                            background: cachedProfile.photo
+                              ? `url(${cachedProfile.photo}) center/cover`
+                              : 'var(--ink-2)',
+                          }}
+                        >
+                          {!cachedProfile.photo ? (
+                            <span>{cachedProfile.headline.charAt(0).toUpperCase()}</span>
+                          ) : null}
+                        </div>
+                        <div className="nav__dropdownProfileMeta">
+                          <div className="nav__dropdownProfileName">{cachedProfile.headline}</div>
+                          <div className="nav__dropdownProfileRole">{cachedProfile.subheadline}</div>
+                        </div>
+                      </div>
+                    ) : null}
                     <span className="nav__dropdownLabel">Account</span>
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/profile'); }}>
                       View Profile

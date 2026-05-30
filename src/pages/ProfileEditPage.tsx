@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest, getAuthTokenFromCookies } from '../api'
+import { fetchAndCacheProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import PhotoEditor from '../components/ui/PhotoEditor'
 import '../styles/profile.css'
@@ -524,6 +525,8 @@ export default function ProfileEditPage() {
         setSaveError('Failed to save profile.')
         return
       }
+
+      fetchAndCacheProfile()
 
       navigate('/profile')
     } catch {

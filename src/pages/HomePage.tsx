@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { clearAuthToken, getStoredFilters, setStoredFilters, clearStoredFilters } from '../auth'
+import { clearAuthToken, getStoredFilters, setStoredFilters, clearStoredFilters, getStoredProfile } from '../auth'
 import NavIcon from '../components/ui/NavIcon'
 import LoadingState from '../components/ui/LoadingState'
 import '../styles/home.css'
@@ -126,6 +126,7 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 
 export default function HomePage() {
   const navigate = useNavigate()
+  const cachedProfile = getStoredProfile()
   const [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
   const [peopleCards, setPeopleCards] = useState<DiscoveryCard[]>([])
   const [loading, setLoading] = useState(true)
@@ -910,6 +911,26 @@ export default function HomePage() {
 
           {mobileProfileOpen ? (
             <div className="hp-bottomnav__menu">
+              {cachedProfile ? (
+                <div className="hp-bottomnav__dropdownProfile">
+                  <div
+                    className="hp-bottomnav__dropdownAvatar"
+                  style={{
+                    background: cachedProfile.photo
+                      ? `url(${cachedProfile.photo}) center/cover`
+                      : 'var(--ink-2)',
+                  }}
+                  >
+                    {!cachedProfile.photo ? (
+                      <span>{cachedProfile.headline.charAt(0).toUpperCase()}</span>
+                    ) : null}
+                  </div>
+                  <div className="nav__dropdownProfileMeta">
+                    <div className="nav__dropdownProfileName">{cachedProfile.headline}</div>
+                    <div className="nav__dropdownProfileRole">{cachedProfile.subheadline}</div>
+                  </div>
+                </div>
+              ) : null}
               <span className="hp-bottomnav__groupLabel">Account</span>
               <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
               <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/applications')}>Job applications</button>
