@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { clearAuthToken } from '../auth'
+import { clearAuthToken, getStoredFilters, setStoredFilters, clearStoredFilters } from '../auth'
 import NavIcon from '../components/ui/NavIcon'
 import LoadingState from '../components/ui/LoadingState'
 import '../styles/home.css'
@@ -154,6 +154,7 @@ export default function HomePage() {
   const [isDragging, setIsDragging] = useState(false)
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [matchState, setMatchState] = useState<MatchState>({ open: false, name: '', photo: '' })
   const swipeLockedRef = useRef(false)
 
@@ -241,12 +242,46 @@ export default function HomePage() {
     setExitDirection(null)
   }, [cityFilter, countryFilter, maxExperience, maxSalary, mode, roleFilter])
 
+  useEffect(() => {
+    const stored = getStoredFilters(mode)
+    if (stored) {
+      setDraftRoleFilter(stored.role)
+      setDraftCountryFilter(stored.country)
+      setDraftCityFilter(stored.city)
+      setDraftMaxExperience(stored.experience)
+      setDraftMaxSalary(stored.salary)
+      setRoleFilter(stored.role)
+      setCountryFilter(stored.country)
+      setCityFilter(stored.city)
+      setMaxExperience(stored.experience)
+      setMaxSalary(stored.salary)
+    } else {
+      setDraftRoleFilter('')
+      setDraftCountryFilter('')
+      setDraftCityFilter('')
+      setDraftMaxExperience(10)
+      setDraftMaxSalary(200)
+      setRoleFilter('')
+      setCountryFilter('')
+      setCityFilter('')
+      setMaxExperience(10)
+      setMaxSalary(200)
+    }
+  }, [mode])
+
   function applyFilters() {
     setRoleFilter(draftRoleFilter)
     setCountryFilter(draftCountryFilter)
     setCityFilter(draftCityFilter)
     setMaxExperience(draftMaxExperience)
     setMaxSalary(draftMaxSalary)
+    setStoredFilters(mode, {
+      role: draftRoleFilter,
+      country: draftCountryFilter,
+      city: draftCityFilter,
+      experience: draftMaxExperience,
+      salary: draftMaxSalary,
+    })
   }
 
   function resetFiltersAll() {
@@ -260,6 +295,7 @@ export default function HomePage() {
     setCityFilter('')
     setMaxExperience(10)
     setMaxSalary(200)
+    clearStoredFilters(mode)
   }
 
   function resetDrag() {
@@ -525,6 +561,19 @@ export default function HomePage() {
               <span style={{ color: 'var(--ink-5)', margin: '0 6px' }}>·</span>
               <span>{filteredCards.length - currentIndex} left</span>
             </div>
+            <button
+              type="button"
+              className="hp-mobileFilterBtn"
+              aria-label="Open filters"
+              onClick={() => setMobileFiltersOpen(true)}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M2 4.5h14M4.5 9h9M7 13.5h4" />
+                <circle cx="4.5" cy="4.5" r="1.5" fill="none" />
+                <circle cx="13.5" cy="9" r="1.5" fill="none" />
+                <circle cx="9" cy="13.5" r="1.5" fill="none" />
+              </svg>
+            </button>
           </div>
 
           <header className="hp-deck__head">
@@ -727,6 +776,107 @@ export default function HomePage() {
           )}
         </aside>
       </div>
+
+      {/* ─── Mobile filter sheet ─── */}
+      {mobileFiltersOpen ? (
+        <div className="hp-filterOverlay" onClick={() => setMobileFiltersOpen(false)}>
+          <div className="hp-filterSheet" onClick={(e) => e.stopPropagation()}>
+            <header className="hp-filterSheet__head">
+              <span className="hp-eyebrow">Filters · Tune the deck</span>
+              <h2 className="hp-panel__title">Tune for relevance.</h2>
+              <button
+                type="button"
+                className="hp-filterSheet__close"
+                aria-label="Close filters"
+                onClick={() => setMobileFiltersOpen(false)}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M4 4l10 10M14 4L4 14" />
+                </svg>
+              </button>
+            </header>
+
+            <div className="hp-fieldset">
+              <label className="hp-field">
+                <span className="hp-field__label">Role</span>
+                <input
+                  className="hp-input"
+                  list="hp-role-options"
+                  placeholder="Search role"
+                  value={draftRoleFilter}
+                  onChange={(e) => setDraftRoleFilter(e.target.value)}
+                />
+              </label>
+
+              <label className="hp-field">
+                <span className="hp-field__label">Experience</span>
+                <div className="hp-rangeValue">Up to {pad2(draftMaxExperience)} yrs</div>
+                <input
+                  className="hp-range"
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={draftMaxExperience}
+                  onChange={(e) => setDraftMaxExperience(Number(e.target.value))}
+                />
+              </label>
+
+              <label className="hp-field">
+                <span className="hp-field__label">Country</span>
+                <input
+                  className="hp-input"
+                  list="hp-location-options"
+                  placeholder="Country"
+                  value={draftCountryFilter}
+                  onChange={(e) => setDraftCountryFilter(e.target.value)}
+                />
+              </label>
+
+              <label className="hp-field">
+                <span className="hp-field__label">City</span>
+                <input
+                  className="hp-input"
+                  list="hp-city-options"
+                  placeholder="City"
+                  value={draftCityFilter}
+                  onChange={(e) => setDraftCityFilter(e.target.value)}
+                />
+              </label>
+
+              <label className="hp-field">
+                <span className="hp-field__label">Salary</span>
+                <div className="hp-rangeValue">Up to ${draftMaxSalary}k</div>
+                <input
+                  className="hp-range"
+                  type="range"
+                  min="40"
+                  max="200"
+                  step="5"
+                  value={draftMaxSalary}
+                  onChange={(e) => setDraftMaxSalary(Number(e.target.value))}
+                />
+              </label>
+            </div>
+
+            <div className="hp-filterSheet__actions">
+              <button
+                type="button"
+                className="btn btn--outlinedLight"
+                onClick={() => { resetFiltersAll(); setMobileFiltersOpen(false) }}
+              >
+                Remove filters
+              </button>
+              <button
+                type="button"
+                className="btn btn--solidDark"
+                onClick={() => { applyFilters(); setMobileFiltersOpen(false) }}
+              >
+                Apply filters
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* ─── Mobile bottom nav ─── */}
       <nav className="hp-bottomnav" aria-label="Mobile navigation">

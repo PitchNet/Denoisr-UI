@@ -78,3 +78,32 @@ export async function storeAuthTokenFromResponse(response: Response) {
 
   return data
 }
+
+type FilterValues = {
+  role: string
+  country: string
+  city: string
+  experience: number
+  salary: number
+}
+
+export function getStoredFilters(mode: 'jobs' | 'people'): FilterValues | null {
+  const name = `denoisr_filters_${mode}`
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  if (!match) return null
+  try {
+    return JSON.parse(decodeURIComponent(match[1])) as FilterValues
+  } catch {
+    return null
+  }
+}
+
+export function setStoredFilters(mode: 'jobs' | 'people', values: FilterValues) {
+  const name = `denoisr_filters_${mode}`
+  document.cookie = `${name}=${encodeURIComponent(JSON.stringify(values))}; Max-Age=${60 * 10080}; Path=/; SameSite=Lax`
+}
+
+export function clearStoredFilters(mode: 'jobs' | 'people') {
+  const name = `denoisr_filters_${mode}`
+  document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`
+}

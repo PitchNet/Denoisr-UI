@@ -219,6 +219,21 @@
   letter-spacing: 0.5px;
   color: var(--ink-4);
 }
+.hp-mobileFilterBtn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--ink-5);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--easing-default),
+              border-color var(--dur-fast) var(--easing-default);
+}
+.hp-mobileFilterBtn:hover { background: var(--paper-2); border-color: var(--ink-4); color: var(--ink); }
 
 /* Mobile mode switch moved to global Navbar — keep classes for accessibility but render hidden */
 .hp-mobileMode { display: none !important; }
@@ -709,6 +724,67 @@
 .hp-bottomnav__action:hover { background: var(--paper-2); color: var(--ink); }
 .hp-bottomnav__action--danger { color: var(--decision-pass); }
 
+/* ── Mobile filter sheet ────────────────────────────────────── */
+.hp-filterOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(40, 30, 20, 0.3);
+  align-items: flex-end;
+  justify-content: center;
+}
+.hp-filterSheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--paper);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  padding: 22px 22px calc(22px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: 80dvh;
+  overflow-y: auto;
+  animation: hp-filterSheet-in 240ms var(--easing-default);
+}
+@keyframes hp-filterSheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.hp-filterSheet__head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+.hp-filterSheet__close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: transparent;
+  border: 1px solid var(--ink-5);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--easing-default);
+}
+.hp-filterSheet__close:hover { background: var(--paper-2); color: var(--ink); }
+.hp-filterSheet__actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+}
+.hp-filterSheet__actions .btn { flex: 1; }
+
+@media (max-width: 720px) {
+  .hp-filterOverlay { display: flex; }
+}
+
 /* ── Inline error banner ───────────────────────────────────── */
 .hp-banner {
   display: flex;
@@ -805,12 +881,13 @@
     overflow: hidden;
   }
 
+  /* Show filter button on mobile */
+  .hp-mobileFilterBtn { display: inline-flex; }
+
   /* Hide the preview panel on mobile — sections are inside the card */
   .hp-preview { display: none; }
 
-  /* Show inside-card actions + sections on mobile */
-  .hp-card__actions { display: flex; }
-  .hp-card__actionLabels { display: flex; }
+  /* Show inside-card sections on mobile */
   .hp-card__sections { display: flex; }
 
   /* Smaller swipe stamps so they fit a narrower card */
