@@ -129,7 +129,8 @@ export default function CompanyPage() {
   }
 
   async function handleSave() {
-    const data: CompanyData = {
+    const profile = getStoredProfile()
+    const data: CompanyData & { companyId?: string } = {
       name: name.trim(),
       photo: photoUrl,
       website: website.trim(),
@@ -140,6 +141,7 @@ export default function CompanyPage() {
       yearFounded: yearFounded.trim(),
       tags,
       commitments: commitments.trim(),
+      ...(profile?.companyId ? { companyId: profile.companyId as string } : {}),
     }
     try {
       const response = await apiRequest('/CompanyController/companyDetails', {
