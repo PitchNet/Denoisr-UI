@@ -584,40 +584,42 @@ export default function ProfileEditPage() {
             </div>
           </div>
 
-          <div className="pe-field">
-            <label className="pe-label">Name</label>
-            <input className="pe-input" type="text" value={headline} onChange={(e) => setHeadline(e.target.value)} maxLength={80} placeholder="Your name" />
-          </div>
-
-          <div className="pe-field">
-            <label className="pe-label">Current role</label>
-            <input className="pe-input" type="text" value={subheadline} onChange={(e) => setSubheadline(e.target.value)} maxLength={80} placeholder="Product Designer" />
-          </div>
-
-          <div className="pe-field">
-            <label className="pe-label">Organization</label>
-            <input className="pe-input" type="text" value={organization} onChange={(e) => setOrganization(e.target.value)} maxLength={80} placeholder="Zinfi" />
-          </div>
-
-          <div className="pe-field">
-            <label className="pe-label">Location</label>
-            <input className="pe-input" type="text" value={location} onChange={(e) => setLocation(e.target.value)} maxLength={80} placeholder="Madrid, Spain" />
-          </div>
-
-          <div className="pe-row2">
+          <div className="pe-heroCard">
             <div className="pe-field">
-              <label className="pe-label">Experience (yrs)</label>
-              <input className="pe-input" type="number" value={experience} onChange={(e) => setExperience(Number(e.target.value))} min={0} max={40} placeholder="6" />
+              <label className="pe-label">Name</label>
+              <input className="pe-input" type="text" value={headline} onChange={(e) => setHeadline(e.target.value)} maxLength={80} placeholder="Your name" />
             </div>
-            <div className="pe-field">
-              <label className="pe-label">Target comp ($k)</label>
-              <input className="pe-input" type="number" value={salary} onChange={(e) => setSalary(Number(e.target.value))} min={0} max={1000} placeholder="92" />
-            </div>
-          </div>
 
-          <div className="pe-field">
-            <label className="pe-label">Intro</label>
-            <textarea className="pe-input pe-textarea" value={intro} onChange={(e) => setIntro(e.target.value)} maxLength={280} rows={3} placeholder="Tell people what you do…" />
+            <div className="pe-field">
+              <label className="pe-label">Current role</label>
+              <input className="pe-input" type="text" value={subheadline} onChange={(e) => setSubheadline(e.target.value)} maxLength={80} placeholder="Product Designer" />
+            </div>
+
+            <div className="pe-field">
+              <label className="pe-label">Organization</label>
+              <input className="pe-input" type="text" value={organization} onChange={(e) => setOrganization(e.target.value)} maxLength={80} placeholder="Zinfi" />
+            </div>
+
+            <div className="pe-field">
+              <label className="pe-label">Location</label>
+              <input className="pe-input" type="text" value={location} onChange={(e) => setLocation(e.target.value)} maxLength={80} placeholder="Madrid, Spain" />
+            </div>
+
+            <div className="pe-row2">
+              <div className="pe-field">
+                <label className="pe-label">Experience (yrs)</label>
+                <input className="pe-input" type="number" value={experience} onChange={(e) => setExperience(Number(e.target.value))} min={0} max={40} placeholder="6" />
+              </div>
+              <div className="pe-field">
+                <label className="pe-label">Target comp ($k)</label>
+                <input className="pe-input" type="number" value={salary} onChange={(e) => setSalary(Number(e.target.value))} min={0} max={1000} placeholder="92" />
+              </div>
+            </div>
+
+            <div className="pe-field">
+              <label className="pe-label">Intro</label>
+              <textarea className="pe-input pe-textarea" value={intro} onChange={(e) => setIntro(e.target.value)} maxLength={280} rows={3} placeholder="Tell people what you do…" />
+            </div>
           </div>
         </div>
       </header>

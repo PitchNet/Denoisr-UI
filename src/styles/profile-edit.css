@@ -53,6 +53,23 @@
 .pe-input:focus { border-color: var(--ink); }
 @media (max-width: 720px) {
   .pe-input { font-size: 16px; }
+  .pe-field { gap: 3px; }
+}
+
+.pe-heroCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+@media (max-width: 720px) {
+  .pe-heroCard {
+    background: var(--paper);
+    border: 1px solid var(--ink-6);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-panel);
+    padding: 22px;
+  }
 }
 
 .pe-textarea {
@@ -83,9 +100,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-}
-@media (max-width: 600px) {
-  .pe-row2 { grid-template-columns: 1fr; }
 }
 
 /* ── Repeatable rows ───────────────────────────────────────── */
