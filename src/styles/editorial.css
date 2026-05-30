@@ -267,6 +267,22 @@ html, body {
   transition: background-color var(--dur-fast) var(--easing-default);
 }
 .nav__profileDropdownBtn:hover { background: var(--paper-2); color: var(--ink); }
+.nav__profileDropdownBtn--danger { color: var(--decision-pass); }
+.nav__profileDropdownBtn--danger:hover { background: rgba(196, 74, 57, 0.08); color: var(--decision-pass); }
+
+.nav__dropdownLabel {
+  padding: 10px 12px 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.nav__dropdownDivider {
+  height: 1px;
+  background: var(--ink-6);
+  margin: 4px 0;
+}
 
 /* Marketing-mode nav links (logged-out, non-app pages) */
 .nav__marketingLinks {

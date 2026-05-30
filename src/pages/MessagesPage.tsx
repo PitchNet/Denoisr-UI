@@ -569,11 +569,14 @@ export default function MessagesPage() {
 
           {mobileProfileOpen ? (
             <div className="mp-bottomnav__menu">
+              <span className="mp-bottomnav__groupLabel">Account</span>
               <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
               <button type="button" className="mp-bottomnav__action">Job applications</button>
-              <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/messages')}>
-                Connections
-              </button>
+              <div className="mp-bottomnav__divider" />
+              <span className="mp-bottomnav__groupLabel">Manage</span>
+              <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/company')}>Company</button>
+              <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/jobs')}>Jobs</button>
+              <div className="mp-bottomnav__divider" />
               <button
                 type="button"
                 className="mp-bottomnav__action mp-bottomnav__action--danger"

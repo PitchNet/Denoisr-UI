@@ -612,11 +612,14 @@ export default function ProfilePage() {
 
           {mobileProfileOpen ? (
             <div className="pr-bottomnav__menu">
+              <span className="pr-bottomnav__groupLabel">Account</span>
               <button type="button" className="pr-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
               <button type="button" className="pr-bottomnav__action">Job applications</button>
-              <button type="button" className="pr-bottomnav__action" onClick={() => navigate('/messages')}>
-                Connections
-              </button>
+              <div className="pr-bottomnav__divider" />
+              <span className="pr-bottomnav__groupLabel">Manage</span>
+              <button type="button" className="pr-bottomnav__action" onClick={() => navigate('/company')}>Company</button>
+              <button type="button" className="pr-bottomnav__action" onClick={() => navigate('/jobs')}>Jobs</button>
+              <div className="pr-bottomnav__divider" />
               <button
                 type="button"
                 className="pr-bottomnav__action pr-bottomnav__action--danger"

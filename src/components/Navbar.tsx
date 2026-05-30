@@ -88,22 +88,28 @@ export default function Navbar() {
 
                 {profileOpen ? (
                   <div className="nav__profileDropdown">
+                    <span className="nav__dropdownLabel">Account</span>
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/profile'); }}>
                       View Profile
                     </button>
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => setProfileOpen(false)}>
                       View Job Applications
                     </button>
-                    <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/messages'); }}>
-                      View Connections
+                    <div className="nav__dropdownDivider" />
+                    <span className="nav__dropdownLabel">Manage</span>
+                    <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/company'); }}>
+                      Company
+                    </button>
+                    <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/jobs'); }}>
+                      Jobs
+                    </button>
+                    <div className="nav__dropdownDivider" />
+                    <button type="button" className="nav__profileDropdownBtn nav__profileDropdownBtn--danger" onClick={handleLogout}>
+                      Log out
                     </button>
                   </div>
                 ) : null}
               </div>
-              <button type="button" className="nav__appLink" onClick={handleLogout}>
-                <NavIcon name="logout" />
-                <span className="nav__appLabel">Logout</span>
-              </button>
             </div>
           </>
         ) : (
