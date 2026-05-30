@@ -385,6 +385,7 @@
   height: 38px;
   padding: 0 18px;
   font-size: 13.5px;
+  border-radius: var(--radius-2xl);
 }
 .mp-composer__send[disabled] {
   opacity: 0.4;

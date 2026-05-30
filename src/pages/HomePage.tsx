@@ -546,9 +546,14 @@ export default function HomePage() {
               />
             </label>
 
-            <button type="button" className="btn btn--solidDark hp-applyBtn" onClick={applyFilters}>
-              Apply filter
-            </button>
+            <div className="hp-filterActions">
+              <button type="button" className="btn btn--outlinedLight" onClick={resetFiltersAll}>
+                Clear filters
+              </button>
+              <button type="button" className="btn btn--solidDark" onClick={applyFilters}>
+                Apply filter
+              </button>
+            </div>
           </div>
         </section>
 
