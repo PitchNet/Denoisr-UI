@@ -251,12 +251,7 @@ export default function PhotoEditor({ onSave, onCancel }: PhotoEditorProps) {
                   onPointerUp={handlePointerUp}
                   onPointerCancel={handlePointerUp}
                 >
-                  <div className="pe-cropGrid">
-                    <div className="pe-cropGrid__h" />
-                    <div className="pe-cropGrid__h" />
-                    <div className="pe-cropGrid__v" />
-                    <div className="pe-cropGrid__v" />
-                  </div>
+                  <div className="pe-cropGrid" />
                 </div>
               )}
             </div>
