@@ -18,6 +18,26 @@ type CompanyData = {
   commitments: string
 }
 
+type JobSection = {
+  title: string
+  items: string[]
+}
+
+type Job = {
+  id: string
+  kind: string
+  headline: string
+  subheadline: string
+  organization: string
+  location: string
+  experience: number
+  salary: number
+  intro: string
+  highlights: string[]
+  tags: string[]
+  sections: JobSection[]
+}
+
 const SIZE_OPTIONS = [
   '1–10 employees',
   '11–50 employees',
@@ -45,6 +65,40 @@ export default function CompanyPage() {
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [commitments, setCommitments] = useState('')
+  const [jobs, setJobs] = useState<Job[]>([
+    {
+      id: '82f78baf-f1ff-4145-ac01-2f66f1bc0dcf',
+      kind: 'jobs',
+      headline: 'Senior Frontend Engineer',
+      subheadline: 'Atlas Health',
+      organization: 'Hiring for a trust-first patient experience team',
+      location: 'Berlin, Germany',
+      experience: 5,
+      salary: 140,
+      intro: 'Build a clarity-first product that helps patients and clinicians act on high-signal information instead of fragmented dashboards.',
+      highlights: ['React + TypeScript', 'Design systems', 'Accessibility'],
+      tags: ['Remote-friendly', 'Series C', 'Product-led'],
+      sections: [
+        {
+          title: 'What you will solve',
+          items: [
+            'Turn noisy medical workflow data into focused decision interfaces.',
+            'Ship production-ready UI systems that work on tablet and desktop.',
+            'Partner with product and research to reduce cognitive overload.',
+          ],
+        },
+        {
+          title: 'Why it is high-signal',
+          items: [
+            'Clear ownership over a core decision-making surface.',
+            'Measured outcomes tied to speed and confidence of clinical action.',
+          ],
+        },
+      ],
+    },
+  ])
+  const [editingJobIndex, setEditingJobIndex] = useState<number | null>(null)
+  const [editJob, setEditJob] = useState<Job | null>(null)
 
   useEffect(() => {
     ;(async () => {
@@ -168,6 +222,75 @@ export default function CompanyPage() {
     if (company) {
       setMode('view')
     }
+  }
+
+  function startJobEdit(index: number) {
+    setEditingJobIndex(index)
+    setEditJob(JSON.parse(JSON.stringify(jobs[index])))
+  }
+
+  function handleJobField(field: keyof Job, value: string | number | string[] | JobSection[]) {
+    if (!editJob) return
+    setEditJob({ ...editJob, [field]: value })
+  }
+
+  function handleJobSectionTitle(sectionIndex: number, value: string) {
+    if (!editJob) return
+    const sections = [...editJob.sections]
+    sections[sectionIndex] = { ...sections[sectionIndex], title: value }
+    setEditJob({ ...editJob, sections })
+  }
+
+  function handleJobSectionItem(sectionIndex: number, itemIndex: number, value: string) {
+    if (!editJob) return
+    const sections = [...editJob.sections]
+    const items = [...sections[sectionIndex].items]
+    items[itemIndex] = value
+    sections[sectionIndex] = { ...sections[sectionIndex], items }
+    setEditJob({ ...editJob, sections })
+  }
+
+  function addJobSectionItem(sectionIndex: number) {
+    if (!editJob) return
+    const sections = [...editJob.sections]
+    sections[sectionIndex] = { ...sections[sectionIndex], items: [...sections[sectionIndex].items, ''] }
+    setEditJob({ ...editJob, sections })
+  }
+
+  function removeJobSectionItem(sectionIndex: number, itemIndex: number) {
+    if (!editJob) return
+    const sections = [...editJob.sections]
+    sections[sectionIndex] = { ...sections[sectionIndex], items: sections[sectionIndex].items.filter((_, i) => i !== itemIndex) }
+    setEditJob({ ...editJob, sections })
+  }
+
+  function addJobSection() {
+    if (!editJob) return
+    setEditJob({ ...editJob, sections: [...editJob.sections, { title: '', items: [''] }] })
+  }
+
+  function removeJobSection(index: number) {
+    if (!editJob) return
+    setEditJob({ ...editJob, sections: editJob.sections.filter((_, i) => i !== index) })
+  }
+
+  function addJobArrayItem(field: 'highlights' | 'tags') {
+    if (!editJob) return
+    handleJobField(field, [...editJob[field], ''])
+  }
+
+  function removeJobArrayItem(field: 'highlights' | 'tags', index: number) {
+    if (!editJob) return
+    handleJobField(field, editJob[field].filter((_, i) => i !== index))
+  }
+
+  function saveJobEdit() {
+    if (editingJobIndex === null || !editJob) return
+    const updated = [...jobs]
+    updated[editingJobIndex] = editJob
+    setJobs(updated)
+    setEditingJobIndex(null)
+    setEditJob(null)
   }
 
   const isEditing = mode === 'edit'
@@ -342,6 +465,115 @@ export default function CompanyPage() {
             <div className="cp-actions">
               <button type="button" className="btn btn--solidDark" onClick={startEdit}>Edit company</button>
             </div>
+          </div>
+        )}
+        {!loading && mode === 'view' && (
+          <div className="cp-card cp-jobs">
+            <span className="cp-eyebrow">Open positions</span>
+            {jobs.length === 0 ? (
+              <p className="cp-detail" style={{ fontStyle: 'italic' }}>No jobs posted yet.</p>
+            ) : (
+              <div className="cp-jobList">
+                {jobs.map((job, idx) => (
+                  <div key={job.id} className="cp-jobRow">
+                    {editingJobIndex === idx && editJob ? (
+                      <div className="cp-jobEdit">
+                        <label className="cp-field">
+                          <span className="cp-label">Headline</span>
+                          <input className="cp-input" value={editJob.headline} onChange={(e) => handleJobField('headline', e.target.value)} />
+                        </label>
+                        <label className="cp-field">
+                          <span className="cp-label">Subheadline</span>
+                          <input className="cp-input" value={editJob.subheadline} onChange={(e) => handleJobField('subheadline', e.target.value)} />
+                        </label>
+                        <label className="cp-field">
+                          <span className="cp-label">Organization</span>
+                          <input className="cp-input" value={editJob.organization} onChange={(e) => handleJobField('organization', e.target.value)} />
+                        </label>
+                        <label className="cp-field">
+                          <span className="cp-label">Location</span>
+                          <input className="cp-input" value={editJob.location} onChange={(e) => handleJobField('location', e.target.value)} />
+                        </label>
+                        <label className="cp-field">
+                          <span className="cp-label">Experience (years)</span>
+                          <input className="cp-input" type="number" value={editJob.experience} onChange={(e) => handleJobField('experience', Number(e.target.value))} />
+                        </label>
+                        <label className="cp-field">
+                          <span className="cp-label">Salary (k)</span>
+                          <input className="cp-input" type="number" value={editJob.salary} onChange={(e) => handleJobField('salary', Number(e.target.value))} />
+                        </label>
+                        <label className="cp-field">
+                          <span className="cp-label">Intro</span>
+                          <textarea className="cp-input cp-textarea" value={editJob.intro} onChange={(e) => handleJobField('intro', e.target.value)} rows={3} />
+                        </label>
+
+                        <label className="cp-field">
+                          <span className="cp-label">Highlights</span>
+                          {editJob.highlights.map((h, i) => (
+                            <div key={i} className="cp-chipAdder">
+                              <input className="cp-input" value={h} onChange={(e) => { const hh = [...editJob.highlights]; hh[i] = e.target.value; handleJobField('highlights', hh) }} />
+                              <button type="button" className="btn" onClick={() => removeJobArrayItem('highlights', i)} style={{ height: 36, padding: '0 10px', fontSize: 11, flexShrink: 0 }}>Remove</button>
+                            </div>
+                          ))}
+                          <button type="button" className="btn btn--solidDark" onClick={() => addJobArrayItem('highlights')} style={{ alignSelf: 'flex-start', height: 32, padding: '0 12px', fontSize: 11 }}>Add highlight</button>
+                        </label>
+
+                        <label className="cp-field">
+                          <span className="cp-label">Tags</span>
+                          {editJob.tags.map((t, i) => (
+                            <div key={i} className="cp-chipAdder">
+                              <input className="cp-input" value={t} onChange={(e) => { const tt = [...editJob.tags]; tt[i] = e.target.value; handleJobField('tags', tt) }} />
+                              <button type="button" className="btn" onClick={() => removeJobArrayItem('tags', i)} style={{ height: 36, padding: '0 10px', fontSize: 11, flexShrink: 0 }}>Remove</button>
+                            </div>
+                          ))}
+                          <button type="button" className="btn btn--solidDark" onClick={() => addJobArrayItem('tags')} style={{ alignSelf: 'flex-start', height: 32, padding: '0 12px', fontSize: 11 }}>Add tag</button>
+                        </label>
+
+                        <label className="cp-field">
+                          <span className="cp-label">Sections</span>
+                          {editJob.sections.map((sec, si) => (
+                            <div key={si} className="cp-jobSectionEdit" style={{ border: '1px solid var(--ink-6)', borderRadius: 'var(--radius-md)', padding: 12, marginBottom: 8 }}>
+                              <label className="cp-field" style={{ marginBottom: 6 }}>
+                                <span className="cp-label">Section title</span>
+                                <input className="cp-input" value={sec.title} onChange={(e) => handleJobSectionTitle(si, e.target.value)} />
+                              </label>
+                              {sec.items.map((item, ii) => (
+                                <div key={ii} className="cp-chipAdder" style={{ marginBottom: 4 }}>
+                                  <input className="cp-input" value={item} onChange={(e) => handleJobSectionItem(si, ii, e.target.value)} />
+                                  <button type="button" className="btn" onClick={() => removeJobSectionItem(si, ii)} style={{ height: 36, padding: '0 10px', fontSize: 11, flexShrink: 0 }}>Remove</button>
+                                </div>
+                              ))}
+                              <button type="button" className="btn btn--solidDark" onClick={() => addJobSectionItem(si)} style={{ alignSelf: 'flex-start', height: 32, padding: '0 12px', fontSize: 11, marginTop: 2 }}>Add item</button>
+                            </div>
+                          ))}
+                          <button type="button" className="btn btn--solidDark" onClick={addJobSection} style={{ alignSelf: 'flex-start', height: 32, padding: '0 12px', fontSize: 11 }}>Add section</button>
+                          {editJob.sections.length > 0 ? (
+                            <button type="button" className="btn" onClick={() => removeJobSection(editJob.sections.length - 1)} style={{ alignSelf: 'flex-start', height: 32, padding: '0 12px', fontSize: 11 }}>Remove last section</button>
+                          ) : null}
+                        </label>
+
+                        <div className="cp-actions">
+                          <button type="button" className="btn btn--solidDark" onClick={saveJobEdit}>Save</button>
+                          <button type="button" className="btn" onClick={() => { setEditingJobIndex(null); setEditJob(null) }}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="cp-jobInfo">
+                          <span className="cp-jobHeadline">{job.headline}</span>
+                          <span className="cp-jobMeta">{job.location} &middot; {job.experience}yrs &middot; ${job.salary}k</span>
+                        </div>
+                        <button type="button" className="cp-jobPencil" onClick={() => startJobEdit(idx)} aria-label="Edit job">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
