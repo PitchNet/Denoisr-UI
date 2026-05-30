@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import MessagesPage from './pages/MessagesPage'
 import JobApplicationsPage from './pages/JobApplicationsPage'
+import CompanyPage from './pages/CompanyPage'
 import ProfileEditPage from './pages/ProfileEditPage'
 import ProfilePage from './pages/ProfilePage'
 import ProductPage from './pages/ProductPage'
@@ -30,7 +31,7 @@ import TermsOfServicePage from './pages/TermsOfServicePage'
 function AppShell() {
   const { pathname } = useLocation()
   const isEditorialLanding = pathname === '/'
-  const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications'
+  const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications' || pathname === '/company'
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -57,6 +58,7 @@ function AppShell() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<ProfileEditPage />} />
             <Route path="/applications" element={<JobApplicationsPage />} />
+            <Route path="/company" element={<CompanyPage />} />
           </Route>
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />

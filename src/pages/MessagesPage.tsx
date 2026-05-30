@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { clearAuthToken, getAuthenticatedUserId, getStoredProfile } from '../auth'
+import { getAuthenticatedUserId } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
-import NavIcon from '../components/ui/NavIcon'
+import MobileBottomNav from '../components/MobileBottomNav'
 import { supabase } from '../supabase'
 import '../styles/messages.css'
 
@@ -50,10 +49,7 @@ function swatchFor(id: string) {
 }
 
 export default function MessagesPage() {
-  const navigate = useNavigate()
-  const cachedProfile = getStoredProfile()
   const messagesThreadBodyRef = useRef<HTMLDivElement>(null)
-  const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [connections, setConnections] = useState<Connection[]>([])
   const [loading, setLoading] = useState(true)
@@ -266,12 +262,6 @@ export default function MessagesPage() {
       supabase.removeChannel(channel)
     }
   }, [activeConversationId])
-
-  function handleMobileLogout() {
-    clearAuthToken()
-    setMobileProfileOpen(false)
-    navigate('/login')
-  }
 
   function openConversation(id: string) {
     setDraftMessage('')
@@ -543,72 +533,7 @@ export default function MessagesPage() {
         </aside>
       </div>
 
-      {/* ── Mobile bottom nav ── */}
-      <nav className="mp-bottomnav" aria-label="Mobile navigation">
-        <button type="button" className="mp-bottomnav__item" onClick={() => navigate('/home')}>
-          <NavIcon name="home" />
-          <span>Home</span>
-        </button>
-        <button type="button" className="mp-bottomnav__item" onClick={() => navigate('/messages')}>
-          <NavIcon name="connections" />
-          <span>Connections</span>
-        </button>
-        <button type="button" className="mp-bottomnav__item mp-bottomnav__item--active">
-          <NavIcon name="messages" />
-          <span>Messages</span>
-        </button>
-        <div className="mp-bottomnav__profileWrap">
-          <button
-            type="button"
-            className={`mp-bottomnav__item ${mobileProfileOpen ? 'mp-bottomnav__item--active' : ''}`}
-            aria-expanded={mobileProfileOpen}
-            onClick={() => setMobileProfileOpen((v) => !v)}
-          >
-            <NavIcon name="profile" />
-            <span>Profile</span>
-          </button>
-
-          {mobileProfileOpen ? (
-            <div className="mp-bottomnav__menu">
-              {cachedProfile ? (
-                <div className="mp-bottomnav__dropdownProfile">
-                  <div
-                    className="mp-bottomnav__dropdownAvatar"
-                  style={{
-                    background: cachedProfile.photo
-                      ? `url(${cachedProfile.photo}) center/cover`
-                      : 'var(--ink-2)',
-                  }}
-                  >
-                    {!cachedProfile.photo ? (
-                      <span>{cachedProfile.headline.charAt(0).toUpperCase()}</span>
-                    ) : null}
-                  </div>
-                  <div className="nav__dropdownProfileMeta">
-                    <div className="nav__dropdownProfileName">{cachedProfile.headline}</div>
-                    <div className="nav__dropdownProfileRole">{cachedProfile.subheadline}</div>
-                  </div>
-                </div>
-              ) : null}
-              <span className="mp-bottomnav__groupLabel">Account</span>
-              <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
-              <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/applications')}>Job applications</button>
-              <div className="mp-bottomnav__divider" />
-              <span className="mp-bottomnav__groupLabel">Manage</span>
-              <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/company')}>Company</button>
-              <button type="button" className="mp-bottomnav__action" onClick={() => navigate('/jobs')}>Jobs</button>
-              <div className="mp-bottomnav__divider" />
-              <button
-                type="button"
-                className="mp-bottomnav__action mp-bottomnav__action--danger"
-                onClick={handleMobileLogout}
-              >
-                Log out
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </nav>
+      <MobileBottomNav activePage="messages" />
     </div>
   )
 }

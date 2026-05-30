@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { clearAuthToken, getStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
-import NavIcon from '../components/ui/NavIcon'
+import MobileBottomNav from '../components/MobileBottomNav'
 import '../styles/profile.css'
 
 type ProfileData = {
@@ -150,7 +149,6 @@ function getScoreColor(score: number): string {
 
 export default function ProfilePage() {
   const navigate = useNavigate()
-  const cachedProfile = getStoredProfile()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -264,15 +262,9 @@ export default function ProfilePage() {
     fetchProfile()
   }, [])
 
-  const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
   const [kebabOpen, setKebabOpen] = useState(false)
   const kebabRef = useRef<HTMLDivElement>(null)
   const kebabDesktopRef = useRef<HTMLDivElement>(null)
-
-  function handleLogout() {
-    clearAuthToken()
-    navigate('/login')
-  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -586,72 +578,7 @@ export default function ProfilePage() {
         </aside>
       </div>
 
-      {/* ── Mobile bottom nav ── */}
-      <nav className="pr-bottomnav" aria-label="Mobile navigation">
-        <button type="button" className="pr-bottomnav__item" onClick={() => navigate('/home')}>
-          <NavIcon name="home" />
-          <span>Home</span>
-        </button>
-        <button type="button" className="pr-bottomnav__item" onClick={() => navigate('/messages')}>
-          <NavIcon name="connections" />
-          <span>Connections</span>
-        </button>
-        <button type="button" className="pr-bottomnav__item" onClick={() => navigate('/messages')}>
-          <NavIcon name="messages" />
-          <span>Messages</span>
-        </button>
-        <div className="pr-bottomnav__profileWrap">
-          <button
-            type="button"
-            className={`pr-bottomnav__item pr-bottomnav__item--active`}
-            aria-expanded={mobileProfileOpen}
-            onClick={() => setMobileProfileOpen((v) => !v)}
-          >
-            <NavIcon name="profile" />
-            <span>Profile</span>
-          </button>
-
-          {mobileProfileOpen ? (
-            <div className="pr-bottomnav__menu">
-              {cachedProfile ? (
-                <div className="pr-bottomnav__dropdownProfile">
-                  <div
-                    className="pr-bottomnav__dropdownAvatar"
-                  style={{
-                    background: cachedProfile.photo
-                      ? `url(${cachedProfile.photo}) center/cover`
-                      : 'var(--ink-2)',
-                  }}
-                  >
-                    {!cachedProfile.photo ? (
-                      <span>{cachedProfile.headline.charAt(0).toUpperCase()}</span>
-                    ) : null}
-                  </div>
-                  <div className="nav__dropdownProfileMeta">
-                    <div className="nav__dropdownProfileName">{cachedProfile.headline}</div>
-                    <div className="nav__dropdownProfileRole">{cachedProfile.subheadline}</div>
-                  </div>
-                </div>
-              ) : null}
-              <span className="pr-bottomnav__groupLabel">Account</span>
-              <button type="button" className="pr-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
-              <button type="button" className="pr-bottomnav__action" onClick={() => navigate('/applications')}>Job applications</button>
-              <div className="pr-bottomnav__divider" />
-              <span className="pr-bottomnav__groupLabel">Manage</span>
-              <button type="button" className="pr-bottomnav__action" onClick={() => navigate('/company')}>Company</button>
-              <button type="button" className="pr-bottomnav__action" onClick={() => navigate('/jobs')}>Jobs</button>
-              <div className="pr-bottomnav__divider" />
-              <button
-                type="button"
-                className="pr-bottomnav__action pr-bottomnav__action--danger"
-                onClick={handleLogout}
-              >
-                Log out
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </nav>
+      <MobileBottomNav activePage="profile" />
     </div>
   )
 }

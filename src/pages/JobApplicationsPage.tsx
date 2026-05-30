@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { clearAuthToken, getStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
-import NavIcon from '../components/ui/NavIcon'
+import MobileBottomNav from '../components/MobileBottomNav'
 import '../styles/profile.css'
 import '../styles/job-applications.css'
 
@@ -55,11 +54,9 @@ function initialsOf(name: string) {
 
 export default function JobApplicationsPage() {
   const navigate = useNavigate()
-  const cachedProfile = getStoredProfile()
   const [applications, setApplications] = useState<JobApplication[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
 
   useEffect(() => {
     async function fetchApplications() {
@@ -80,12 +77,6 @@ export default function JobApplicationsPage() {
     }
     fetchApplications()
   }, [])
-
-  function handleMobileLogout() {
-    clearAuthToken()
-    setMobileProfileOpen(false)
-    navigate('/login')
-  }
 
   if (loading) {
     return (
@@ -199,71 +190,7 @@ export default function JobApplicationsPage() {
         </div>
       )}
 
-      <nav className="ja-bottomnav" aria-label="Mobile navigation">
-        <button type="button" className="ja-bottomnav__item" onClick={() => navigate('/home')}>
-          <NavIcon name="home" />
-          <span>Home</span>
-        </button>
-        <button type="button" className="ja-bottomnav__item" onClick={() => navigate('/messages')}>
-          <NavIcon name="connections" />
-          <span>Connections</span>
-        </button>
-        <button type="button" className="ja-bottomnav__item" onClick={() => navigate('/messages')}>
-          <NavIcon name="messages" />
-          <span>Messages</span>
-        </button>
-        <div className="ja-bottomnav__profileWrap">
-          <button
-            type="button"
-            className={`ja-bottomnav__item ${mobileProfileOpen ? 'ja-bottomnav__item--active' : ''}`}
-            aria-expanded={mobileProfileOpen}
-            onClick={() => setMobileProfileOpen((v) => !v)}
-          >
-            <NavIcon name="profile" />
-            <span>Profile</span>
-          </button>
-
-          {mobileProfileOpen ? (
-            <div className="ja-bottomnav__menu">
-              {cachedProfile ? (
-                <div className="ja-bottomnav__dropdownProfile">
-                  <div
-                    className="ja-bottomnav__dropdownAvatar"
-                  style={{
-                    background: cachedProfile.photo
-                      ? `url(${cachedProfile.photo}) center/cover`
-                      : 'var(--ink-2)',
-                  }}
-                  >
-                    {!cachedProfile.photo ? (
-                      <span>{cachedProfile.headline.charAt(0).toUpperCase()}</span>
-                    ) : null}
-                  </div>
-                  <div className="nav__dropdownProfileMeta">
-                    <div className="nav__dropdownProfileName">{cachedProfile.headline}</div>
-                    <div className="nav__dropdownProfileRole">{cachedProfile.subheadline}</div>
-                  </div>
-                </div>
-              ) : null}
-              <span className="ja-bottomnav__groupLabel">Account</span>
-              <button type="button" className="ja-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
-              <button type="button" className="ja-bottomnav__action">Job applications</button>
-              <div className="ja-bottomnav__divider" />
-              <span className="ja-bottomnav__groupLabel">Manage</span>
-              <button type="button" className="ja-bottomnav__action" onClick={() => navigate('/company')}>Company</button>
-              <button type="button" className="ja-bottomnav__action" onClick={() => navigate('/jobs')}>Jobs</button>
-              <div className="ja-bottomnav__divider" />
-              <button
-                type="button"
-                className="ja-bottomnav__action ja-bottomnav__action--danger"
-                onClick={handleMobileLogout}
-              >
-                Log out
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </nav>
+      <MobileBottomNav activePage="applications" />
     </div>
   )
 }

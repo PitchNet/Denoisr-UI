@@ -13,7 +13,8 @@ export default function Navbar() {
   const isMessages = pathname === '/messages'
   const isProfile = pathname === '/profile' || pathname === '/profile/edit'
   const isApplications = pathname === '/applications'
-  const isAppPage = isHome || isMessages || isProfile || isApplications
+  const isCompany = pathname === '/company'
+  const isAppPage = isHome || isMessages || isProfile || isApplications || isCompany
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
   const cachedProfile = getStoredProfile()
 

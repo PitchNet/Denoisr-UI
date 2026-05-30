@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { clearAuthToken, getStoredFilters, setStoredFilters, clearStoredFilters, getStoredProfile } from '../auth'
-import NavIcon from '../components/ui/NavIcon'
+import { getStoredFilters, setStoredFilters, clearStoredFilters } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import MobileBottomNav from '../components/MobileBottomNav'
 import '../styles/home.css'
 
 type DiscoveryMode = 'jobs' | 'people'
@@ -126,7 +126,6 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const cachedProfile = getStoredProfile()
   const [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
   const [peopleCards, setPeopleCards] = useState<DiscoveryCard[]>([])
   const [loading, setLoading] = useState(true)
@@ -154,7 +153,6 @@ export default function HomePage() {
   const [dragStartX, setDragStartX] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
-  const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [matchState, setMatchState] = useState<MatchState>({ open: false, name: '', photo: '' })
   const swipeLockedRef = useRef(false)
@@ -310,12 +308,6 @@ export default function HomePage() {
     setCurrentIndex((index) => index + 1)
     setExitDirection(null)
     resetDrag()
-  }
-
-  function handleMobileLogout() {
-    clearAuthToken()
-    setMobileProfileOpen(false)
-    navigate('/login')
   }
 
   async function handleDecision(direction: SwipeDirection) {
@@ -884,72 +876,7 @@ export default function HomePage() {
         </div>
       ) : null}
 
-      {/* ─── Mobile bottom nav ─── */}
-      <nav className="hp-bottomnav" aria-label="Mobile navigation">
-        <button type="button" className="hp-bottomnav__item hp-bottomnav__item--active">
-          <NavIcon name="home" />
-          <span>Home</span>
-        </button>
-        <button type="button" className="hp-bottomnav__item" onClick={() => navigate('/messages')}>
-          <NavIcon name="connections" />
-          <span>Connections</span>
-        </button>
-        <button type="button" className="hp-bottomnav__item" onClick={() => navigate('/messages')}>
-          <NavIcon name="messages" />
-          <span>Messages</span>
-        </button>
-        <div className="hp-bottomnav__profileWrap">
-          <button
-            type="button"
-            className={`hp-bottomnav__item ${mobileProfileOpen ? 'hp-bottomnav__item--active' : ''}`}
-            aria-expanded={mobileProfileOpen}
-            onClick={() => setMobileProfileOpen((v) => !v)}
-          >
-            <NavIcon name="profile" />
-            <span>Profile</span>
-          </button>
-
-          {mobileProfileOpen ? (
-            <div className="hp-bottomnav__menu">
-              {cachedProfile ? (
-                <div className="hp-bottomnav__dropdownProfile">
-                  <div
-                    className="hp-bottomnav__dropdownAvatar"
-                  style={{
-                    background: cachedProfile.photo
-                      ? `url(${cachedProfile.photo}) center/cover`
-                      : 'var(--ink-2)',
-                  }}
-                  >
-                    {!cachedProfile.photo ? (
-                      <span>{cachedProfile.headline.charAt(0).toUpperCase()}</span>
-                    ) : null}
-                  </div>
-                  <div className="nav__dropdownProfileMeta">
-                    <div className="nav__dropdownProfileName">{cachedProfile.headline}</div>
-                    <div className="nav__dropdownProfileRole">{cachedProfile.subheadline}</div>
-                  </div>
-                </div>
-              ) : null}
-              <span className="hp-bottomnav__groupLabel">Account</span>
-              <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
-              <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/applications')}>Job applications</button>
-              <div className="hp-bottomnav__divider" />
-              <span className="hp-bottomnav__groupLabel">Manage</span>
-              <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/company')}>Company</button>
-              <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/jobs')}>Jobs</button>
-              <div className="hp-bottomnav__divider" />
-              <button
-                type="button"
-                className="hp-bottomnav__action hp-bottomnav__action--danger"
-                onClick={handleMobileLogout}
-              >
-                Log out
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </nav>
+      <MobileBottomNav activePage="home" />
     </div>
   )
 }
