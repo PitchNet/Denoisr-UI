@@ -31,6 +31,7 @@ const SIZE_OPTIONS = [
 export default function CompanyPage() {
   const [company, setCompany] = useState<CompanyData | null>(null)
   const [mode, setMode] = useState<'view' | 'edit'>('view')
+  const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
   const [showPhotoEditor, setShowPhotoEditor] = useState(false)
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
@@ -46,12 +47,25 @@ export default function CompanyPage() {
   const [commitments, setCommitments] = useState('')
 
   useEffect(() => {
-    const profile = getStoredProfile()
-    if (profile?.companyId) {
-      setMode('view')
-    } else {
+    ;(async () => {
+      try {
+        const response = await apiRequest('/CompanyController/getCompany', { method: 'GET' })
+        if (response.ok) {
+          const result = (await response.json()) as { company: CompanyData | null }
+          if (result.company) {
+            setCompany(result.company)
+            setMode('view')
+            setLoading(false)
+            return
+          }
+        }
+      } catch {
+        // fall through to edit mode
+      }
+      setCompany(null)
       setMode('edit')
-    }
+      setLoading(false)
+    })()
   }, [])
 
   function startEdit() {
@@ -159,7 +173,7 @@ export default function CompanyPage() {
   return (
     <div className="cp">
       <div className="cp-body">
-        {isEditing ? (
+        {loading ? null : isEditing ? (
           <div className="cp-card">
             <span className="cp-eyebrow">{company ? 'Edit company' : 'Create company'}</span>
             <h1 className="cp-title">
