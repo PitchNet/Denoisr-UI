@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { ProtectedRoute, PublicOnlyRoute } from './components/AuthGuard'
-import { fetchAndCacheProfile, getStoredProfile, isAuthenticated } from './auth'
+import { fetchAndCacheProfile, isAuthenticated } from './auth'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 import DashboardPage from './pages/DashboardPage'
@@ -35,9 +35,7 @@ function AppShell() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      if (!getStoredProfile()) {
-        fetchAndCacheProfile()
-      }
+      fetchAndCacheProfile()
     }
   }, [pathname])
 
