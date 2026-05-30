@@ -65,38 +65,7 @@ export default function CompanyPage() {
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [commitments, setCommitments] = useState('')
-  const [jobs, setJobs] = useState<Job[]>([
-    {
-      id: '82f78baf-f1ff-4145-ac01-2f66f1bc0dcf',
-      kind: 'jobs',
-      headline: 'Senior Frontend Engineer',
-      subheadline: 'Atlas Health',
-      organization: 'Hiring for a trust-first patient experience team',
-      location: 'Berlin, Germany',
-      experience: 5,
-      salary: 140,
-      intro: 'Build a clarity-first product that helps patients and clinicians act on high-signal information instead of fragmented dashboards.',
-      highlights: ['React + TypeScript', 'Design systems', 'Accessibility'],
-      tags: ['Remote-friendly', 'Series C', 'Product-led'],
-      sections: [
-        {
-          title: 'What you will solve',
-          items: [
-            'Turn noisy medical workflow data into focused decision interfaces.',
-            'Ship production-ready UI systems that work on tablet and desktop.',
-            'Partner with product and research to reduce cognitive overload.',
-          ],
-        },
-        {
-          title: 'Why it is high-signal',
-          items: [
-            'Clear ownership over a core decision-making surface.',
-            'Measured outcomes tied to speed and confidence of clinical action.',
-          ],
-        },
-      ],
-    },
-  ])
+  const [jobs, setJobs] = useState<Job[]>([])
   const [editingJobIndex, setEditingJobIndex] = useState<number | null>(null)
   const [editJob, setEditJob] = useState<Job | null>(null)
 
@@ -110,6 +79,17 @@ export default function CompanyPage() {
             setCompany(result.company)
             setMode('view')
             setLoading(false)
+            try {
+              const jobsRes = await apiRequest('/CompanyController/companyJobs', { method: 'GET' })
+              if (jobsRes.ok) {
+                const jobsResult = (await jobsRes.json()) as Job[]
+                if (Array.isArray(jobsResult)) {
+                  setJobs(jobsResult)
+                }
+              }
+            } catch {
+              // jobs non-critical
+            }
             return
           }
         }
@@ -231,7 +211,7 @@ export default function CompanyPage() {
 
   function startJobCreate() {
     const blank: Job = {
-      id: crypto.randomUUID(),
+      id: '',
       kind: 'jobs',
       headline: '',
       subheadline: '',
@@ -304,11 +284,23 @@ export default function CompanyPage() {
     handleJobField(field, editJob[field].filter((_, i) => i !== index))
   }
 
-  function saveJobEdit() {
+  async function saveJobEdit() {
     if (editingJobIndex === null || !editJob) return
-    const updated = [...jobs]
-    updated[editingJobIndex] = editJob
-    setJobs(updated)
+    try {
+      const { id, ...rest } = editJob
+      const response = await apiRequest('/CompanyController/jobDetails', {
+        method: 'POST',
+        body: JSON.parse(JSON.stringify(id ? editJob : rest)),
+      })
+      if (!response.ok) return
+      const result = (await response.json()) as { job?: Job }
+      const savedJob = result.job ?? editJob
+      const updated = [...jobs]
+      updated[editingJobIndex] = savedJob
+      setJobs(updated)
+    } catch {
+      return
+    }
     setEditingJobIndex(null)
     setEditJob(null)
   }
@@ -498,7 +490,7 @@ export default function CompanyPage() {
             ) : (
               <div className="cp-jobList">
                 {jobs.map((job, idx) => (
-                  <div key={job.id} className="cp-jobRow">
+                  <div key={job.id || `new-${idx}`} className="cp-jobRow">
                     {editingJobIndex === idx && editJob ? (
                       <div className="cp-jobEdit">
                         <label className="cp-field">
