@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { getAuthTokenFromCookies } from '../api'
+import { apiRequest, getAuthTokenFromCookies } from '../api'
+import { getStoredProfile, setStoredProfile } from '../auth'
 import MobileBottomNav from '../components/MobileBottomNav'
 import PhotoEditor from '../components/ui/PhotoEditor'
 import '../styles/company.css'
-
-const COMPANY_STORAGE_KEY = 'denoisr_company'
 
 type CompanyData = {
   name: string
@@ -29,24 +28,6 @@ const SIZE_OPTIONS = [
   '5,000+ employees',
 ]
 
-function loadCompany(): CompanyData | null {
-  try {
-    const raw = localStorage.getItem(COMPANY_STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as Partial<CompanyData>
-    if (typeof parsed.name === 'string' && parsed.name.trim()) {
-      return parsed as CompanyData
-    }
-    return null
-  } catch {
-    return null
-  }
-}
-
-function saveCompany(data: CompanyData) {
-  localStorage.setItem(COMPANY_STORAGE_KEY, JSON.stringify(data))
-}
-
 export default function CompanyPage() {
   const [company, setCompany] = useState<CompanyData | null>(null)
   const [mode, setMode] = useState<'view' | 'edit'>('view')
@@ -65,9 +46,10 @@ export default function CompanyPage() {
   const [commitments, setCommitments] = useState('')
 
   useEffect(() => {
-    const existing = loadCompany()
-    setCompany(existing)
-    if (!existing) {
+    const profile = getStoredProfile()
+    if (profile?.companyId) {
+      setMode('view')
+    } else {
       setMode('edit')
     }
   }, [])
@@ -132,7 +114,7 @@ export default function CompanyPage() {
     setTags(tags.filter((_, idx) => idx !== i))
   }
 
-  function handleSave() {
+  async function handleSave() {
     const data: CompanyData = {
       name: name.trim(),
       photo: photoUrl,
@@ -145,7 +127,23 @@ export default function CompanyPage() {
       tags,
       commitments: commitments.trim(),
     }
-    saveCompany(data)
+    try {
+      const response = await apiRequest('/CompanyController/companyDetails', {
+        method: 'POST',
+        body: JSON.parse(JSON.stringify(data)),
+      })
+      if (!response.ok) return
+      const result = (await response.json()) as { companyId?: string }
+      if (result.companyId) {
+        const profile = getStoredProfile()
+        if (profile) {
+          profile.companyId = result.companyId
+          setStoredProfile(profile)
+        }
+      }
+    } catch {
+      return
+    }
     setCompany(data)
     setMode('view')
   }
