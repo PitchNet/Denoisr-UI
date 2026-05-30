@@ -803,7 +803,7 @@ export default function ProfileEditPage() {
 
         {/* ── Center column ── */}
         <section className="pr-col pr-col--center">
-          <form className="pe-form" onSubmit={handleSubmit}>
+          <form id="profile-form" className="pe-form" onSubmit={handleSubmit}>
             <div className="pr-col__card">
               <span className="pr-eyebrow">About</span>
               <textarea
@@ -906,16 +906,6 @@ export default function ProfileEditPage() {
               })}
             </div>
 
-            {/* ── Save (desktop) ── */}
-            <div className="pe-actions pe-actions--desktop">
-              <button type="submit" className="btn btn--solidDark" disabled={saving}>
-                {saving ? 'Saving…' : 'Save changes'}
-              </button>
-              <button type="button" className="btn btn--outlinedLight" onClick={() => navigate('/profile')}>
-                Cancel
-              </button>
-            </div>
-
             {saveError ? (
               <div className="pe-saveError" role="alert">{saveError}</div>
             ) : null}
@@ -924,6 +914,16 @@ export default function ProfileEditPage() {
 
         {/* ── Right column ── */}
         <aside className="pr-col pr-col--right">
+          {/* ── Save actions (desktop) ── */}
+          <div className="pe-actions pe-actions--desktop">
+            <button type="submit" form="profile-form" className="btn btn--solidDark" disabled={saving}>
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+            <button type="button" className="btn btn--outlinedLight" onClick={() => navigate('/profile')}>
+              Cancel
+            </button>
+          </div>
+
           {/* ── Sections with + / − ── */}
           {sections.map((section, sectionIndex) => {
             const canAddPoint = section.items[section.items.length - 1].trim() !== ''
@@ -963,6 +963,16 @@ export default function ProfileEditPage() {
             )
           })}
         </aside>
+      </div>
+
+      {/* ── Save actions (mobile bottom) ── */}
+      <div className="pe-actions pe-actions--mobileBottom">
+        <button type="submit" form="profile-form" className="btn btn--solidDark" disabled={saving}>
+          {saving ? 'Saving…' : 'Save changes'}
+        </button>
+        <button type="button" className="btn btn--outlinedLight" onClick={() => navigate('/profile')}>
+          Cancel
+        </button>
       </div>
 
       {showPhotoEditor ? (

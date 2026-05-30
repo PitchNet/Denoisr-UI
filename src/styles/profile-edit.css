@@ -9,7 +9,10 @@
     radial-gradient(45% 50% at 0% 100%, rgba(220,210,255,0.40), transparent 70%),
     var(--paper);
   min-height: calc(100svh - 64px);
-  padding: 0 0 96px;
+  padding: 0 0 40px;
+}
+@media (max-width: 720px) {
+  .pe { padding-bottom: 100px; }
 }
 
 /* ── Form ──────────────────────────────────────────────────── */
@@ -234,8 +237,21 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+.pe-actions .btn {
+  border-radius: var(--radius-2xl);
+}
 .pe-actions--desktop {
-  margin-top: 4px;
+  margin-bottom: 20px;
+}
+.pe-actions--mobileTop,
+.pe-actions--mobileBottom {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .pe-actions--desktop { display: none; }
+  .pe-actions--mobileBottom { display: flex; padding: 10px 16px 0; }
+  .pe-actions--mobileBottom .btn { flex: 1; }
 }
 
 .pe-saveError {
