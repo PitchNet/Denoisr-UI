@@ -51,6 +51,9 @@
 }
 .pe-input::placeholder { color: var(--ink-4); }
 .pe-input:focus { border-color: var(--ink); }
+@media (max-width: 720px) {
+  .pe-input { font-size: 16px; }
+}
 
 .pe-textarea {
   height: auto;

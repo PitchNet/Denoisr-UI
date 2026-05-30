@@ -363,6 +363,9 @@
   transition: border-color var(--dur-fast) var(--easing-default);
   min-height: 56px;
 }
+@media (max-width: 720px) {
+  .mp-composer__input { font-size: 16px; }
+}
 .mp-composer__input::placeholder { color: var(--ink-4); }
 .mp-composer__input:focus { border-color: var(--ink); background: var(--paper); }
 .mp-composer__row {

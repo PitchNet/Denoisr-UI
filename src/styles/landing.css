@@ -729,8 +729,9 @@
   font-family: var(--font-sans);
   font-size: 14.5px;
   outline: none;
-  transition: border-color var(--dur-fast) var(--easing-default),
-              background-color var(--dur-fast) var(--easing-default);
+}
+@media (max-width: 720px) {
+  .el-invite__input { font-size: 16px; }
 }
 .el-invite__input::placeholder { color: var(--ink-4); }
 .el-invite__input:focus { border-color: var(--ink); background: var(--paper); }
