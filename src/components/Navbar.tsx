@@ -12,7 +12,8 @@ export default function Navbar() {
   const isHome = pathname === '/home'
   const isMessages = pathname === '/messages'
   const isProfile = pathname === '/profile' || pathname === '/profile/edit'
-  const isAppPage = isHome || isMessages || isProfile
+  const isApplications = pathname === '/applications'
+  const isAppPage = isHome || isMessages || isProfile || isApplications
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
 
   function updateMode(nextMode: 'jobs' | 'people') {
@@ -92,7 +93,7 @@ export default function Navbar() {
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/profile'); }}>
                       View Profile
                     </button>
-                    <button type="button" className="nav__profileDropdownBtn" onClick={() => setProfileOpen(false)}>
+                    <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/applications'); }}>
                       View Job Applications
                     </button>
                     <div className="nav__dropdownDivider" />

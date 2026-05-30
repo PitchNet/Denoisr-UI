@@ -912,7 +912,7 @@ export default function HomePage() {
             <div className="hp-bottomnav__menu">
               <span className="hp-bottomnav__groupLabel">Account</span>
               <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/profile')}>View profile</button>
-              <button type="button" className="hp-bottomnav__action">Job applications</button>
+              <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/applications')}>Job applications</button>
               <div className="hp-bottomnav__divider" />
               <span className="hp-bottomnav__groupLabel">Manage</span>
               <button type="button" className="hp-bottomnav__action" onClick={() => navigate('/company')}>Company</button>
