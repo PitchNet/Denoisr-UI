@@ -494,15 +494,11 @@ export default function CompanyPage() {
                     {editingJobIndex === idx && editJob ? (
                       <div className="cp-jobEdit">
                         <label className="cp-field">
-                          <span className="cp-label">Headline</span>
+                          <span className="cp-label">Role</span>
                           <input className="cp-input" value={editJob.headline} onChange={(e) => handleJobField('headline', e.target.value)} />
                         </label>
                         <label className="cp-field">
-                          <span className="cp-label">Subheadline</span>
-                          <input className="cp-input" value={editJob.subheadline} onChange={(e) => handleJobField('subheadline', e.target.value)} />
-                        </label>
-                        <label className="cp-field">
-                          <span className="cp-label">Organization</span>
+                          <span className="cp-label">Role overview</span>
                           <input className="cp-input" value={editJob.organization} onChange={(e) => handleJobField('organization', e.target.value)} />
                         </label>
                         <label className="cp-field">
@@ -518,12 +514,12 @@ export default function CompanyPage() {
                           <input className="cp-input" type="number" value={editJob.salary} onChange={(e) => handleJobField('salary', Number(e.target.value))} />
                         </label>
                         <label className="cp-field">
-                          <span className="cp-label">Intro</span>
+                          <span className="cp-label">Role description</span>
                           <textarea className="cp-input cp-textarea" value={editJob.intro} onChange={(e) => handleJobField('intro', e.target.value)} rows={3} />
                         </label>
 
                         <label className="cp-field">
-                          <span className="cp-label">Highlights</span>
+                          <span className="cp-label">Skills</span>
                           {editJob.highlights.map((h, i) => (
                             <div key={i} className="cp-chipAdder">
                               <input className="cp-input" value={h} onChange={(e) => { const hh = [...editJob.highlights]; hh[i] = e.target.value; handleJobField('highlights', hh) }} />
