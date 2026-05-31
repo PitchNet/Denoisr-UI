@@ -28,6 +28,7 @@ type DiscoveryCard = {
   highlights: string[]
   tags: string[]
   photo: string
+  companyPhoto: string
   sections: Array<{
     title: string
     items: string[]
@@ -659,11 +660,13 @@ export default function HomePage() {
 
                   <div className="hp-card__head">
                     <div
-                      className={`hp-card__avatar${mode === 'people' && currentCard.photo ? ' hp-card__avatar--photo' : ''}`}
-                      style={mode === 'people' && currentCard.photo ? { backgroundImage: `url(${currentCard.photo})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: swatchFor(currentCard.id) }}
+                      className={`hp-card__avatar${((mode === 'people' && currentCard.photo) || (mode === 'jobs' && currentCard.companyPhoto)) ? ' hp-card__avatar--photo' : ''}`}
+                      style={(mode === 'people' && currentCard.photo) || (mode === 'jobs' && currentCard.companyPhoto)
+                        ? { backgroundImage: `url(${mode === 'people' ? currentCard.photo : currentCard.companyPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                        : { background: swatchFor(currentCard.id) }}
                       aria-hidden="true"
                     >
-                      {mode === 'people' && currentCard.photo ? null : initialsOf(currentCard.organization || currentCard.headline)}
+                      {(mode === 'people' && currentCard.photo) || (mode === 'jobs' && currentCard.companyPhoto) ? null : initialsOf(currentCard.organization || currentCard.headline)}
                     </div>
                     <div className="hp-card__meta el-meta">
                       <span>{currentCard.subheadline}</span>
