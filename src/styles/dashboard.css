@@ -163,6 +163,9 @@
   margin: 0;
 }
 
+.dp .btn { border-radius: var(--radius-2xl); }
+.dp-import__btn { border-radius: var(--radius-2xl) !important; }
+
 .dp-grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -416,4 +419,58 @@
   line-height: 1.5;
   color: var(--ink-3);
   margin: 0;
+}
+
+/* ── LinkedIn import ────────────────────────────────────── */
+.dp-import {
+  background: var(--paper-2);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 32px 32px;
+}
+.dp-import__info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-3);
+}
+.dp-import__info svg { flex-shrink: 0; }
+.dp-import__info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dp-import__label {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.dp-import__hint {
+  font-size: 12.5px;
+  color: var(--ink-4);
+}
+.dp-import__row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.dp-import__input { flex: 1; }
+.dp-import__btn { flex-shrink: 0; }
+
+@media (max-width: 720px) {
+  .dp-import {
+    margin: 0 16px;
+    padding: 16px;
+  }
+  .dp-import__row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .dp-import__input { width: 100%; }
+  .dp-import__btn { width: 100%; }
 }
