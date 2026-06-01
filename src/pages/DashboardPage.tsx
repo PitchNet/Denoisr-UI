@@ -17,6 +17,19 @@ type SectionEntry = {
   items: string[]
 }
 
+type WorkEntry = {
+  company: string
+  role: string
+  duration: string
+  description: string
+}
+
+type ProjectEntry = {
+  name: string
+  url: string
+  description: string
+}
+
 const fixedSections = ['Proof of work', 'Intent and fit']
 
 const highlightSuggestions = [
@@ -50,6 +63,12 @@ export default function DashboardPage() {
     { title: 'Proof of work', items: [''] },
     { title: 'Intent and fit', items: [''] },
   ])
+  const [workEntries, setWorkEntries] = useState<WorkEntry[]>([
+    { company: '', role: '', duration: '', description: '' },
+  ])
+  const [projectEntries, setProjectEntries] = useState<ProjectEntry[]>([
+    { name: '', url: '', description: '' },
+  ])
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
 
@@ -57,6 +76,10 @@ export default function DashboardPage() {
   const canAddHighlight = lastHighlight.selectedValue.trim() !== ''
   const lastTag = tagEntries[tagEntries.length - 1]
   const canAddTag = lastTag.trim() !== ''
+  const lastWork = workEntries[workEntries.length - 1]
+  const canAddWork = lastWork.company.trim() !== ''
+  const lastProject = projectEntries[projectEntries.length - 1]
+  const canAddProject = lastProject.name.trim() !== ''
   const matchingHighlightsByIndex = useMemo(
     () =>
       highlightEntries.map(({ query }) => {
@@ -167,6 +190,50 @@ export default function DashboardPage() {
     )
   }
 
+  function updateWorkEntry(index: number, field: keyof WorkEntry, value: string) {
+    setWorkEntries((current) =>
+      current.map((entry, i) => (i === index ? { ...entry, [field]: value } : entry)),
+    )
+  }
+
+  function addWorkEntry() {
+    if (!canAddWork) return
+    setWorkEntries((current) => [
+      ...current,
+      { company: '', role: '', duration: '', description: '' },
+    ])
+  }
+
+  function removeWorkEntry(index: number) {
+    setWorkEntries((current) =>
+      current.length === 1
+        ? [{ company: '', role: '', duration: '', description: '' }]
+        : current.filter((_, i) => i !== index),
+    )
+  }
+
+  function updateProjectEntry(index: number, field: keyof ProjectEntry, value: string) {
+    setProjectEntries((current) =>
+      current.map((entry, i) => (i === index ? { ...entry, [field]: value } : entry)),
+    )
+  }
+
+  function addProjectEntry() {
+    if (!canAddProject) return
+    setProjectEntries((current) => [
+      ...current,
+      { name: '', url: '', description: '' },
+    ])
+  }
+
+  function removeProjectEntry(index: number) {
+    setProjectEntries((current) =>
+      current.length === 1
+        ? [{ name: '', url: '', description: '' }]
+        : current.filter((_, i) => i !== index),
+    )
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
@@ -197,6 +264,21 @@ export default function DashboardPage() {
           items: section.items.map((item) => item.trim()).filter(Boolean),
         }))
         .filter((section) => section.title !== '' && section.items.length > 0),
+      workExperience: workEntries
+        .map((entry) => ({
+          company: entry.company.trim(),
+          role: entry.role.trim(),
+          duration: entry.duration.trim(),
+          description: entry.description.trim(),
+        }))
+        .filter((entry) => entry.company !== ''),
+      projects: projectEntries
+        .map((entry) => ({
+          name: entry.name.trim(),
+          url: entry.url.trim(),
+          description: entry.description.trim(),
+        }))
+        .filter((entry) => entry.name !== ''),
     }
 
     setIsSaving(true)
@@ -241,7 +323,9 @@ export default function DashboardPage() {
           <ol className="dp-stepline">
             <li><span className="dp-stepline__num">01</span> Profile fundamentals</li>
             <li><span className="dp-stepline__num">02</span> Highlights and tags</li>
-            <li><span className="dp-stepline__num">03</span> Proof and intent</li>
+            <li><span className="dp-stepline__num">03</span> Work experience</li>
+            <li><span className="dp-stepline__num">04</span> Projects</li>
+            <li><span className="dp-stepline__num">05</span> Proof and intent</li>
           </ol>
         </div>
       </section>
@@ -438,9 +522,126 @@ export default function DashboardPage() {
                 })}
               </div>
 
+              {/* Work experience */}
+              <div className="dp-block">
+                <span className="dp-blockBrow">— 04 Work experience</span>
+                <p className="dp-blockHint">Where you have done the work. Add at least one entry.</p>
+
+                {workEntries.map((entry, index) => {
+                  const isLast = index === workEntries.length - 1
+                  return (
+                    <div className="dp-subblock" key={`work-${index}`}>
+                      <header className="dp-subblock__head">
+                        <span className="dp-eyebrow">Experience {String(index + 1).padStart(2, '0')}</span>
+                      </header>
+
+                      <label className="dp-field">
+                        <span className="dp-label">Company</span>
+                        <input className="dp-input" type="text" value={entry.company}
+                          onChange={(e) => updateWorkEntry(index, 'company', e.target.value)}
+                          maxLength={80} placeholder="Company name" />
+                      </label>
+
+                      <div className="dp-grid2">
+                        <label className="dp-field">
+                          <span className="dp-label">Role</span>
+                          <input className="dp-input" type="text" value={entry.role}
+                            onChange={(e) => updateWorkEntry(index, 'role', e.target.value)}
+                            maxLength={80} placeholder="Product Designer" />
+                        </label>
+                        <label className="dp-field">
+                          <span className="dp-label">Duration</span>
+                          <input className="dp-input" type="text" value={entry.duration}
+                            onChange={(e) => updateWorkEntry(index, 'duration', e.target.value)}
+                            maxLength={40} placeholder="Jan 2022 — Present" />
+                        </label>
+                      </div>
+
+                      <label className="dp-field">
+                        <span className="dp-label">Description</span>
+                        <textarea className="dp-input dp-textarea dp-textarea--sm"
+                          value={entry.description}
+                          onChange={(e) => updateWorkEntry(index, 'description', e.target.value)}
+                          maxLength={500} rows={2}
+                          placeholder="Describe your responsibilities and achievements." />
+                      </label>
+
+                      <div className="dp-subblock__actions">
+                        <button type="button" className="dp-iconBtn dp-iconBtn--sm"
+                          onClick={() => removeWorkEntry(index)}
+                          aria-label={`Remove work experience ${index + 1}`}>
+                          − Remove
+                        </button>
+                        {isLast ? (
+                          <button type="button" className="dp-iconBtn dp-iconBtn--ink dp-iconBtn--sm"
+                            onClick={addWorkEntry} disabled={!canAddWork}
+                            aria-label="Add work experience">
+                            + Add
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Projects */}
+              <div className="dp-block">
+                <span className="dp-blockBrow">— 05 Projects</span>
+                <p className="dp-blockHint">Side work, open-source, or standout deliverables.</p>
+
+                {projectEntries.map((entry, index) => {
+                  const isLast = index === projectEntries.length - 1
+                  return (
+                    <div className="dp-subblock" key={`proj-${index}`}>
+                      <header className="dp-subblock__head">
+                        <span className="dp-eyebrow">Project {String(index + 1).padStart(2, '0')}</span>
+                      </header>
+
+                      <label className="dp-field">
+                        <span className="dp-label">Name</span>
+                        <input className="dp-input" type="text" value={entry.name}
+                          onChange={(e) => updateProjectEntry(index, 'name', e.target.value)}
+                          maxLength={80} placeholder="Project name" />
+                      </label>
+
+                      <label className="dp-field">
+                        <span className="dp-label">URL</span>
+                        <input className="dp-input" type="url" value={entry.url}
+                          onChange={(e) => updateProjectEntry(index, 'url', e.target.value)}
+                          maxLength={200} placeholder="https://github.com/username/project" />
+                      </label>
+
+                      <label className="dp-field">
+                        <span className="dp-label">Description</span>
+                        <textarea className="dp-input dp-textarea dp-textarea--sm"
+                          value={entry.description}
+                          onChange={(e) => updateProjectEntry(index, 'description', e.target.value)}
+                          maxLength={500} rows={2} placeholder="Describe your project." />
+                      </label>
+
+                      <div className="dp-subblock__actions">
+                        <button type="button" className="dp-iconBtn dp-iconBtn--sm"
+                          onClick={() => removeProjectEntry(index)}
+                          aria-label={`Remove project ${index + 1}`}>
+                          − Remove
+                        </button>
+                        {isLast ? (
+                          <button type="button" className="dp-iconBtn dp-iconBtn--ink dp-iconBtn--sm"
+                            onClick={addProjectEntry} disabled={!canAddProject}
+                            aria-label="Add project">
+                            + Add
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
               {/* Sections */}
               <div className="dp-block">
-                <span className="dp-blockBrow">— 04 Proof and intent</span>
+                <span className="dp-blockBrow">— 06 Proof and intent</span>
                 <p className="dp-blockHint">
                   Narrative blocks. Each title is fixed; the points underneath are yours to write.
                 </p>
