@@ -461,6 +461,15 @@
 }
 .dp-import__input { flex: 1; }
 .dp-import__btn { flex-shrink: 0; }
+.dp-import__btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  animation: dp-importPulse 1s ease-in-out infinite;
+}
+@keyframes dp-importPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 
 @media (max-width: 720px) {
   .dp-import {

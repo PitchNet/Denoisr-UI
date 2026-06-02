@@ -55,6 +55,16 @@ const highlightSuggestions = [
 
 export default function DashboardPage() {
   const navigate = useNavigate()
+  const [name, setName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [currentRole, setCurrentRole] = useState('')
+  const [organization, setOrganization] = useState('')
+  const [location, setLocation] = useState('')
+  const [experience, setExperience] = useState('')
+  const [salary, setSalary] = useState('')
+  const [intro, setIntro] = useState('')
+  const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [isImporting, setIsImporting] = useState(false)
   const [highlightEntries, setHighlightEntries] = useState<HighlightEntry[]>([
     { query: '', selectedValue: '', menuOpen: false },
   ])
@@ -234,11 +244,85 @@ export default function DashboardPage() {
     )
   }
 
+  type LinkedInResponse = {
+    headline?: string
+    subheadline?: string
+    organization?: string
+    location?: string
+    experience?: number
+    salary?: number | null
+    intro?: string
+    highlights?: string[]
+    tags?: string[]
+    sections?: Array<{ title: string; items: string[] }>
+    workExperience?: Array<{ company: string; role: string; duration: string; description: string }>
+    projects?: Array<{ name: string; link?: string; url?: string; description?: string }>
+    photo?: string
+  }
+
+  async function handleImport() {
+    const url = linkedinUrl.trim()
+    if (!url) return
+
+    setIsImporting(true)
+    try {
+      const response = await apiRequest('/LoginController/linkedinImport', {
+        method: 'POST',
+        body: { url },
+      })
+      if (!response.ok) return
+      const data = (await response.json()) as LinkedInResponse
+
+      if (data.headline) setName(data.headline)
+      if (data.subheadline) setCurrentRole(data.subheadline)
+      if (data.organization) setOrganization(data.organization)
+      if (data.location) setLocation(data.location)
+      if (typeof data.experience === 'number') setExperience(String(data.experience))
+      if (typeof data.salary === 'number') setSalary(String(data.salary))
+      if (data.intro) setIntro(data.intro)
+
+      if (data.highlights && data.highlights.length > 0) {
+        setHighlightEntries(
+          data.highlights.map((h) => ({ query: h, selectedValue: h, menuOpen: false })),
+        )
+      }
+
+      if (data.tags && data.tags.length > 0) {
+        setTagEntries(data.tags)
+      }
+
+      if (data.sections && data.sections.length > 0) {
+        setSections(
+          data.sections.map((s) => ({
+            title: s.title,
+            items: s.items.length > 0 ? s.items : [''],
+          })),
+        )
+      }
+
+      if (data.workExperience && data.workExperience.length > 0) {
+        setWorkEntries(data.workExperience.map((w) => ({ ...w, duration: w.duration ?? '' })))
+      }
+
+      if (data.projects && data.projects.length > 0) {
+        setProjectEntries(
+          data.projects.map((p) => ({
+            name: p.name,
+            url: (p.link ?? p.url ?? ''),
+            description: p.description ?? '',
+          })),
+        )
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setIsImporting(false)
+    }
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    const form = e.currentTarget
-    const formData = new FormData(form)
     const storedCredentials = sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY)
     const parsedCredentials = storedCredentials
       ? (JSON.parse(storedCredentials) as { email?: string; password?: string })
@@ -247,15 +331,15 @@ export default function DashboardPage() {
     const payload = {
       email: parsedCredentials.email?.trim() ?? '',
       password: parsedCredentials.password ?? '',
-      phoneNumber: String(formData.get('phoneNumber') ?? '').trim(),
+      phoneNumber: phoneNumber.trim(),
       kind: 'people',
-      name: String(formData.get('name') ?? '').trim(),
-      currentRole: String(formData.get('currentRole') ?? '').trim(),
-      organization: String(formData.get('organization') ?? '').trim(),
-      location: String(formData.get('location') ?? '').trim(),
-      experience: Number(formData.get('experience') ?? 0),
-      salary: Number(formData.get('salary') ?? 0),
-      intro: String(formData.get('intro') ?? '').trim(),
+      name: name.trim(),
+      currentRole: currentRole.trim(),
+      organization: organization.trim(),
+      location: location.trim(),
+      experience: Number(experience || 0),
+      salary: Number(salary || 0),
+      intro: intro.trim(),
       highlights: highlightEntries.map((entry) => entry.selectedValue).filter(Boolean),
       tags: tagEntries.map((entry) => entry.trim()).filter(Boolean),
       sections: sections
@@ -357,8 +441,10 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="dp-import__row">
-                <input className="dp-input dp-import__input" type="url" placeholder="https://linkedin.com/in/your-profile" />
-                <button type="button" className="btn btn--solidDark dp-import__btn">Import</button>
+                <input className="dp-input dp-import__input" type="url" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/your-profile" />
+                <button type="button" className="btn btn--solidDark dp-import__btn" onClick={handleImport} disabled={isImporting}>
+                  {isImporting ? 'Importing…' : 'Import'}
+                </button>
               </div>
             </div>
 
@@ -370,44 +456,45 @@ export default function DashboardPage() {
                 <div className="dp-grid2">
                   <label className="dp-field">
                     <span className="dp-label">Name</span>
-                    <input className="dp-input" type="text" name="name" required minLength={2} maxLength={80} placeholder="Mateo Ruiz" />
+                    <input className="dp-input" type="text" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={80} placeholder="Mateo Ruiz" />
                   </label>
 
                   <label className="dp-field">
                     <span className="dp-label">Phone</span>
-                    <input className="dp-input" type="tel" name="phoneNumber" required pattern="^\+?[0-9()\-\s]{6,20}$" placeholder="+34 600 000 000" />
+                    <input className="dp-input" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required pattern="^\+?[0-9()\-\s]{6,20}$" placeholder="+34 600 000 000" />
                   </label>
 
                   <label className="dp-field">
                     <span className="dp-label">Current role</span>
-                    <input className="dp-input" type="text" name="currentRole" required minLength={2} maxLength={80} placeholder="Product Designer" />
+                    <input className="dp-input" type="text" value={currentRole} onChange={(e) => setCurrentRole(e.target.value)} required minLength={2} maxLength={80} placeholder="Product Designer" />
                   </label>
 
                   <label className="dp-field">
                     <span className="dp-label">Organization</span>
-                    <input className="dp-input" type="text" name="organization" required minLength={2} maxLength={80} placeholder="Zinfi" />
+                    <input className="dp-input" type="text" value={organization} onChange={(e) => setOrganization(e.target.value)} required minLength={2} maxLength={80} placeholder="Zinfi" />
                   </label>
 
                   <label className="dp-field dp-field--full">
                     <span className="dp-label">Location</span>
-                    <input className="dp-input" type="text" name="location" required minLength={2} maxLength={80} placeholder="Madrid, Spain" />
+                    <input className="dp-input" type="text" value={location} onChange={(e) => setLocation(e.target.value)} required minLength={2} maxLength={80} placeholder="Madrid, Spain" />
                   </label>
 
                   <label className="dp-field">
                     <span className="dp-label">Experience (years)</span>
-                    <input className="dp-input" type="number" name="experience" required min={0} max={40} step={1} placeholder="6" />
+                    <input className="dp-input" type="number" value={experience} onChange={(e) => setExperience(e.target.value)} required min={0} max={40} step={1} placeholder="6" />
                   </label>
 
                   <label className="dp-field">
                     <span className="dp-label">Target comp ($k)</span>
-                    <input className="dp-input" type="number" name="salary" required min={0} max={1000} step={1} placeholder="92" />
+                    <input className="dp-input" type="number" value={salary} onChange={(e) => setSalary(e.target.value)} required min={0} max={1000} step={1} placeholder="92" />
                   </label>
 
                   <label className="dp-field dp-field--full">
                     <span className="dp-label">Intro</span>
                     <textarea
                       className="dp-input dp-textarea"
-                      name="intro"
+                      value={intro}
+                      onChange={(e) => setIntro(e.target.value)}
                       required
                       minLength={40}
                       maxLength={280}
