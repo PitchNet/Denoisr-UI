@@ -398,6 +398,10 @@ export default function CompanyPage() {
       if (response.ok) {
         setMessageText('')
         setApplicants((prev) => prev.map((a) => a.id === selectedApplicant.id ? { ...a, status: 'messaged' } : a))
+        apiRequest('/CompanyController/jobApplicantStatus', {
+          method: 'POST',
+          body: { jobId: pipelineJob.id, personId: selectedApplicant.id, status: 'messaged', notes: '' },
+        }).catch(() => {})
       }
     } catch {
       // silently fail
@@ -825,9 +829,17 @@ export default function CompanyPage() {
                         key={s}
                         type="button"
                         className={`cp-pipeline__statusBtn${selectedApplicant?.status === s ? ' cp-pipeline__statusBtn--active' : ''}`}
-                        onClick={() => {
-                          if (!selectedApplicant) return
+                        onClick={async () => {
+                          if (!selectedApplicant || !pipelineJobId) return
                           setApplicants((prev) => prev.map((a) => a.id === selectedApplicant.id ? { ...a, status: s } : a))
+                          try {
+                            await apiRequest('/CompanyController/jobApplicantStatus', {
+                              method: 'POST',
+                              body: { jobId: pipelineJobId, personId: selectedApplicant.id, status: s, notes: '' },
+                            })
+                          } catch {
+                            // silently fail
+                          }
                         }}
                       >
                         {s.charAt(0).toUpperCase() + s.slice(1)}
