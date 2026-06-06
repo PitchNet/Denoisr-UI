@@ -282,6 +282,36 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+.hp-chip--bookmarked { background: rgba(160, 140, 200, 0.15); color: oklch(0.68 0.14 290); }
+
+.hp-fieldset__toggle {
+  padding-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hp-chipToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--ink-6);
+  background: transparent;
+  color: var(--ink-4);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--easing-default);
+}
+.hp-chipToggle:hover { border-color: var(--ink-4); color: var(--ink-3); }
+.hp-chipToggle--active {
+  background: rgba(160, 140, 200, 0.15);
+  border-color: oklch(0.68 0.14 290 / 0.3);
+  color: oklch(0.68 0.14 290);
+}
 
 /* ── Card stage ────────────────────────────────────────────── */
 .hp-stage {
@@ -468,7 +498,7 @@
   margin-top: 20px;
   display: flex;
   justify-content: center;
-  gap: 80px;
+  gap: 32px;
 }
 .hp-actionbtn {
   width: 60px; height: 60px;
@@ -487,11 +517,13 @@
 .hp-actionbtn:hover { background: var(--paper-2); border-color: var(--ink-4); box-shadow: var(--shadow-card); }
 .hp-actionbtn:active { background: var(--paper-3); border-color: var(--ink-3); }
 .hp-actionbtn--pass { color: var(--decision-pass); }
+.hp-actionbtn--bookmark { color: var(--ink-3); }
+.hp-actionbtn--bookmarked { color: oklch(0.68 0.14 290); }
 .hp-actionbtn--like { color: var(--decision-like); }
 .hp-actionLabels {
   display: flex;
   justify-content: center;
-  gap: 80px;
+  gap: 32px;
   margin-top: 8px;
   color: var(--ink-3);
 }
@@ -949,9 +981,9 @@
   .hp-card__stamp { font-size: 22px; padding: 6px 12px; }
 
   /* Action buttons tighter on mobile and smaller hit targets */
-  .hp-actions { gap: 44px; margin-top: 18px; }
+  .hp-actions { gap: 20px; margin-top: 18px; }
   .hp-actionbtn { width: 54px; height: 54px; }
-  .hp-actionLabels { gap: 44px; }
+  .hp-actionLabels { gap: 20px; }
   .hp-actionLabels span { width: 54px; }
 }
 

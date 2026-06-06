@@ -89,6 +89,7 @@ type FilterValues = {
   city: string
   experience: number
   salary: number
+  bookmarked: boolean
 }
 
 export function getStoredFilters(mode: 'jobs' | 'people'): FilterValues | null {

@@ -33,6 +33,7 @@ type DiscoveryCard = {
     title: string
     items: string[]
   }>
+  bookmarked: boolean
 }
 
 const locationOptions = [
@@ -148,6 +149,8 @@ export default function HomePage() {
   const [cityFilter, setCityFilter] = useState('')
   const [maxExperience, setMaxExperience] = useState(10)
   const [maxSalary, setMaxSalary] = useState(200)
+  const [draftBookmarkedOnly, setDraftBookmarkedOnly] = useState(false)
+  const [bookmarkedOnly, setBookmarkedOnly] = useState(false)
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dragX, setDragX] = useState(0)
@@ -209,6 +212,7 @@ export default function HomePage() {
             country: countryFilter || '',
             city: cityFilter || '',
             salary: maxSalary || null,
+            bookmarked: bookmarkedOnly || null,
           },
         })
 
@@ -221,6 +225,7 @@ export default function HomePage() {
         const formatted: DiscoveryCard[] = data.map((item: any) => ({
           ...item,
           kind: mode,
+          bookmarked: item.bookmarked ?? false,
         }))
 
         if (mode === 'jobs') setJobCards(formatted)
@@ -250,22 +255,26 @@ export default function HomePage() {
       setDraftCityFilter(stored.city)
       setDraftMaxExperience(stored.experience)
       setDraftMaxSalary(stored.salary)
+      setDraftBookmarkedOnly(stored.bookmarked)
       setRoleFilter(stored.role)
       setCountryFilter(stored.country)
       setCityFilter(stored.city)
       setMaxExperience(stored.experience)
       setMaxSalary(stored.salary)
+      setBookmarkedOnly(stored.bookmarked)
     } else {
       setDraftRoleFilter('')
       setDraftCountryFilter('')
       setDraftCityFilter('')
       setDraftMaxExperience(10)
       setDraftMaxSalary(200)
+      setDraftBookmarkedOnly(false)
       setRoleFilter('')
       setCountryFilter('')
       setCityFilter('')
       setMaxExperience(10)
       setMaxSalary(200)
+      setBookmarkedOnly(false)
     }
   }, [mode])
 
@@ -275,12 +284,14 @@ export default function HomePage() {
     setCityFilter(draftCityFilter)
     setMaxExperience(draftMaxExperience)
     setMaxSalary(draftMaxSalary)
+    setBookmarkedOnly(draftBookmarkedOnly)
     setStoredFilters(mode, {
       role: draftRoleFilter,
       country: draftCountryFilter,
       city: draftCityFilter,
       experience: draftMaxExperience,
       salary: draftMaxSalary,
+      bookmarked: draftBookmarkedOnly,
     })
   }
 
@@ -290,11 +301,13 @@ export default function HomePage() {
     setDraftCityFilter('')
     setDraftMaxExperience(10)
     setDraftMaxSalary(200)
+    setDraftBookmarkedOnly(false)
     setRoleFilter('')
     setCountryFilter('')
     setCityFilter('')
     setMaxExperience(10)
     setMaxSalary(200)
+    setBookmarkedOnly(false)
     clearStoredFilters(mode)
   }
 
@@ -361,6 +374,35 @@ export default function HomePage() {
 
     setExitDirection(direction)
     window.setTimeout(() => advanceCard(), 260)
+  }
+
+  async function handleBookmark() {
+    if (!currentCard || swipeLockedRef.current) return
+    swipeLockedRef.current = true
+    setError(null)
+
+    try {
+      const endpoint = mode === 'jobs' ? '/FeedController/jobAction' : '/FeedController/peopleAction'
+      const idField = mode === 'jobs' ? 'jobId' : 'peopleId'
+      const response = await apiRequest(endpoint, {
+        method: 'POST',
+        body: { [idField]: currentCard.id, action: 'bookmark' },
+      })
+      if (!response.ok) {
+        setError(`Failed to bookmark ${mode === 'jobs' ? 'job' : 'person'}`)
+        swipeLockedRef.current = false
+        return
+      }
+
+      const setCards = mode === 'jobs' ? setJobCards : setPeopleCards
+      setCards((prev) => prev.map((card) => card.id === currentCard.id ? { ...card, bookmarked: !card.bookmarked } : card))
+    } catch {
+      setError(`Failed to bookmark ${mode === 'jobs' ? 'job' : 'person'}`)
+      swipeLockedRef.current = false
+      return
+    }
+
+    swipeLockedRef.current = false
   }
 
   function handleKeepSwiping() {
@@ -540,6 +582,19 @@ export default function HomePage() {
               />
             </label>
 
+            <div className="hp-fieldset__toggle">
+              <button
+                type="button"
+                className={`hp-chipToggle${draftBookmarkedOnly ? ' hp-chipToggle--active' : ''}`}
+                onClick={() => setDraftBookmarkedOnly((v) => !v)}
+              >
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 2h10a1 1 0 011 1v15l-6-3.5L4 18V3a1 1 0 011-1z" />
+                </svg>
+                Bookmarked
+              </button>
+            </div>
+
             <div className="hp-filterActions">
               <button type="button" className="btn btn--outlinedLight" onClick={resetFiltersAll}>
                 Clear filters
@@ -590,6 +645,7 @@ export default function HomePage() {
             <span className="hp-chip">{countryFilter || 'Any country'}</span>
             <span className="hp-chip">{cityFilter || 'Any city'}</span>
             <span className="hp-chip">≤ ${maxSalary}k</span>
+            {bookmarkedOnly ? <span className="hp-chip hp-chip--bookmarked">Bookmarked</span> : null}
           </div>
 
           {error ? (
@@ -733,6 +789,16 @@ export default function HomePage() {
                 </button>
                 <button
                   type="button"
+                  className={`hp-actionbtn hp-actionbtn--bookmark${currentCard.bookmarked ? ' hp-actionbtn--bookmarked' : ''}`}
+                  aria-label="Bookmark"
+                  onClick={handleBookmark}
+                >
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill={currentCard.bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 2h10a1 1 0 011 1v15l-6-3.5L4 18V3a1 1 0 011-1z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
                   className="hp-actionbtn hp-actionbtn--like"
                   aria-label={acceptLabel}
                   onClick={() => handleDecision('accept')}
@@ -745,6 +811,7 @@ export default function HomePage() {
 
               <div className="hp-actionLabels el-meta">
                 <span>Skip</span>
+                <span>Bookmark</span>
                 <span>{acceptLabel}</span>
               </div>
             </>
@@ -856,10 +923,23 @@ export default function HomePage() {
                   value={draftMaxSalary}
                   onChange={(e) => setDraftMaxSalary(Number(e.target.value))}
                 />
-              </label>
-            </div>
+                </label>
 
-            <div className="hp-filterSheet__actions">
+                <div className="hp-fieldset__toggle">
+                  <button
+                    type="button"
+                    className={`hp-chipToggle${draftBookmarkedOnly ? ' hp-chipToggle--active' : ''}`}
+                    onClick={() => setDraftBookmarkedOnly((v) => !v)}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 2h10a1 1 0 011 1v15l-6-3.5L4 18V3a1 1 0 011-1z" />
+                    </svg>
+                    Bookmarked
+                  </button>
+                </div>
+              </div>
+
+              <div className="hp-filterSheet__actions">
               <button
                 type="button"
                 className="btn btn--outlinedLight"
