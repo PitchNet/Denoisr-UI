@@ -17,7 +17,7 @@
 }
 
 .cp-body {
-  max-width: 700px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -478,3 +478,269 @@
 }
 .cp-bottomnav__action:hover { background: var(--paper-2); color: var(--ink); }
 .cp-bottomnav__action--danger { color: var(--decision-pass); }
+
+/* ── Pipeline ──────────────────────────────────────────── */
+.cp-pipeline {
+  background: var(--paper);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-panel);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+.cp-pipeline__back { display: flex; }
+.cp-pipeline__tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--ink-6);
+  padding-bottom: 8px;
+}
+.cp-pipeline__tab {
+  background: transparent;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--easing-default), background var(--dur-fast) var(--easing-default);
+}
+.cp-pipeline__tab:hover { color: var(--ink); background: var(--paper-2); }
+.cp-pipeline__tab--active { color: var(--ink); background: var(--paper-2); font-weight: 600; }
+.cp-pipeline__grid {
+  display: grid;
+  grid-template-columns: 260px 1fr 220px;
+  gap: 20px;
+  min-height: 400px;
+}
+.cp-pipeline__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  align-self: start;
+}
+.cp-pipeline__applicant {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: var(--paper);
+  transition: background var(--dur-fast) var(--easing-default);
+  position: relative;
+}
+.cp-pipeline__applicant:hover { background: var(--paper-2); }
+.cp-pipeline__applicant--active { background: var(--paper-2); }
+.cp-pipeline__applicantAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ink-5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.cp-pipeline__applicantInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.cp-pipeline__applicantName {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+}
+.cp-pipeline__applicantRole {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.cp-pipeline__applicantMeta {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-4);
+}
+.cp-pipeline__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--decision-like);
+  flex-shrink: 0;
+}
+.cp-pipeline__profile {
+  min-width: 0;
+}
+.cp-pipeline__profileCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.cp-pipeline__profileHead {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.cp-pipeline__profileAvatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--ink-5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.cp-pipeline__profileName {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+  margin: 0 0 2px;
+}
+.cp-pipeline__profileRole {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin: 0 0 1px;
+}
+.cp-pipeline__profileMeta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-4);
+  margin: 0;
+}
+.cp-pipeline__profileIntro {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin: 0;
+}
+.cp-pipeline__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cp-pipeline__sectionList {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+.cp-pipeline__workItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cp-pipeline__workRole {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+}
+.cp-pipeline__workOrg {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-4);
+}
+.cp-pipeline__workDesc {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin: 0;
+  line-height: 1.4;
+}
+.cp-pipeline__notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cp-pipeline__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cp-pipeline__statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.cp-pipeline__statusBtn {
+  background: transparent;
+  border: 1px solid var(--ink-5);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--easing-default);
+}
+.cp-pipeline__statusBtn:hover { border-color: var(--ink-3); color: var(--ink); }
+.cp-pipeline__statusBtn--active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.cp-jobBadge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  background: var(--paper-2);
+  padding: 3px 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--dur-fast) var(--easing-default), color var(--dur-fast) var(--easing-default);
+}
+.cp-jobBadge:hover { background: var(--ink-6); color: var(--ink-2); }
+.cp-jobInfo--clickable { cursor: pointer; }
+.cp-jobInfo--clickable:hover .cp-jobHeadline { color: var(--ink-2); }
+
+@media (max-width: 720px) {
+  .cp-pipeline { padding: 16px; }
+  .cp-pipeline__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .cp-pipeline__list {
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .cp-pipeline__tabs {
+    gap: 2px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cp-pipeline__tab { white-space: nowrap; font-size: 10px; padding: 5px 10px; }
+  .cp-pipeline__profileCard { padding: 16px; }
+}

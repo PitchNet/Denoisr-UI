@@ -38,6 +38,110 @@ type Job = {
   sections: JobSection[]
 }
 
+type Applicant = {
+  id: string
+  name: string
+  role: string
+  org: string
+  location: string
+  experience: number
+  salary: number
+  intro: string
+  photo: string
+  highlights: string[]
+  tags: string[]
+  sections: JobSection[]
+  workExperience: Array<{ company: string; role: string; duration: string; description: string }>
+  projects: Array<{ name: string; url: string; description: string }>
+  appliedDate: string
+  status: 'new' | 'shortlisted' | 'messaged' | 'hired' | 'passed'
+  notes: string
+}
+
+const SAMPLE_APPLICANTS: Applicant[] = [
+  {
+    id: 'a1',
+    name: 'Priya Sharma',
+    role: 'VP Engineering',
+    org: 'TechCorp',
+    location: 'Berlin, Germany',
+    experience: 12,
+    salary: 180,
+    intro: 'Engineering leader focused on platform reliability and team growth. Built infra teams from scratch at three Series B+ companies.',
+    photo: '',
+    highlights: ['Engineering Management', 'Platform Engineering', 'Distributed Systems', 'Team Building'],
+    tags: ['Hiring 4 ICs', 'Infra-heavy', 'Async-first', 'No leetcode'],
+    sections: [
+      { title: 'Proof of work', items: ['Scaled platform team from 3 to 18 at TechCorp', 'Reduced P90 latency by 60% through architecture overhaul', 'Hired and onboarded 12 engineers in 18 months'] },
+      { title: 'Intent and fit', items: ['Looking for Series C+ stage where platform investment is the next bottleneck', 'Strong preference for async, written-first cultures'] },
+    ],
+    workExperience: [
+      { company: 'TechCorp', role: 'VP Engineering', duration: 'Jan 2022 — Present', description: 'Lead platform org. Oversee infrastructure, developer experience, and SRE.' },
+      { company: 'ScaleUp Inc', role: 'Engineering Director', duration: 'Mar 2019 — Dec 2021', description: 'Built the platform team. Standardised deployment tooling across 8 squads.' },
+    ],
+    projects: [
+      { name: 'Internal Developer Portal', url: '', description: 'Designed and led the build of an internal developer portal serving 200+ engineers.' },
+    ],
+    appliedDate: '2 days ago',
+    status: 'new',
+    notes: '',
+  },
+  {
+    id: 'a2',
+    name: 'Rahul Verma',
+    role: 'Senior Backend Engineer',
+    org: 'FinServe',
+    location: 'Berlin, Germany',
+    experience: 9,
+    salary: 130,
+    intro: 'Backend engineer with deep experience in Go and distributed systems. OSS maintainer and async communication advocate.',
+    photo: '',
+    highlights: ['Go', 'Distributed Systems', 'Postgres', 'Kubernetes', 'gRPC'],
+    tags: ['OSS maintainer', 'Wants smaller team', 'EU hours', 'Remote-friendly'],
+    sections: [
+      { title: 'Proof of work', items: ['Core contributor to popular Go OSS project (2.8k stars)', 'Designed event-sourcing system processing 50k events/s', 'Migrated monolith to microservices across 12 services'] },
+      { title: 'Intent and fit', items: ['Looking for a high-autonomy role where IC contribution outweighs process overhead', 'Prefers 40-60 person engineering orgs over 500+'] },
+    ],
+    workExperience: [
+      { company: 'FinServe', role: 'Senior Backend Engineer', duration: 'Jun 2021 — Present', description: 'Architected core payment processing pipeline. Mentoring 3 juniors.' },
+      { company: 'DataFlow', role: 'Backend Engineer', duration: 'Jan 2019 — May 2021', description: 'Built real-time data pipeline infrastructure using Kafka and Go.' },
+    ],
+    projects: [
+      { name: 'go-eventbus', url: 'https://github.com/example/go-eventbus', description: 'Lightweight event bus library for Go microservices.' },
+    ],
+    appliedDate: '1 day ago',
+    status: 'new',
+    notes: '',
+  },
+  {
+    id: 'a3',
+    name: 'Ananya Patel',
+    role: 'Product Designer',
+    org: 'DesignStudio',
+    location: 'Lisbon, Portugal',
+    experience: 7,
+    salary: 110,
+    intro: 'Product designer specialising in design systems and prototyping. Experience across health tech, fintech, and developer tools.',
+    photo: '',
+    highlights: ['Design Systems', 'Prototyping', 'Figma', 'UX Research', 'Motion Design'],
+    tags: ['Health', 'Fintech', 'Remote', 'Senior IC'],
+    sections: [
+      { title: 'Proof of work', items: ['Built and maintained design system adopted by 4 product teams (200+ components)', 'Led UX research for a clinical decision support tool used by 500+ physicians', 'Reduced onboarding time by 40% through UX overhaul'] },
+      { title: 'Intent and fit', items: ['Looking for a product-led company where design has a seat at the strategy table', 'Open to both IC and staff-plus tracks'] },
+    ],
+    workExperience: [
+      { company: 'DesignStudio', role: 'Senior Product Designer', duration: 'Apr 2022 — Present', description: 'Lead designer for the platform team. Own design system and developer tools experience.' },
+      { company: 'HealthTech Inc', role: 'Product Designer', duration: 'Aug 2019 — Mar 2022', description: 'Designed patient-facing and clinician-facing interfaces for a digital health platform.' },
+    ],
+    projects: [
+      { name: 'Component Library', url: '', description: 'Comprehensive React component library with Storybook documentation and accessibility-first design.' },
+    ],
+    appliedDate: '4 days ago',
+    status: 'shortlisted',
+    notes: 'Strong design portfolio. Would be great for the platform team.',
+  },
+]
+
 const SIZE_OPTIONS = [
   '1–10 employees',
   '11–50 employees',
@@ -68,6 +172,10 @@ export default function CompanyPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [editingJobIndex, setEditingJobIndex] = useState<number | null>(null)
   const [editJob, setEditJob] = useState<Job | null>(null)
+  const [pipelineJobId, setPipelineJobId] = useState<string | null>(null)
+  const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null)
+  const [pipelineTab, setPipelineTab] = useState<'all' | 'new' | 'shortlisted' | 'messaged' | 'hired' | 'passed'>('all')
+  const [applicantNotes, setApplicantNotes] = useState<Record<string, string>>({})
 
   useEffect(() => {
     ;(async () => {
@@ -307,6 +415,22 @@ export default function CompanyPage() {
 
   const isEditing = mode === 'edit'
 
+  function openPipeline(jobId: string) {
+    setPipelineJobId(jobId)
+    setSelectedApplicantId(SAMPLE_APPLICANTS[0]?.id ?? null)
+  }
+
+  function closePipeline() {
+    setPipelineJobId(null)
+    setSelectedApplicantId(null)
+    setPipelineTab('all')
+  }
+
+  const filteredApplicants = SAMPLE_APPLICANTS.filter(
+    (a) => pipelineTab === 'all' || a.status === pipelineTab,
+  )
+  const selectedApplicant = SAMPLE_APPLICANTS.find((a) => a.id === selectedApplicantId) ?? null
+
   return (
     <div className="cp">
       <div className="cp-body">
@@ -479,7 +603,7 @@ export default function CompanyPage() {
             </div>
           </div>
         )}
-        {!loading && mode === 'view' && (
+        {!loading && mode === 'view' && !pipelineJobId && (
           <div className="cp-card cp-jobs">
             <div className="cp-jobsHeader">
               <span className="cp-eyebrow">Open positions</span>
@@ -517,7 +641,6 @@ export default function CompanyPage() {
                           <span className="cp-label">Role description</span>
                           <textarea className="cp-input cp-textarea" value={editJob.intro} onChange={(e) => handleJobField('intro', e.target.value)} rows={3} />
                         </label>
-
                         <label className="cp-field">
                           <span className="cp-label">Skills</span>
                           {editJob.highlights.map((h, i) => (
@@ -528,7 +651,6 @@ export default function CompanyPage() {
                           ))}
                           <button type="button" className="btn btn--solidDark" onClick={() => addJobArrayItem('highlights')} style={{ alignSelf: 'flex-start', height: 32, padding: '0 12px', fontSize: 11 }}>Add highlight</button>
                         </label>
-
                         <label className="cp-field">
                           <span className="cp-label">Tags</span>
                           {editJob.tags.map((t, i) => (
@@ -539,7 +661,6 @@ export default function CompanyPage() {
                           ))}
                           <button type="button" className="btn btn--solidDark" onClick={() => addJobArrayItem('tags')} style={{ alignSelf: 'flex-start', height: 32, padding: '0 12px', fontSize: 11 }}>Add tag</button>
                         </label>
-
                         <label className="cp-field">
                           <span className="cp-label">Sections</span>
                           {editJob.sections.map((sec, si) => (
@@ -562,7 +683,6 @@ export default function CompanyPage() {
                             <button type="button" className="btn" onClick={() => removeJobSection(editJob.sections.length - 1)} style={{ alignSelf: 'flex-start', height: 32, padding: '0 12px', fontSize: 11 }}>Remove last section</button>
                           ) : null}
                         </label>
-
                         <div className="cp-actions">
                           <button type="button" className="btn btn--solidDark" onClick={saveJobEdit}>Save</button>
                           <button type="button" className="btn" onClick={() => { setEditingJobIndex(null); setEditJob(null) }}>Cancel</button>
@@ -570,10 +690,11 @@ export default function CompanyPage() {
                       </div>
                     ) : (
                       <>
-                        <div className="cp-jobInfo">
+                        <div className="cp-jobInfo cp-jobInfo--clickable" onClick={() => openPipeline(job.id)}>
                           <span className="cp-jobHeadline">{job.headline}</span>
                           <span className="cp-jobMeta">{job.location} &middot; {job.experience}yrs &middot; ${job.salary}k</span>
                         </div>
+                        <span className="cp-jobBadge" onClick={() => openPipeline(job.id)}>{SAMPLE_APPLICANTS.length} applicant{SAMPLE_APPLICANTS.length !== 1 ? 's' : ''}</span>
                         <button type="button" className="cp-jobPencil" onClick={() => startJobEdit(idx)} aria-label="Edit job">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
@@ -587,8 +708,153 @@ export default function CompanyPage() {
             )}
           </div>
         )}
-      </div>
 
+        {!loading && mode === 'view' && pipelineJobId && (
+          <div className="cp-pipeline">
+            <div className="cp-pipeline__back">
+              <button type="button" className="btn" onClick={closePipeline} style={{ height: 32, padding: '0 10px', fontSize: 12 }}>
+                ← Back to jobs
+              </button>
+            </div>
+            <div className="cp-pipeline__tabs">
+              {(['all', 'new', 'shortlisted', 'messaged', 'hired', 'passed'] as const).map((tab) => {
+                const count = tab === 'all' ? SAMPLE_APPLICANTS.length : SAMPLE_APPLICANTS.filter((a) => a.status === tab).length
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    className={`cp-pipeline__tab${pipelineTab === tab ? ' cp-pipeline__tab--active' : ''}`}
+                    onClick={() => setPipelineTab(tab)}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)} ({count})
+                  </button>
+                )
+              })}
+            </div>
+            <div className="cp-pipeline__grid">
+              <div className="cp-pipeline__list">
+                {filteredApplicants.length === 0 ? (
+                  <p className="cp-detail" style={{ padding: 16, fontStyle: 'italic' }}>No applicants in this stage.</p>
+                ) : (
+                  filteredApplicants.map((a) => (
+                    <div
+                      key={a.id}
+                      className={`cp-pipeline__applicant${selectedApplicantId === a.id ? ' cp-pipeline__applicant--active' : ''}`}
+                      onClick={() => setSelectedApplicantId(a.id)}
+                    >
+                      <div className="cp-pipeline__applicantAvatar" style={{ background: a.photo ? `url(${a.photo}) center/cover` : undefined }}>
+                        {a.photo ? null : a.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="cp-pipeline__applicantInfo">
+                        <span className="cp-pipeline__applicantName">{a.name}</span>
+                        <span className="cp-pipeline__applicantRole">{a.role}</span>
+                        <span className="cp-pipeline__applicantMeta">{a.location} · Applied {a.appliedDate}</span>
+                      </div>
+                      {a.status === 'new' ? <span className="cp-pipeline__dot" /> : null}
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="cp-pipeline__profile">
+                {selectedApplicant ? (
+                  <div className="cp-pipeline__profileCard">
+                    <div className="cp-pipeline__profileHead">
+                      <div className="cp-pipeline__profileAvatar" style={selectedApplicant.photo ? { backgroundImage: `url(${selectedApplicant.photo})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
+                        {selectedApplicant.photo ? null : selectedApplicant.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h2 className="cp-pipeline__profileName">{selectedApplicant.name}</h2>
+                        <p className="cp-pipeline__profileRole">{selectedApplicant.role} · {selectedApplicant.org}</p>
+                        <p className="cp-pipeline__profileMeta">{selectedApplicant.location} · {selectedApplicant.experience}yrs · ${selectedApplicant.salary}k</p>
+                      </div>
+                    </div>
+                    <p className="cp-pipeline__profileIntro">{selectedApplicant.intro}</p>
+                    {selectedApplicant.highlights.length > 0 ? (
+                      <div className="cp-chipList">
+                        {selectedApplicant.highlights.map((h) => <span key={h} className="cp-chipItem">{h}</span>)}
+                      </div>
+                    ) : null}
+                    {selectedApplicant.tags.length > 0 ? (
+                      <div className="cp-chipList">
+                        {selectedApplicant.tags.map((t) => <span key={t} className="cp-chipItem">{t}</span>)}
+                      </div>
+                    ) : null}
+                    {selectedApplicant.sections.map((sec, si) => (
+                      <div key={si} className="cp-pipeline__section">
+                        <span className="cp-eyebrow">{sec.title}</span>
+                        <ul className="cp-pipeline__sectionList">
+                          {sec.items.map((item, ii) => <li key={ii}>{item}</li>)}
+                        </ul>
+                      </div>
+                    ))}
+                    {selectedApplicant.workExperience.length > 0 ? (
+                      <div className="cp-pipeline__section">
+                        <span className="cp-eyebrow">Work experience</span>
+                        {selectedApplicant.workExperience.map((w, i) => (
+                          <div key={i} className="cp-pipeline__workItem">
+                            <span className="cp-pipeline__workRole">{w.role}</span>
+                            <span className="cp-pipeline__workOrg">{w.company} · {w.duration}</span>
+                            <p className="cp-pipeline__workDesc">{w.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    {selectedApplicant.projects.length > 0 ? (
+                      <div className="cp-pipeline__section">
+                        <span className="cp-eyebrow">Projects</span>
+                        {selectedApplicant.projects.map((p, i) => (
+                          <div key={i} className="cp-pipeline__workItem">
+                            <span className="cp-pipeline__workRole">{p.name}</span>
+                            {p.url ? <a className="cp-link" href={p.url} target="_blank" rel="noopener noreferrer">{p.url}</a> : null}
+                            {p.description ? <p className="cp-pipeline__workDesc">{p.description}</p> : null}
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="cp-detail" style={{ padding: 16, fontStyle: 'italic' }}>Select an applicant to view their profile.</p>
+                )}
+              </div>
+              <div className="cp-pipeline__notes">
+                <span className="cp-eyebrow">Notes</span>
+                <textarea
+                  className="cp-input cp-textarea"
+                  placeholder="Internal notes about this applicant…"
+                  value={(selectedApplicant && applicantNotes[selectedApplicant.id]) ?? selectedApplicant?.notes ?? ''}
+                  onChange={(e) => {
+                    if (!selectedApplicant) return
+                    setApplicantNotes((prev) => ({ ...prev, [selectedApplicant.id]: e.target.value }))
+                  }}
+                  rows={8}
+                />
+                <div className="cp-pipeline__actions">
+                  <span className="cp-eyebrow">Status</span>
+                  <div className="cp-pipeline__statusRow">
+                    {(['new', 'shortlisted', 'messaged', 'hired', 'passed'] as const).map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`cp-pipeline__statusBtn${selectedApplicant?.status === s ? ' cp-pipeline__statusBtn--active' : ''}`}
+                        onClick={() => {
+                          if (!selectedApplicant) return
+                          const updated = SAMPLE_APPLICANTS.map((a) => a.id === selectedApplicant.id ? { ...a, status: s } : a)
+                          Object.assign(SAMPLE_APPLICANTS, updated)
+                          setSelectedApplicantId(null)
+                          setTimeout(() => setSelectedApplicantId(selectedApplicant.id), 0)
+                        }}
+                      >
+                        {s.charAt(0).toUpperCase() + s.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
       <MobileBottomNav activePage="company" />
     </div>
   )
