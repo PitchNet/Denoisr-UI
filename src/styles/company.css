@@ -709,6 +709,30 @@
   border-color: var(--ink);
   color: var(--paper);
 }
+.cp-pipeline__msgPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cp-pipeline__msgPreviewBox {
+  background: var(--paper-2);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cp-pipeline__msgPreviewLine {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin: 0;
+  line-height: 1.4;
+}
+.cp-pipeline__msgPreviewLine--body {
+  color: var(--ink-2);
+  font-style: italic;
+}
 .cp-jobBadge {
   font-family: var(--font-mono);
   font-size: 10px;

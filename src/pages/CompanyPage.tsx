@@ -58,90 +58,6 @@ type Applicant = {
   notes: string
 }
 
-const SAMPLE_APPLICANTS: Applicant[] = [
-  {
-    id: 'a1',
-    name: 'Priya Sharma',
-    role: 'VP Engineering',
-    org: 'TechCorp',
-    location: 'Berlin, Germany',
-    experience: 12,
-    salary: 180,
-    intro: 'Engineering leader focused on platform reliability and team growth. Built infra teams from scratch at three Series B+ companies.',
-    photo: '',
-    highlights: ['Engineering Management', 'Platform Engineering', 'Distributed Systems', 'Team Building'],
-    tags: ['Hiring 4 ICs', 'Infra-heavy', 'Async-first', 'No leetcode'],
-    sections: [
-      { title: 'Proof of work', items: ['Scaled platform team from 3 to 18 at TechCorp', 'Reduced P90 latency by 60% through architecture overhaul', 'Hired and onboarded 12 engineers in 18 months'] },
-      { title: 'Intent and fit', items: ['Looking for Series C+ stage where platform investment is the next bottleneck', 'Strong preference for async, written-first cultures'] },
-    ],
-    workExperience: [
-      { company: 'TechCorp', role: 'VP Engineering', duration: 'Jan 2022 — Present', description: 'Lead platform org. Oversee infrastructure, developer experience, and SRE.' },
-      { company: 'ScaleUp Inc', role: 'Engineering Director', duration: 'Mar 2019 — Dec 2021', description: 'Built the platform team. Standardised deployment tooling across 8 squads.' },
-    ],
-    projects: [
-      { name: 'Internal Developer Portal', url: '', description: 'Designed and led the build of an internal developer portal serving 200+ engineers.' },
-    ],
-    appliedDate: '2 days ago',
-    status: 'new',
-    notes: '',
-  },
-  {
-    id: 'a2',
-    name: 'Rahul Verma',
-    role: 'Senior Backend Engineer',
-    org: 'FinServe',
-    location: 'Berlin, Germany',
-    experience: 9,
-    salary: 130,
-    intro: 'Backend engineer with deep experience in Go and distributed systems. OSS maintainer and async communication advocate.',
-    photo: '',
-    highlights: ['Go', 'Distributed Systems', 'Postgres', 'Kubernetes', 'gRPC'],
-    tags: ['OSS maintainer', 'Wants smaller team', 'EU hours', 'Remote-friendly'],
-    sections: [
-      { title: 'Proof of work', items: ['Core contributor to popular Go OSS project (2.8k stars)', 'Designed event-sourcing system processing 50k events/s', 'Migrated monolith to microservices across 12 services'] },
-      { title: 'Intent and fit', items: ['Looking for a high-autonomy role where IC contribution outweighs process overhead', 'Prefers 40-60 person engineering orgs over 500+'] },
-    ],
-    workExperience: [
-      { company: 'FinServe', role: 'Senior Backend Engineer', duration: 'Jun 2021 — Present', description: 'Architected core payment processing pipeline. Mentoring 3 juniors.' },
-      { company: 'DataFlow', role: 'Backend Engineer', duration: 'Jan 2019 — May 2021', description: 'Built real-time data pipeline infrastructure using Kafka and Go.' },
-    ],
-    projects: [
-      { name: 'go-eventbus', url: 'https://github.com/example/go-eventbus', description: 'Lightweight event bus library for Go microservices.' },
-    ],
-    appliedDate: '1 day ago',
-    status: 'new',
-    notes: '',
-  },
-  {
-    id: 'a3',
-    name: 'Ananya Patel',
-    role: 'Product Designer',
-    org: 'DesignStudio',
-    location: 'Lisbon, Portugal',
-    experience: 7,
-    salary: 110,
-    intro: 'Product designer specialising in design systems and prototyping. Experience across health tech, fintech, and developer tools.',
-    photo: '',
-    highlights: ['Design Systems', 'Prototyping', 'Figma', 'UX Research', 'Motion Design'],
-    tags: ['Health', 'Fintech', 'Remote', 'Senior IC'],
-    sections: [
-      { title: 'Proof of work', items: ['Built and maintained design system adopted by 4 product teams (200+ components)', 'Led UX research for a clinical decision support tool used by 500+ physicians', 'Reduced onboarding time by 40% through UX overhaul'] },
-      { title: 'Intent and fit', items: ['Looking for a product-led company where design has a seat at the strategy table', 'Open to both IC and staff-plus tracks'] },
-    ],
-    workExperience: [
-      { company: 'DesignStudio', role: 'Senior Product Designer', duration: 'Apr 2022 — Present', description: 'Lead designer for the platform team. Own design system and developer tools experience.' },
-      { company: 'HealthTech Inc', role: 'Product Designer', duration: 'Aug 2019 — Mar 2022', description: 'Designed patient-facing and clinician-facing interfaces for a digital health platform.' },
-    ],
-    projects: [
-      { name: 'Component Library', url: '', description: 'Comprehensive React component library with Storybook documentation and accessibility-first design.' },
-    ],
-    appliedDate: '4 days ago',
-    status: 'shortlisted',
-    notes: 'Strong design portfolio. Would be great for the platform team.',
-  },
-]
-
 const SIZE_OPTIONS = [
   '1–10 employees',
   '11–50 employees',
@@ -175,7 +91,11 @@ export default function CompanyPage() {
   const [pipelineJobId, setPipelineJobId] = useState<string | null>(null)
   const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null)
   const [pipelineTab, setPipelineTab] = useState<'all' | 'new' | 'shortlisted' | 'messaged' | 'hired' | 'passed'>('all')
-  const [applicantNotes, setApplicantNotes] = useState<Record<string, string>>({})
+  const [messageText, setMessageText] = useState('')
+  const [isSendingMessage, setIsSendingMessage] = useState(false)
+  const [applicants, setApplicants] = useState<Applicant[]>([])
+  const [applicantsLoading, setApplicantsLoading] = useState(false)
+  const [jobApplicantCounts, setJobApplicantCounts] = useState<Record<string, number>>({})
 
   useEffect(() => {
     ;(async () => {
@@ -194,6 +114,21 @@ export default function CompanyPage() {
                 if (Array.isArray(jobsResult)) {
                   setJobs(jobsResult)
                 }
+              }
+              try {
+                const countsRes = await apiRequest('/CompanyController/jobApplicantCounts', { method: 'GET' })
+                if (countsRes.ok) {
+                  const countsData = (await countsRes.json()) as Array<{ jobId: string; count: number }>
+                  if (Array.isArray(countsData)) {
+                    const countsMap: Record<string, number> = {}
+                    for (const item of countsData) {
+                      countsMap[item.jobId] = item.count
+                    }
+                    setJobApplicantCounts(countsMap)
+                  }
+                }
+              } catch {
+                // counts non-critical
               }
             } catch {
               // jobs non-critical
@@ -417,19 +352,64 @@ export default function CompanyPage() {
 
   function openPipeline(jobId: string) {
     setPipelineJobId(jobId)
-    setSelectedApplicantId(SAMPLE_APPLICANTS[0]?.id ?? null)
+    setSelectedApplicantId(null)
+    setPipelineTab('all')
+    setApplicants([])
+    setApplicantsLoading(true)
+    ;(async () => {
+      try {
+        const response = await apiRequest('/CompanyController/jobApplicants', {
+          method: 'POST',
+          body: { jobId },
+        })
+        if (response.ok) {
+          const data = (await response.json()) as Applicant[] | { applicants?: Applicant[] }
+          const list = Array.isArray(data) ? data : (data.applicants ?? [])
+          setApplicants(list)
+          if (list.length > 0) setSelectedApplicantId(list[0].id)
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setApplicantsLoading(false)
+      }
+    })()
   }
 
   function closePipeline() {
     setPipelineJobId(null)
     setSelectedApplicantId(null)
     setPipelineTab('all')
+    setApplicants([])
+    setMessageText('')
   }
 
-  const filteredApplicants = SAMPLE_APPLICANTS.filter(
+  const pipelineJob = jobs.find((j) => j.id === pipelineJobId) ?? null
+
+  async function handleSendMessage() {
+    if (!selectedApplicant || !pipelineJob || !messageText.trim()) return
+    setIsSendingMessage(true)
+    try {
+      const fullContent = `Regarding ${pipelineJob.headline} at ${pipelineJob.organization}\n\n${messageText.trim()}`
+      const response = await apiRequest('/FeedController/sendMessage', {
+        method: 'POST',
+        body: { recipientId: selectedApplicant.id, content: fullContent },
+      })
+      if (response.ok) {
+        setMessageText('')
+        setApplicants((prev) => prev.map((a) => a.id === selectedApplicant.id ? { ...a, status: 'messaged' } : a))
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setIsSendingMessage(false)
+    }
+  }
+
+  const filteredApplicants = applicants.filter(
     (a) => pipelineTab === 'all' || a.status === pipelineTab,
   )
-  const selectedApplicant = SAMPLE_APPLICANTS.find((a) => a.id === selectedApplicantId) ?? null
+  const selectedApplicant = applicants.find((a) => a.id === selectedApplicantId) ?? null
 
   return (
     <div className="cp">
@@ -694,7 +674,7 @@ export default function CompanyPage() {
                           <span className="cp-jobHeadline">{job.headline}</span>
                           <span className="cp-jobMeta">{job.location} &middot; {job.experience}yrs &middot; ${job.salary}k</span>
                         </div>
-                        <span className="cp-jobBadge" onClick={() => openPipeline(job.id)}>{SAMPLE_APPLICANTS.length} applicant{SAMPLE_APPLICANTS.length !== 1 ? 's' : ''}</span>
+                        <span className="cp-jobBadge" onClick={() => openPipeline(job.id)}>{jobApplicantCounts[job.id] ?? 0} applicant{(jobApplicantCounts[job.id] ?? 0) !== 1 ? 's' : ''}</span>
                         <button type="button" className="cp-jobPencil" onClick={() => startJobEdit(idx)} aria-label="Edit job">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
@@ -718,7 +698,7 @@ export default function CompanyPage() {
             </div>
             <div className="cp-pipeline__tabs">
               {(['all', 'new', 'shortlisted', 'messaged', 'hired', 'passed'] as const).map((tab) => {
-                const count = tab === 'all' ? SAMPLE_APPLICANTS.length : SAMPLE_APPLICANTS.filter((a) => a.status === tab).length
+                const count = tab === 'all' ? applicants.length : applicants.filter((a) => a.status === tab).length
                 return (
                   <button
                     key={tab}
@@ -733,7 +713,9 @@ export default function CompanyPage() {
             </div>
             <div className="cp-pipeline__grid">
               <div className="cp-pipeline__list">
-                {filteredApplicants.length === 0 ? (
+                {applicantsLoading ? (
+                  <p className="cp-detail" style={{ padding: 16, fontStyle: 'italic' }}>Loading applicants…</p>
+                ) : filteredApplicants.length === 0 ? (
                   <p className="cp-detail" style={{ padding: 16, fontStyle: 'italic' }}>No applicants in this stage.</p>
                 ) : (
                   filteredApplicants.map((a) => (
@@ -817,17 +799,24 @@ export default function CompanyPage() {
                 )}
               </div>
               <div className="cp-pipeline__notes">
-                <span className="cp-eyebrow">Notes</span>
+                <span className="cp-eyebrow">Message {selectedApplicant?.name ?? 'applicant'}</span>
                 <textarea
                   className="cp-input cp-textarea"
-                  placeholder="Internal notes about this applicant…"
-                  value={(selectedApplicant && applicantNotes[selectedApplicant.id]) ?? selectedApplicant?.notes ?? ''}
-                  onChange={(e) => {
-                    if (!selectedApplicant) return
-                    setApplicantNotes((prev) => ({ ...prev, [selectedApplicant.id]: e.target.value }))
-                  }}
-                  rows={8}
+                  placeholder="Type your message to the applicant…"
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  rows={5}
                 />
+                <div className="cp-pipeline__msgPreview">
+                  <span className="cp-eyebrow">Will be sent as</span>
+                  <div className="cp-pipeline__msgPreviewBox">
+                    <p className="cp-pipeline__msgPreviewLine">Regarding {pipelineJob?.headline ?? '…'} at {pipelineJob?.organization ?? '…'}</p>
+                    <p className="cp-pipeline__msgPreviewLine cp-pipeline__msgPreviewLine--body">{messageText || 'Your message…'}</p>
+                  </div>
+                </div>
+                <button type="button" className="btn btn--solidDark" onClick={handleSendMessage} disabled={isSendingMessage || !messageText.trim()}>
+                  {isSendingMessage ? 'Sending…' : 'Send message'}
+                </button>
                 <div className="cp-pipeline__actions">
                   <span className="cp-eyebrow">Status</span>
                   <div className="cp-pipeline__statusRow">
@@ -838,10 +827,7 @@ export default function CompanyPage() {
                         className={`cp-pipeline__statusBtn${selectedApplicant?.status === s ? ' cp-pipeline__statusBtn--active' : ''}`}
                         onClick={() => {
                           if (!selectedApplicant) return
-                          const updated = SAMPLE_APPLICANTS.map((a) => a.id === selectedApplicant.id ? { ...a, status: s } : a)
-                          Object.assign(SAMPLE_APPLICANTS, updated)
-                          setSelectedApplicantId(null)
-                          setTimeout(() => setSelectedApplicantId(selectedApplicant.id), 0)
+                          setApplicants((prev) => prev.map((a) => a.id === selectedApplicant.id ? { ...a, status: s } : a))
                         }}
                       >
                         {s.charAt(0).toUpperCase() + s.slice(1)}
