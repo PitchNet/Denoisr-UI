@@ -141,12 +141,7 @@ export default function Navbar() {
                 Open app
               </Link>
             ) : pathname === '/dashboard' ? null : (
-              <>
-                <Link to="/login" className="nav__marketingLink">Sign in</Link>
-                <Link to="/signup" className="btn btn--solidDark" style={{ height: 36, padding: '0 16px', fontSize: 13.5 }}>
-                  Get started
-                </Link>
-              </>
+              <Link to="/login" className="nav__marketingLink">Sign in</Link>
             )}
           </nav>
         )}

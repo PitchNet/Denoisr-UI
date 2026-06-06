@@ -752,6 +752,20 @@ html, body {
 .auth__input::placeholder { color: var(--ink-4); }
 .auth__input:focus { border-color: var(--ink); }
 
+.auth__expandBtn {
+  background: transparent;
+  border: 0;
+  color: var(--ink-3);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  padding: 10px 0;
+  cursor: pointer;
+  text-align: left;
+  transition: color var(--dur-fast) var(--easing-default);
+  border-radius: var(--radius-pill);
+}
+.auth__expandBtn:hover { color: var(--ink); }
+
 .auth__error {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -766,6 +780,7 @@ html, body {
   margin-top: 8px;
   width: 100%;
 }
+.auth .auth__submit { border-radius: var(--radius-pill); }
 .auth__submit[disabled] {
   opacity: 0.6;
   cursor: not-allowed;
@@ -808,6 +823,7 @@ html, body {
   transition: opacity var(--dur-fast) var(--easing-default);
 }
 .auth__foot-link:hover { opacity: 0.7; }
+.auth__foot--linkedin { border-top: none; margin-top: 16px; padding-top: 0; justify-content: center; }
 
 /* ─────────────────────────────────────────────────────────────
    Loader — used wherever the app waits for data

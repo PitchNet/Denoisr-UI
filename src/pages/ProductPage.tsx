@@ -262,19 +262,19 @@ function CardFace({ card, isTop, exit }: { card: DeckCard; isTop: boolean; exit:
   )
 }
 
-type ExitKind = null | 'pass' | 'like' | 'boost'
+type ExitKind = null | 'pass' | 'like' | 'bookmark'
 
 function InteractiveDeck({ deck }: { deck: DeckCard[] }) {
   const [topIndex, setTopIndex] = useState(0)
   const [exit, setExit] = useState<ExitKind>(null)
-  const [counts, setCounts] = useState({ pass: 0, like: 0, boost: 0 })
+  const [counts, setCounts] = useState({ pass: 0, like: 0, bookmark: 0 })
   const lockedRef = useRef(false)
   const timerRef = useRef<number | null>(null)
 
   useEffect(() => {
     setTopIndex(0)
     setExit(null)
-    setCounts({ pass: 0, like: 0, boost: 0 })
+    setCounts({ pass: 0, like: 0, bookmark: 0 })
     lockedRef.current = false
   }, [deck])
 
@@ -297,7 +297,7 @@ function InteractiveDeck({ deck }: { deck: DeckCard[] }) {
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'ArrowLeft') { e.preventDefault(); decide('pass') }
     if (e.key === 'ArrowRight') { e.preventDefault(); decide('like') }
-    if (e.key === 'ArrowUp') { e.preventDefault(); decide('boost') }
+    if (e.key === 'ArrowUp') { e.preventDefault(); decide('bookmark') }
   }
 
   const topCard = deck[topIndex]
@@ -310,14 +310,19 @@ function InteractiveDeck({ deck }: { deck: DeckCard[] }) {
       className="el-deck"
       onKeyDown={onKeyDown}
       tabIndex={0}
-      aria-label="Sample deck. Arrow keys: left skip, right like, up boost."
+      aria-label="Sample deck. Arrow keys: left skip, right like, up bookmark."
     >
       <div className="el-deck__progress el-meta" aria-hidden="true">
         <span>{position} <span style={{ color: 'var(--ink-5)' }}>/ {total}</span></span>
         <span>
           <span style={{ color: 'var(--decision-pass)' }}>×{counts.pass}</span>
           <span style={{ color: 'var(--ink-5)', margin: '0 8px' }}>·</span>
-          <span style={{ color: 'var(--ink)' }}>↑{counts.boost}</span>
+            <span style={{ color: 'var(--accent)' }}>
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -1, marginRight: 2 }}>
+                <path d="M4 2h12v16l-6-4-6 4V2z" />
+              </svg>
+              {counts.bookmark}
+            </span>
           <span style={{ color: 'var(--ink-5)', margin: '0 8px' }}>·</span>
           <span style={{ color: 'var(--decision-like)' }}>♥{counts.like}</span>
         </span>
@@ -338,9 +343,9 @@ function InteractiveDeck({ deck }: { deck: DeckCard[] }) {
             <path d="M5 5l12 12M17 5L5 17" />
           </svg>
         </button>
-        <button type="button" className="el-actionbtn el-actionbtn--boost" aria-label="Boost" onClick={() => decide('boost')}>
-          <svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M11 18V4M5 10l6-6 6 6" />
+        <button type="button" className="el-actionbtn el-actionbtn--bookmark" aria-label="Bookmark" onClick={() => decide('bookmark')}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 2h12v16l-6-4-6 4V2z" />
           </svg>
         </button>
         <button type="button" className="el-actionbtn el-actionbtn--like" aria-label="Like" onClick={() => decide('like')}>
@@ -353,7 +358,12 @@ function InteractiveDeck({ deck }: { deck: DeckCard[] }) {
       <div className="el-deck__hint el-meta">
         <span>← skip</span>
         <span>·</span>
-        <span>↑ boost</span>
+        <span>
+          <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -1, marginRight: 2 }}>
+            <path d="M4 2h12v16l-6-4-6 4V2z" />
+          </svg>
+          {' '}save
+        </span>
         <span>·</span>
         <span>→ like</span>
       </div>
@@ -433,7 +443,8 @@ export default function ProductPage() {
             </p>
 
             <div className="el-hero__cta">
-              <Link to="/signup" className="el-btn el-btn--primary">Sign up</Link>
+              <Link to="/signup?source=linkedin" className="el-btn el-btn--primary">Import from LinkedIn</Link>
+              <p className="el-hero__cta-sub el-meta">Paste your LinkedIn URL. Profile filled in seconds.</p>
             </div>
 
             <div className="el-hero__foot el-meta">
@@ -471,6 +482,54 @@ export default function ProductPage() {
                 <p className="el-step__body">{s.body}</p>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── LinkedIn import ── */}
+      <section id="import" className="el-section el-section--paper2">
+        <div className="el-container">
+          <div className="el-section__head">
+            <span className="el-eyebrow">Import · One paste</span>
+            <h2 className="el-section__title">
+              Your profile. <em>Filled in ten seconds.</em>
+            </h2>
+            <p className="el-section__sub">
+              Paste your LinkedIn URL and we pull everything — experience, skills, projects.
+              You just review. No manual entry, no blank slates.
+            </p>
+          </div>
+
+          <div className="el-import">
+            <div className="el-import__demo">
+              <span className="el-import__demo-url">https://linkedin.com/in/your-profile</span>
+              <span className="el-import__demo-arrow">→</span>
+              <span className="el-import__demo-result">Filled profile</span>
+            </div>
+            <div className="el-import__items">
+              <div className="el-import__item">
+                <span className="el-import__check" aria-hidden="true">✓</span>
+                <span>Work experience &amp; projects</span>
+              </div>
+              <div className="el-import__item">
+                <span className="el-import__check" aria-hidden="true">✓</span>
+                <span>Skills &amp; highlights</span>
+              </div>
+              <div className="el-import__item">
+                <span className="el-import__check" aria-hidden="true">✓</span>
+                <span>Role, location, compensation preference</span>
+              </div>
+              <div className="el-import__item">
+                <span className="el-import__check" aria-hidden="true">✓</span>
+                <span>Ready to swipe in under 60 seconds</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="el-import__cta">
+            <Link to="/signup?source=linkedin" className="el-btn el-btn--primary">
+              Import your profile
+            </Link>
           </div>
         </div>
       </section>
@@ -565,11 +624,11 @@ export default function ProductPage() {
                 Skip the feed. <em>Find the fit.</em>
               </h2>
               <p className="el-cta__sub">
-                Three minutes to set up intent. The deck arrives the next morning.
+                Paste your LinkedIn URL and import your profile in one go. The deck arrives the next morning.
               </p>
               <div className="el-cta__actions">
-                <Link to="/signup" className="el-btn el-btn--primary">
-                  Sign up
+                <Link to="/signup?source=linkedin" className="el-btn el-btn--primary">
+                  Import from LinkedIn
                 </Link>
                 <Link to="/login" className="el-btn el-btn--ghost">
                   Sign in
