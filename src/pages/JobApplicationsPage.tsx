@@ -9,6 +9,7 @@ import '../styles/job-applications.css'
 type JobApplication = {
   id: string
   kind: string
+  status: ApplicationStatus
   headline: string
   subheadline: string
   organization: string
@@ -19,6 +20,24 @@ type JobApplication = {
   highlights: string[]
   tags: string[]
   sections: Array<{ title: string; items: string[] }>
+}
+
+type ApplicationStatus = 'new' | 'submitted' | 'reviewing' | 'shortlisted' | 'messaged' | 'hired' | 'passed'
+
+type ApplicationMeta = {
+  status: ApplicationStatus
+  timeline: Array<{ event: string }>
+  companyName: string
+}
+
+const STATUS_LABELS: Record<ApplicationStatus, string> = {
+  new: 'Submitted',
+  submitted: 'Submitted',
+  reviewing: 'Under review',
+  shortlisted: 'Shortlisted',
+  messaged: 'Company reached out',
+  hired: 'Hired',
+  passed: 'Not moving forward',
 }
 
 const SWATCHES = [
@@ -52,11 +71,33 @@ function initialsOf(name: string) {
     .toUpperCase()
 }
 
+function timelineFor(status: ApplicationStatus): Array<{ event: string }> {
+  const steps: Array<{ event: string }> = [{ event: 'You applied' }]
+  if (status === 'reviewing' || status === 'shortlisted' || status === 'messaged' || status === 'hired') {
+    steps.push({ event: 'Company is reviewing your application' })
+  }
+  if (status === 'shortlisted' || status === 'messaged' || status === 'hired') {
+    steps.push({ event: 'You were shortlisted' })
+  }
+  if (status === 'messaged' || status === 'hired') {
+    steps.push({ event: 'Company reached out' })
+  }
+  if (status === 'hired') {
+    steps.push({ event: 'You were hired' })
+  }
+  if (status === 'passed') {
+    steps.push({ event: 'Application not moving forward' })
+  }
+  return steps
+}
+
 export default function JobApplicationsPage() {
   const navigate = useNavigate()
   const [applications, setApplications] = useState<JobApplication[]>([])
+  const [metaMap, setMetaMap] = useState<Record<string, ApplicationMeta>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedAppId, setSelectedAppId] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchApplications() {
@@ -68,7 +109,18 @@ export default function JobApplicationsPage() {
           return
         }
         const data = (await response.json()) as JobApplication[]
-        setApplications(Array.isArray(data) ? data : [])
+        const list = Array.isArray(data) ? data : []
+        setApplications(list)
+
+        const meta: Record<string, ApplicationMeta> = {}
+        for (const app of list) {
+          meta[app.id] = {
+            status: app.status,
+            timeline: timelineFor(app.status),
+            companyName: app.subheadline || app.organization,
+          }
+        }
+        setMetaMap(meta)
       } catch {
         setError('Failed to load applications')
       } finally {
@@ -108,8 +160,8 @@ export default function JobApplicationsPage() {
           <span className="pr-eyebrow">Applications</span>
           <h1 className="ja-hero__title">
             {applications.length > 0
-              ? `${applications.length} application${applications.length !== 1 ? 's' : ''} submitted.`
-              : 'No applications yet.'}
+              ? `${applications.length} application${applications.length !== 1 ? 's' : ''} submitted`
+              : 'No applications yet'}
           </h1>
           <p className="ja-hero__sub">
             {applications.length > 0
@@ -120,61 +172,104 @@ export default function JobApplicationsPage() {
       </header>
 
       {applications.length > 0 ? (
-        <div className="ja-grid">
+        <div className="ja-list">
           {applications.map((job) => {
+            const meta = metaMap[job.id]
             const swatch = swatchFor(job.id)
+            const isOpen = selectedAppId === job.id
+
             return (
               <article key={job.id} className="ja-card">
-                <div className="ja-card__head">
+                <div className="ja-card__head" onClick={() => setSelectedAppId(isOpen ? null : job.id)}>
                   <div className="ja-card__avatar" style={{ background: swatch }}>
                     {initialsOf(job.organization || job.headline)}
                   </div>
                   <div className="ja-card__meta">
                     <h2 className="ja-card__title">{job.headline}</h2>
-                    <p className="ja-card__org">{job.subheadline}</p>
+                    <p className="ja-card__org">{meta?.companyName ?? job.subheadline}</p>
+                  </div>
+                  <div className="ja-card__topRight">
+                    {meta ? (
+                      <span className={`ja-badge ja-badge--${meta.status}`}>
+                        {STATUS_LABELS[meta.status]}
+                      </span>
+                    ) : null}
+                    <button type="button" className="ja-card__chevron" aria-label={isOpen ? 'Collapse' : 'Expand'}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}>
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
 
-                <div className="ja-card__row">
-                  <span>{job.location}</span>
-                  <span className="dot">·</span>
-                  <span>{pad2(job.experience)} yrs</span>
-                  <span className="dot">·</span>
-                  <span>${job.salary}k</span>
-                </div>
+                {isOpen ? (
+                  <div className="ja-card__body">
+                    <div className="ja-card__row">
+                      <span>{job.location}</span>
+                      <span className="dot">·</span>
+                      <span>{pad2(job.experience)} yrs</span>
+                      <span className="dot">·</span>
+                      <span>${job.salary}k</span>
+                    </div>
 
-                <p className="ja-card__intro">{job.intro}</p>
+                    <p className="ja-card__intro">{job.intro}</p>
 
-                {job.highlights.length > 0 && (
-                  <div className="ja-card__chips">
-                    {job.highlights.map((item) => (
-                      <span key={item} className="pr-chip">{item}</span>
-                    ))}
-                  </div>
-                )}
+                    {job.highlights.length > 0 && (
+                      <div className="ja-card__chips">
+                        {job.highlights.map((item) => (
+                          <span key={item} className="pr-chip">{item}</span>
+                        ))}
+                      </div>
+                    )}
 
-                {job.tags.length > 0 && (
-                  <div className="ja-card__tags el-meta">
-                    {job.tags.map((item) => (
-                      <span key={item}>{item}</span>
-                    ))}
-                  </div>
-                )}
+                    {job.tags.length > 0 && (
+                      <div className="ja-card__tags el-meta">
+                        {job.tags.map((item) => (
+                          <span key={item}>{item}</span>
+                        ))}
+                      </div>
+                    )}
 
-                {job.sections.length > 0 && (
-                  <div className="ja-card__sections">
-                    {job.sections.map((section) => (
-                      <section key={section.title} className="ja-card__section">
-                        <span className="pr-eyebrow">{section.title}</span>
-                        <ul className="ja-card__sectionList">
-                          {section.items.map((item) => (
-                            <li key={item}>{item}</li>
+                    {job.sections.length > 0 && (
+                      <div className="ja-card__sections">
+                        {job.sections.map((section) => (
+                          <section key={section.title} className="ja-card__section">
+                            <span className="pr-eyebrow">{section.title}</span>
+                            <ul className="ja-card__sectionList">
+                              {section.items.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </section>
+                        ))}
+                      </div>
+                    )}
+
+                    {meta && meta.timeline.length > 0 ? (
+                      <div className="ja-card__timeline">
+                        <span className="pr-eyebrow">Timeline</span>
+                        <div className="ja-timeline">
+                          {meta.timeline.map((entry, i) => (
+                            <div key={i} className="ja-timeline__entry">
+                              <div className="ja-timeline__dot" />
+                              <div className="ja-timeline__content">
+                                <span className="ja-timeline__event">{entry.event}</span>
+                              </div>
+                            </div>
                           ))}
-                        </ul>
-                      </section>
-                    ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {meta?.status === 'messaged' ? (
+                      <div className="ja-card__actions">
+                        <button type="button" className="btn btn--solidDark" onClick={() => navigate('/messages')}>
+                          View messages
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
-                )}
+                ) : null}
               </article>
             )
           })}

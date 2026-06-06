@@ -5,6 +5,14 @@ import MobileBottomNav from '../components/MobileBottomNav'
 import PhotoEditor from '../components/ui/PhotoEditor'
 import '../styles/company.css'
 
+const STATUS_LABELS: Record<string, string> = {
+  new: 'New',
+  shortlisted: 'Shortlisted',
+  messaged: 'Messaged',
+  hired: 'Hired',
+  passed: 'Rejected',
+}
+
 type CompanyData = {
   name: string
   photo: string
@@ -710,7 +718,7 @@ export default function CompanyPage() {
                     className={`cp-pipeline__tab${pipelineTab === tab ? ' cp-pipeline__tab--active' : ''}`}
                     onClick={() => setPipelineTab(tab)}
                   >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)} ({count})
+                    {STATUS_LABELS[tab] ?? tab.charAt(0).toUpperCase() + tab.slice(1)} ({count})
                   </button>
                 )
               })}
@@ -824,7 +832,7 @@ export default function CompanyPage() {
                 <div className="cp-pipeline__actions">
                   <span className="cp-eyebrow">Status</span>
                   <div className="cp-pipeline__statusRow">
-                    {(['new', 'shortlisted', 'messaged', 'hired', 'passed'] as const).map((s) => (
+                    {(['new', 'shortlisted', 'hired', 'passed'] as const).map((s) => (
                       <button
                         key={s}
                         type="button"
@@ -842,7 +850,7 @@ export default function CompanyPage() {
                           }
                         }}
                       >
-                        {s.charAt(0).toUpperCase() + s.slice(1)}
+                        {STATUS_LABELS[s] ?? s.charAt(0).toUpperCase() + s.slice(1)}
                       </button>
                     ))}
                   </div>
