@@ -216,10 +216,6 @@ const faqs: Faq[] = [
     a: 'Set intent to "open to talk" and we surface you to a much smaller set — typically peers and old collaborators rather than recruiters. Or set no intent at all and the platform stays dormant for you. Read-only is the default.',
   },
   {
-    q: 'How do I get an invite?',
-    a: 'Request one above. We hand-review every signup during the beta to keep the deck dense with signal — typically a few days, sometimes a week. If you came in through an existing member, the queue is faster.',
-  },
-  {
     q: 'Is it free?',
     a: 'Free for individuals during the beta. Companies pay per active hiring intent, billed monthly — not per seat, not per posting. Pricing goes public when the beta does.',
   },
@@ -365,56 +361,6 @@ function InteractiveDeck({ deck }: { deck: DeckCard[] }) {
   )
 }
 
-function InviteForm({ id }: { id?: string }) {
-  const [email, setEmail] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState(false)
-
-  function onSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!email.includes('@') || email.length < 5) {
-      setError(true)
-      return
-    }
-    setError(false)
-    setSubmitted(true)
-  }
-
-  if (submitted) {
-    return (
-      <div className="el-invite el-invite--done" id={id}>
-        <div className="el-invite__done-title">Thanks — you are on the list.</div>
-        <div className="el-invite__done-sub el-meta">
-          You will hear back from a real address. No autoresponder.
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <form onSubmit={onSubmit} className="el-invite" id={id} noValidate>
-      <div className="el-invite__row">
-        <input
-          type="email"
-          required
-          placeholder="you@work.com"
-          value={email}
-          onChange={(e) => { setEmail(e.target.value); setError(false) }}
-          className={`el-invite__input ${error ? 'el-invite__input--error' : ''}`}
-          aria-label="Work email"
-          aria-invalid={error}
-        />
-        <button type="submit" className="el-btn el-btn--primary">Request invite</button>
-      </div>
-      <div className="el-invite__sub el-meta">
-        {error
-          ? 'Looks like that needs a work address.'
-          : 'Hand-reviewed · No marketing list · Reply within a week'}
-      </div>
-    </form>
-  )
-}
-
 export default function ProductPage() {
   const [mode, setMode] = useState<'jobs' | 'people'>('jobs')
 
@@ -460,13 +406,7 @@ export default function ProductPage() {
             <a href="#vs" onClick={(e) => smoothJump(e, 'vs')} className="el-navlink el-navlink--marketing">vs the feed</a>
             <a href="#research" onClick={(e) => smoothJump(e, 'research')} className="el-navlink el-navlink--marketing">Research</a>
             <Link to="/login" className="el-navlink">Sign in</Link>
-            <a
-              href="#invite"
-              onClick={(e) => smoothJump(e, 'invite')}
-              className="el-btn el-btn--primary el-btn--sm"
-            >
-              Request invite
-            </a>
+            <Link to="/signup" className="el-btn el-btn--primary el-btn--sm">Sign up</Link>
           </nav>
         </div>
       </header>
@@ -478,9 +418,7 @@ export default function ProductPage() {
           <div>
             <div className="el-hero__brow">
               <span className="el-hero__brow-dot" aria-hidden="true" />
-              <span className="el-eyebrow">
-                Invite-only · Spring 2026 · {mode === 'jobs' ? 'Jobs' : 'People'}
-              </span>
+              <span className="el-eyebrow">Spring 2026 · {mode === 'jobs' ? 'Jobs' : 'People'}</span>
             </div>
 
             <h1 className="el-hero__headline">
@@ -494,8 +432,8 @@ export default function ProductPage() {
               the noise that everyone else mistakes for work.
             </p>
 
-            <div className="el-hero__invite">
-              <InviteForm id="invite" />
+            <div className="el-hero__cta">
+              <Link to="/signup" className="el-btn el-btn--primary">Sign up</Link>
             </div>
 
             <div className="el-hero__foot el-meta">
@@ -622,7 +560,7 @@ export default function ProductPage() {
         <div className="el-container">
           <div className="el-cta">
             <div className="el-cta__inner">
-              <span className="el-eyebrow">Open to new members · Cohort 05</span>
+              <span className="el-eyebrow">Open to new members · Spring 2026</span>
               <h2 className="el-cta__title">
                 Skip the feed. <em>Find the fit.</em>
               </h2>
@@ -630,13 +568,9 @@ export default function ProductPage() {
                 Three minutes to set up intent. The deck arrives the next morning.
               </p>
               <div className="el-cta__actions">
-                <a
-                  href="#invite"
-                  onClick={(e) => smoothJump(e, 'invite')}
-                  className="el-btn el-btn--primary"
-                >
-                  Request invite
-                </a>
+                <Link to="/signup" className="el-btn el-btn--primary">
+                  Sign up
+                </Link>
                 <Link to="/login" className="el-btn el-btn--ghost">
                   Sign in
                 </Link>

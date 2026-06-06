@@ -35,11 +35,10 @@ export default function SignupPage() {
       <div className="auth__wash auth__wash--alt" aria-hidden="true" />
       <article className="auth__card">
         <header className="auth__head">
-          <span className="auth__eyebrow">Request invite · Cohort 05</span>
+          <span className="auth__eyebrow">Create your account · Spring 2026</span>
           <h1 className="auth__title">Create your signal.</h1>
           <p className="auth__sub">
-            A work email gets you reviewed faster. We reply from a real address —
-            no autoresponder, no marketing list.
+            A work email is preferred. Sign up in under a minute.
           </p>
         </header>
 
@@ -75,7 +74,7 @@ export default function SignupPage() {
           ) : null}
 
           <button type="submit" className="btn btn--solidDark auth__submit">
-            Request invite
+            Sign up
           </button>
 
           <p className="auth__legal">

@@ -650,7 +650,7 @@ html, body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Auth — sign in / sign up (request invite)
+    Auth — sign in / sign up
    ───────────────────────────────────────────────────────────── */
 .auth {
   position: relative;

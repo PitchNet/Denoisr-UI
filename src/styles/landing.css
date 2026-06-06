@@ -705,61 +705,8 @@
   max-width: 70ch;
 }
 
-/* ── Invite form ────────────────────────────────────────────── */
-.el-hero__invite { margin-top: 36px; }
-.el-invite {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 480px;
-}
-.el-invite__row {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-.el-invite__input {
-  flex: 1;
-  height: 44px;
-  padding: 0 16px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--ink-5);
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-sans);
-  font-size: 14.5px;
-  outline: none;
-}
-@media (max-width: 720px) {
-  .el-invite__input { font-size: 16px; }
-}
-.el-invite__input::placeholder { color: var(--ink-4); }
-.el-invite__input:focus { border-color: var(--ink); background: var(--paper); }
-.el-invite__input--error {
-  border-color: var(--decision-pass);
-  background: rgba(196, 74, 57, 0.04);
-}
-.el-invite__sub {
-  padding-left: 4px;
-  color: var(--ink-4);
-}
-
-.el-invite--done {
-  max-width: 480px;
-  padding: 20px 22px;
-  background: var(--paper);
-  border: 1px solid var(--ink-5);
-  border-radius: var(--radius-md);
-}
-.el-invite__done-title {
-  font-weight: 500;
-  font-size: 15px;
-  color: var(--ink);
-}
-.el-invite__done-sub {
-  margin-top: 4px;
-  color: var(--ink-3);
-}
+/* ── Hero CTA ────────────────────────────────────────────── */
+.el-hero__cta { margin-top: 36px; }
 
 .el-hero__signin {
   color: var(--ink-3);
@@ -767,11 +714,6 @@
   transition: color var(--dur-fast) var(--easing-default);
 }
 .el-hero__signin:hover { color: var(--ink); }
-
-@media (max-width: 480px) {
-  .el-invite__row { flex-direction: column; }
-  .el-invite__input { width: 100%; }
-}
 
 /* ── Research papers ───────────────────────────────────────── */
 .el-papers {

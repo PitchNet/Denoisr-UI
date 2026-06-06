@@ -83,7 +83,7 @@ export default function LoginPage() {
 
         <footer className="auth__foot">
           <span className="auth__foot-text">New here?</span>
-          <Link to="/signup" className="auth__foot-link">Request invite →</Link>
+          <Link to="/signup" className="auth__foot-link">Sign up →</Link>
         </footer>
       </article>
     </div>
