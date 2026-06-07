@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { clearAuthToken, isAuthenticated, getStoredProfile } from '../auth'
 import NavIcon from './ui/NavIcon'
+import { unsubscribeFromPush } from '../notifications'
 
 export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
@@ -23,6 +24,7 @@ export default function Navbar() {
   }
 
   function handleLogout() {
+    unsubscribeFromPush()
     clearAuthToken()
     setProfileOpen(false)
     navigate('/login')
