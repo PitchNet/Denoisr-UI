@@ -64,6 +64,7 @@ export default function DashboardPage() {
   const [experience, setExperience] = useState('')
   const [salary, setSalary] = useState('')
   const [intro, setIntro] = useState('')
+  const [photo, setPhoto] = useState('')
   const [highlightEntries, setHighlightEntries] = useState<HighlightEntry[]>([
     { query: '', selectedValue: '', menuOpen: false },
   ])
@@ -103,6 +104,7 @@ export default function DashboardPage() {
       if (typeof data.experience === 'number') setExperience(String(data.experience))
       if (typeof data.salary === 'number') setSalary(String(data.salary))
       if (data.intro) setIntro(data.intro)
+      if (data.photo) setPhoto(data.photo)
       if (data.highlights && data.highlights.length > 0) {
         setHighlightEntries(data.highlights.map((h) => ({ query: h, selectedValue: h, menuOpen: false })))
       }
@@ -311,6 +313,7 @@ export default function DashboardPage() {
       experience: Number(experience || 0),
       salary: Number(salary || 0),
       intro: intro.trim(),
+      photo: photo || '',
       highlights: highlightEntries.map((entry) => entry.selectedValue).filter(Boolean),
       tags: tagEntries.map((entry) => entry.trim()).filter(Boolean),
       sections: sections
