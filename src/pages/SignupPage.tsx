@@ -4,6 +4,7 @@ import { apiRequest, getAuthTokenFromCookies } from '../api'
 import { setAuthToken } from '../auth'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
+const LINKEDIN_DATA_KEY = 'denoisr-linkedin-data'
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -51,19 +52,18 @@ export default function SignupPage() {
         setImporting(false)
         return
       }
+
+      const data = await response.json()
+
+      setAuthToken('signup-token')
+      sessionStorage.setItem(SIGNUP_CREDENTIALS_KEY, JSON.stringify({ email: email.trim(), password }))
+      sessionStorage.setItem(LINKEDIN_DATA_KEY, JSON.stringify(data))
+
+      navigate('/dashboard')
     } catch {
       setError('Could not import from that LinkedIn URL. Try again or sign up manually.')
       setImporting(false)
-      return
     }
-
-    setAuthToken('signup-token')
-    sessionStorage.setItem(
-      SIGNUP_CREDENTIALS_KEY,
-      JSON.stringify({ email: email.trim(), password }),
-    )
-
-    navigate('/dashboard')
   }
 
   function handleEmailSubmit(e: FormEvent<HTMLFormElement>) {

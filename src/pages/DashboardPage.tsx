@@ -1,10 +1,11 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { storeAuthTokenFromResponse } from '../auth'
 import '../styles/dashboard.css'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
+const LINKEDIN_DATA_KEY = 'denoisr-linkedin-data'
 
 type HighlightEntry = {
   query: string
@@ -63,8 +64,6 @@ export default function DashboardPage() {
   const [experience, setExperience] = useState('')
   const [salary, setSalary] = useState('')
   const [intro, setIntro] = useState('')
-  const [linkedinUrl, setLinkedinUrl] = useState('')
-  const [isImporting, setIsImporting] = useState(false)
   const [highlightEntries, setHighlightEntries] = useState<HighlightEntry[]>([
     { query: '', selectedValue: '', menuOpen: false },
   ])
@@ -90,6 +89,38 @@ export default function DashboardPage() {
   const canAddWork = lastWork.company.trim() !== ''
   const lastProject = projectEntries[projectEntries.length - 1]
   const canAddProject = lastProject.name.trim() !== ''
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem(LINKEDIN_DATA_KEY)
+    if (!raw) return
+    sessionStorage.removeItem(LINKEDIN_DATA_KEY)
+    try {
+      const data = JSON.parse(raw) as LinkedInResponse
+      if (data.headline) setName(data.headline)
+      if (data.subheadline) setCurrentRole(data.subheadline)
+      if (data.organization) setOrganization(data.organization)
+      if (data.location) setLocation(data.location)
+      if (typeof data.experience === 'number') setExperience(String(data.experience))
+      if (typeof data.salary === 'number') setSalary(String(data.salary))
+      if (data.intro) setIntro(data.intro)
+      if (data.highlights && data.highlights.length > 0) {
+        setHighlightEntries(data.highlights.map((h) => ({ query: h, selectedValue: h, menuOpen: false })))
+      }
+      if (data.tags && data.tags.length > 0) setTagEntries(data.tags)
+      if (data.sections && data.sections.length > 0) {
+        setSections(data.sections.map((s) => ({ title: s.title, items: s.items.length > 0 ? s.items : [''] })))
+      }
+      if (data.workExperience && data.workExperience.length > 0) {
+        setWorkEntries(data.workExperience.map((w) => ({ ...w, duration: w.duration ?? '' })))
+      }
+      if (data.projects && data.projects.length > 0) {
+        setProjectEntries(data.projects.map((p) => ({ name: p.name, url: (p.link ?? p.url ?? ''), description: p.description ?? '' })))
+      }
+    } catch {
+      // ignore invalid data
+    }
+  }, [])
+
   const matchingHighlightsByIndex = useMemo(
     () =>
       highlightEntries.map(({ query }) => {
@@ -260,66 +291,6 @@ export default function DashboardPage() {
     photo?: string
   }
 
-  async function handleImport() {
-    const url = linkedinUrl.trim()
-    if (!url) return
-
-    setIsImporting(true)
-    try {
-      const response = await apiRequest('/LoginController/linkedinImport', {
-        method: 'POST',
-        body: { url },
-      })
-      if (!response.ok) return
-      const data = (await response.json()) as LinkedInResponse
-
-      if (data.headline) setName(data.headline)
-      if (data.subheadline) setCurrentRole(data.subheadline)
-      if (data.organization) setOrganization(data.organization)
-      if (data.location) setLocation(data.location)
-      if (typeof data.experience === 'number') setExperience(String(data.experience))
-      if (typeof data.salary === 'number') setSalary(String(data.salary))
-      if (data.intro) setIntro(data.intro)
-
-      if (data.highlights && data.highlights.length > 0) {
-        setHighlightEntries(
-          data.highlights.map((h) => ({ query: h, selectedValue: h, menuOpen: false })),
-        )
-      }
-
-      if (data.tags && data.tags.length > 0) {
-        setTagEntries(data.tags)
-      }
-
-      if (data.sections && data.sections.length > 0) {
-        setSections(
-          data.sections.map((s) => ({
-            title: s.title,
-            items: s.items.length > 0 ? s.items : [''],
-          })),
-        )
-      }
-
-      if (data.workExperience && data.workExperience.length > 0) {
-        setWorkEntries(data.workExperience.map((w) => ({ ...w, duration: w.duration ?? '' })))
-      }
-
-      if (data.projects && data.projects.length > 0) {
-        setProjectEntries(
-          data.projects.map((p) => ({
-            name: p.name,
-            url: (p.link ?? p.url ?? ''),
-            description: p.description ?? '',
-          })),
-        )
-      }
-    } catch {
-      // silently fail
-    } finally {
-      setIsImporting(false)
-    }
-  }
-
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
@@ -426,27 +397,6 @@ export default function DashboardPage() {
                 proof-oriented.
               </p>
             </header>
-
-            {/* ── LinkedIn import ── */}
-            <div className="dp-import">
-              <div className="dp-import__info">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                  <rect x="2" y="9" width="4" height="12" />
-                  <circle cx="4" cy="4" r="2" />
-                </svg>
-                <div>
-                  <span className="dp-import__label">Import from LinkedIn</span>
-                  <span className="dp-import__hint">Paste your public profile URL to pre-fill the fields below.</span>
-                </div>
-              </div>
-              <div className="dp-import__row">
-                <input className="dp-input dp-import__input" type="url" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/your-profile" />
-                <button type="button" className="btn btn--solidDark dp-import__btn" onClick={handleImport} disabled={isImporting}>
-                  {isImporting ? 'Importing…' : 'Import'}
-                </button>
-              </div>
-            </div>
 
             <form className="dp-form" onSubmit={handleSubmit}>
               {/* Fundamentals */}
