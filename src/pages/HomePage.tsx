@@ -139,18 +139,22 @@ export default function HomePage() {
   const [searchParams] = useSearchParams()
   const mode: DiscoveryMode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
 
-  const [draftRoleFilter, setDraftRoleFilter] = useState('')
-  const [draftCountryFilter, setDraftCountryFilter] = useState('')
-  const [draftCityFilter, setDraftCityFilter] = useState('')
-  const [draftMaxExperience, setDraftMaxExperience] = useState(10)
-  const [draftMaxSalary, setDraftMaxSalary] = useState(200)
-  const [roleFilter, setRoleFilter] = useState('')
-  const [countryFilter, setCountryFilter] = useState('')
-  const [cityFilter, setCityFilter] = useState('')
-  const [maxExperience, setMaxExperience] = useState(10)
-  const [maxSalary, setMaxSalary] = useState(200)
-  const [draftBookmarkedOnly, setDraftBookmarkedOnly] = useState(false)
-  const [bookmarkedOnly, setBookmarkedOnly] = useState(false)
+  const initialFilters = getStoredFilters(mode)
+
+  const [draftRoleFilter, setDraftRoleFilter] = useState(initialFilters?.role ?? '')
+  const [draftSearchFilter, setDraftSearchFilter] = useState(initialFilters?.search ?? '')
+  const [draftCountryFilter, setDraftCountryFilter] = useState(initialFilters?.country ?? '')
+  const [draftCityFilter, setDraftCityFilter] = useState(initialFilters?.city ?? '')
+  const [draftMaxExperience, setDraftMaxExperience] = useState(initialFilters?.experience ?? 10)
+  const [draftMaxSalary, setDraftMaxSalary] = useState(initialFilters?.salary ?? 200)
+  const [roleFilter, setRoleFilter] = useState(initialFilters?.role ?? '')
+  const [searchFilter, setSearchFilter] = useState(initialFilters?.search ?? '')
+  const [countryFilter, setCountryFilter] = useState(initialFilters?.country ?? '')
+  const [cityFilter, setCityFilter] = useState(initialFilters?.city ?? '')
+  const [maxExperience, setMaxExperience] = useState(initialFilters?.experience ?? 10)
+  const [maxSalary, setMaxSalary] = useState(initialFilters?.salary ?? 200)
+  const [draftBookmarkedOnly, setDraftBookmarkedOnly] = useState(initialFilters?.bookmarked ?? false)
+  const [bookmarkedOnly, setBookmarkedOnly] = useState(initialFilters?.bookmarked ?? false)
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dragX, setDragX] = useState(0)
@@ -169,6 +173,7 @@ export default function HomePage() {
   const deckRef = useRef<HTMLElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const swipeLockedRef = useRef(false)
+  const initialMount = useRef(true)
 
   const activeCards = mode === 'jobs' ? jobCards : peopleCards
 
@@ -217,6 +222,7 @@ export default function HomePage() {
           method: 'POST',
           body: {
             role: roleFilter || '',
+            search: searchFilter || '',
             experience: maxExperience || null,
             country: countryFilter || '',
             city: cityFilter || '',
@@ -248,7 +254,7 @@ export default function HomePage() {
     }
 
     fetchFeed()
-  }, [mode, roleFilter, countryFilter, cityFilter, maxExperience, maxSalary])
+  }, [mode, roleFilter, searchFilter, countryFilter, cityFilter, maxExperience, maxSalary, bookmarkedOnly])
 
   useEffect(() => {
     if (mode !== 'jobs') return
@@ -303,15 +309,21 @@ export default function HomePage() {
   }, [cityFilter, countryFilter, maxExperience, maxSalary, mode, roleFilter])
 
   useEffect(() => {
+    if (initialMount.current) {
+      initialMount.current = false
+      return
+    }
     const stored = getStoredFilters(mode)
     if (stored) {
       setDraftRoleFilter(stored.role)
+      setDraftSearchFilter(stored.search)
       setDraftCountryFilter(stored.country)
       setDraftCityFilter(stored.city)
       setDraftMaxExperience(stored.experience)
       setDraftMaxSalary(stored.salary)
       setDraftBookmarkedOnly(stored.bookmarked)
       setRoleFilter(stored.role)
+      setSearchFilter(stored.search)
       setCountryFilter(stored.country)
       setCityFilter(stored.city)
       setMaxExperience(stored.experience)
@@ -319,12 +331,14 @@ export default function HomePage() {
       setBookmarkedOnly(stored.bookmarked)
     } else {
       setDraftRoleFilter('')
+      setDraftSearchFilter('')
       setDraftCountryFilter('')
       setDraftCityFilter('')
       setDraftMaxExperience(10)
       setDraftMaxSalary(200)
       setDraftBookmarkedOnly(false)
       setRoleFilter('')
+      setSearchFilter('')
       setCountryFilter('')
       setCityFilter('')
       setMaxExperience(10)
@@ -335,6 +349,7 @@ export default function HomePage() {
 
   function applyFilters() {
     setRoleFilter(draftRoleFilter)
+    setSearchFilter(draftSearchFilter)
     setCountryFilter(draftCountryFilter)
     setCityFilter(draftCityFilter)
     setMaxExperience(draftMaxExperience)
@@ -342,6 +357,7 @@ export default function HomePage() {
     setBookmarkedOnly(draftBookmarkedOnly)
     setStoredFilters(mode, {
       role: draftRoleFilter,
+      search: draftSearchFilter,
       country: draftCountryFilter,
       city: draftCityFilter,
       experience: draftMaxExperience,
@@ -352,12 +368,14 @@ export default function HomePage() {
 
   function resetFiltersAll() {
     setDraftRoleFilter('')
+    setDraftSearchFilter('')
     setDraftCountryFilter('')
     setDraftCityFilter('')
     setDraftMaxExperience(10)
     setDraftMaxSalary(200)
     setDraftBookmarkedOnly(false)
     setRoleFilter('')
+    setSearchFilter('')
     setCountryFilter('')
     setCityFilter('')
     setMaxExperience(10)
@@ -583,6 +601,16 @@ export default function HomePage() {
           ) : null}
 
           <div className="hp-fieldset">
+            <label className="hp-field">
+              <span className="hp-field__label">Search</span>
+              <input
+                className="hp-input"
+                placeholder="Company, skill, or title"
+                value={draftSearchFilter}
+                onChange={(e) => setDraftSearchFilter(e.target.value)}
+              />
+            </label>
+
             <label className="hp-field">
               <span className="hp-field__label">Role</span>
               <input
@@ -973,6 +1001,16 @@ export default function HomePage() {
             </header>
 
             <div className="hp-fieldset">
+              <label className="hp-field">
+                <span className="hp-field__label">Search</span>
+                <input
+                  className="hp-input"
+                  placeholder="Company, skill, or title"
+                  value={draftSearchFilter}
+                  onChange={(e) => setDraftSearchFilter(e.target.value)}
+                />
+              </label>
+
               <label className="hp-field">
                 <span className="hp-field__label">Role</span>
                 <input

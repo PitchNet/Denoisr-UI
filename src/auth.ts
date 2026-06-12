@@ -85,6 +85,7 @@ export async function storeAuthTokenFromResponse(response: Response) {
 
 type FilterValues = {
   role: string
+  search: string
   country: string
   city: string
   experience: number
