@@ -169,10 +169,15 @@ export default function HomePage() {
   const [previewOverflows, setPreviewOverflows] = useState(false)
   const [cardAtBottom, setCardAtBottom] = useState(false)
   const [previewAtBottom, setPreviewAtBottom] = useState(false)
+  const [jobCursor, setJobCursor] = useState<string | null>(null)
+  const [peopleCursor, setPeopleCursor] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [totalCount, setTotalCount] = useState(0)
   const cardRef = useRef<HTMLDivElement>(null)
   const deckRef = useRef<HTMLElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const swipeLockedRef = useRef(false)
+  const loadingMoreRef = useRef(false)
   const initialMount = useRef(true)
 
   const activeCards = mode === 'jobs' ? jobCards : peopleCards
@@ -228,6 +233,7 @@ export default function HomePage() {
             city: cityFilter || '',
             salary: maxSalary || null,
             bookmarked: bookmarkedOnly || null,
+            batch_size: Number(import.meta.env.VITE_FETCH_BATCH_SIZE) || 10,
           },
         })
 
@@ -237,14 +243,21 @@ export default function HomePage() {
         }
 
         const data = await res.json()
-        const formatted: DiscoveryCard[] = data.map((item: any) => ({
+        const formatted: DiscoveryCard[] = (data.items ?? data).map((item: any) => ({
           ...item,
           kind: mode,
           bookmarked: item.bookmarked ?? false,
         }))
 
-        if (mode === 'jobs') setJobCards(formatted)
-        else setPeopleCards(formatted)
+        if (mode === 'jobs') {
+          setJobCards(formatted)
+          setJobCursor(data.next_cursor ?? null)
+        } else {
+          setPeopleCards(formatted)
+          setPeopleCursor(data.next_cursor ?? null)
+        }
+        setHasMore(data.has_more ?? false)
+        setTotalCount(data.total_count ?? formatted.length)
       } catch (err) {
         console.error(err)
         setError(`Failed to load ${mode}`)
@@ -306,7 +319,64 @@ export default function HomePage() {
     setCurrentIndex(0)
     setDragX(0)
     setExitDirection(null)
-  }, [cityFilter, countryFilter, maxExperience, maxSalary, mode, roleFilter])
+  }, [cityFilter, countryFilter, maxExperience, maxSalary, mode, roleFilter, searchFilter])
+
+  async function loadMore() {
+    if (loadingMoreRef.current || !hasMore) return
+    const cursor = mode === 'jobs' ? jobCursor : peopleCursor
+    if (!cursor) return
+    loadingMoreRef.current = true
+
+    try {
+      const endpoint =
+        mode === 'jobs' ? '/FeedController/fetchJobs' : '/FeedController/fetchPeople'
+      const res = await apiRequest(endpoint, {
+        method: 'POST',
+        body: {
+          role: roleFilter || '',
+          search: searchFilter || '',
+          experience: maxExperience || null,
+          country: countryFilter || '',
+          city: cityFilter || '',
+          salary: maxSalary || null,
+          bookmarked: bookmarkedOnly || null,
+          cursor,
+          batch_size: Number(import.meta.env.VITE_FETCH_BATCH_SIZE) || 10,
+        },
+      })
+
+      if (!res.ok) return
+
+      const data = await res.json()
+      const formatted: DiscoveryCard[] = (data.items ?? []).map((item: any) => ({
+        ...item,
+        kind: mode,
+        bookmarked: item.bookmarked ?? false,
+      }))
+
+      if (mode === 'jobs') {
+        setJobCards((prev) => [...prev, ...formatted])
+        setJobCursor(data.next_cursor ?? null)
+      } else {
+        setPeopleCards((prev) => [...prev, ...formatted])
+        setPeopleCursor(data.next_cursor ?? null)
+      }
+      setHasMore(data.has_more ?? false)
+    } catch {
+      // silently fail — user can keep swiping existing cards
+    } finally {
+      loadingMoreRef.current = false
+    }
+  }
+
+  useEffect(() => {
+    if (loading || !hasMore) return
+    const cards = mode === 'jobs' ? jobCards : peopleCards
+    if (cards.length > 0 && currentIndex >= cards.length - 3) {
+      loadMore()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, mode, loading, hasMore])
 
   useEffect(() => {
     if (initialMount.current) {
@@ -718,9 +788,9 @@ export default function HomePage() {
           <div className="hp-deck__topbar">
             <div className="hp-deck__count el-meta">
               <span>{pad2(currentIndex + 1)}</span>
-              <span style={{ color: 'var(--ink-5)' }}>/ {pad2(filteredCards.length)}</span>
+              <span style={{ color: 'var(--ink-5)' }}>/ {pad2(totalCount)}</span>
               <span style={{ color: 'var(--ink-5)', margin: '0 6px' }}>·</span>
-              <span>{filteredCards.length - currentIndex} left</span>
+              <span style={{ color: 'var(--ink-5)' }}>{totalCount - (currentIndex + 1)} left</span>
             </div>
             <button
               type="button"
