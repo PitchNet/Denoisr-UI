@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { storeAuthTokenFromResponse } from '../auth'
@@ -6,6 +6,7 @@ import '../styles/dashboard.css'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 const LINKEDIN_DATA_KEY = 'denoisr-linkedin-data'
+const DRAFT_KEY = 'denoisr-dashboard-draft'
 
 type HighlightEntry = {
   query: string
@@ -30,6 +31,28 @@ type ProjectEntry = {
   url: string
   description: string
 }
+
+type DashboardDraft = {
+  name: string
+  phoneNumber: string
+  currentRole: string
+  organization: string
+  location: string
+  experience: string
+  salary: string
+  intro: string
+  photo: string
+  highlightEntries: HighlightEntry[]
+  tagEntries: string[]
+  sections: SectionEntry[]
+  workEntries: WorkEntry[]
+  projectEntries: ProjectEntry[]
+}
+
+const FUNDAMENTAL_FIELDS: Array<keyof DashboardDraft> = [
+  'name', 'phoneNumber', 'currentRole', 'organization',
+  'location', 'experience', 'salary', 'intro',
+]
 
 const fixedSections = ['Proof of work', 'Intent and fit']
 
@@ -81,6 +104,10 @@ export default function DashboardPage() {
   ])
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [validationErrors, setValidationErrors] = useState<{ section: string; count: number; id: string }[]>([])
+  const [collapsedWork, setCollapsedWork] = useState(true)
+  const [collapsedProjects, setCollapsedProjects] = useState(true)
+  const linkedinLoaded = useRef(false)
 
   const lastHighlight = highlightEntries[highlightEntries.length - 1]
   const canAddHighlight = lastHighlight.selectedValue.trim() !== ''
@@ -118,10 +145,88 @@ export default function DashboardPage() {
       if (data.projects && data.projects.length > 0) {
         setProjectEntries(data.projects.map((p) => ({ name: p.name, url: (p.link ?? p.url ?? ''), description: p.description ?? '' })))
       }
+      linkedinLoaded.current = true
     } catch {
       // ignore invalid data
     }
   }, [])
+
+  useEffect(() => {
+    if (linkedinLoaded.current) return
+    const raw = sessionStorage.getItem(DRAFT_KEY)
+    if (!raw) return
+    try {
+      const draft = JSON.parse(raw) as DashboardDraft
+      setName(draft.name ?? '')
+      setPhoneNumber(draft.phoneNumber ?? '')
+      setCurrentRole(draft.currentRole ?? '')
+      setOrganization(draft.organization ?? '')
+      setLocation(draft.location ?? '')
+      setExperience(draft.experience ?? '')
+      setSalary(draft.salary ?? '')
+      setIntro(draft.intro ?? '')
+      setPhoto(draft.photo ?? '')
+      if (draft.highlightEntries) setHighlightEntries(draft.highlightEntries)
+      if (draft.tagEntries) setTagEntries(draft.tagEntries)
+      if (draft.sections) setSections(draft.sections)
+      if (draft.workEntries) setWorkEntries(draft.workEntries)
+      if (draft.projectEntries) setProjectEntries(draft.projectEntries)
+    } catch {
+      // ignore corrupt draft
+    }
+  }, [])
+
+  const fundamentalsFilled = useMemo(() => {
+    const vals = [name, phoneNumber, currentRole, organization, location, experience, salary, intro]
+    return vals.filter((v) => v.trim() !== '').length
+  }, [name, phoneNumber, currentRole, organization, location, experience, salary, intro])
+
+  const fundamentalsTotal = FUNDAMENTAL_FIELDS.length
+  const completionPct = Math.round((fundamentalsFilled / fundamentalsTotal) * 100)
+
+  const sectionStatuses = useMemo(() => {
+    const getFieldValue = (field: string): string => {
+      const map: Record<string, string> = { name, phoneNumber, currentRole, organization, location, experience, salary, intro }
+      return map[field] ?? ''
+    }
+    const fundamentalsMissing = FUNDAMENTAL_FIELDS.filter(f => getFieldValue(f).trim() === '')
+    const skillsCount = highlightEntries.filter(e => e.selectedValue.trim() !== '').length
+    const tagsCount = tagEntries.filter(t => t.trim() !== '').length
+    const workCount = workEntries.filter(w => w.company.trim() !== '').length
+    const projectCount = projectEntries.filter(p => p.name.trim() !== '').length
+    const proofCount = sections.reduce((acc, s) => acc + s.items.filter(i => i.trim() !== '').length, 0)
+    return [
+      { id: 'fundamentals', label: 'Fundamentals', complete: fundamentalsMissing.length === 0, detail: `${fundamentalsFilled}/${fundamentalsTotal}` },
+      { id: 'skills', label: 'Skills', complete: skillsCount > 0, detail: skillsCount > 0 ? `${skillsCount} added` : 'None yet' },
+      { id: 'tags', label: 'Tags', complete: tagsCount > 0, detail: tagsCount > 0 ? `${tagsCount} added` : 'None yet' },
+      { id: 'work', label: 'Work experience', complete: workCount > 0, detail: workCount > 0 ? `${workCount} added` : 'None yet' },
+      { id: 'projects', label: 'Projects', complete: projectCount > 0, detail: projectCount > 0 ? `${projectCount} added` : 'None yet' },
+      { id: 'proof-and-intent', label: 'Proof & intent', complete: proofCount > 0, detail: proofCount > 0 ? `${proofCount} added` : 'None yet' },
+    ]
+  }, [name, phoneNumber, currentRole, organization, location, experience, salary, intro, fundamentalsFilled, highlightEntries, tagEntries, workEntries, projectEntries, sections])
+
+  const railMessage = useMemo(() => {
+    const [fundamentals] = sectionStatuses
+    if (sectionStatuses.every(s => s.complete)) return 'Everything looks good — you\'re ready to save your profile.'
+    if (fundamentals.complete) return 'Fundamentals look good! Now add skills and proof points to strengthen your card.'
+    if (fundamentalsFilled >= 4) return 'Halfway there — keep filling in the rest of your fundamentals.'
+    return 'Fill in your name, role, and intro to get started.'
+  }, [sectionStatuses, fundamentalsFilled])
+
+  // Auto-save draft on every state change
+  useEffect(() => {
+    const draft: DashboardDraft = {
+      name, phoneNumber, currentRole, organization, location,
+      experience, salary, intro, photo,
+      highlightEntries, tagEntries, sections, workEntries, projectEntries,
+    }
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+  }, [name, phoneNumber, currentRole, organization, location, experience, salary, intro, photo, highlightEntries, tagEntries, sections, workEntries, projectEntries])
+
+  // Clear validation banner when the user fixes fields
+  useEffect(() => {
+    if (validationErrors.length > 0) setValidationErrors([])
+  }, [name, phoneNumber, currentRole, organization, location, experience, salary, intro, highlightEntries, tagEntries, workEntries, projectEntries, sections])
 
   const matchingHighlightsByIndex = useMemo(
     () =>
@@ -296,6 +401,46 @@ export default function DashboardPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
+    const getFieldValue = (field: string): string => {
+      const map: Record<string, string> = { name, phoneNumber, currentRole, organization, location, experience, salary, intro }
+      return map[field] ?? ''
+    }
+
+    const errors: { section: string; count: number; id: string }[] = []
+
+    const fundamentalsMissing = FUNDAMENTAL_FIELDS.filter(f => getFieldValue(f).trim() === '')
+    if (fundamentalsMissing.length > 0) {
+      errors.push({ section: 'Fundamentals', count: fundamentalsMissing.length, id: 'fundamentals' })
+    }
+    if (!highlightEntries.some(e => e.selectedValue.trim() !== '')) {
+      errors.push({ section: 'Skills', count: 1, id: 'skills' })
+    }
+    if (!tagEntries.some(t => t.trim() !== '')) {
+      errors.push({ section: 'Tags', count: 1, id: 'tags' })
+    }
+    if (!workEntries.some(w => w.company.trim() !== '')) {
+      errors.push({ section: 'Work experience', count: 1, id: 'work' })
+    }
+    if (!projectEntries.some(p => p.name.trim() !== '')) {
+      errors.push({ section: 'Projects', count: 1, id: 'projects' })
+    }
+    const proofCount = sections.reduce((acc, s) => acc + s.items.filter(i => i.trim() !== '').length, 0)
+    if (proofCount < 1) {
+      errors.push({ section: 'Proof & intent', count: 1, id: 'proof-and-intent' })
+    }
+
+    if (errors.length > 0) {
+      setValidationErrors(errors)
+      const firstEl = document.getElementById(`dp-section-${errors[0].id}`)
+      if (firstEl) {
+        const y = firstEl.getBoundingClientRect().top + window.scrollY - 100
+        window.scrollTo({ top: y, behavior: 'smooth' })
+      }
+      return
+    }
+
+    setValidationErrors([])
+
     const storedCredentials = sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY)
     const parsedCredentials = storedCredentials
       ? (JSON.parse(storedCredentials) as { email?: string; password?: string })
@@ -355,6 +500,7 @@ export default function DashboardPage() {
 
       await storeAuthTokenFromResponse(response)
       sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY)
+      sessionStorage.removeItem(DRAFT_KEY)
       navigate('/home')
     } catch {
       setSaveError('Saving profile failed.')
@@ -379,11 +525,19 @@ export default function DashboardPage() {
           </p>
 
           <ol className="dp-stepline">
-            <li><span className="dp-stepline__num">01</span> Profile fundamentals</li>
-            <li><span className="dp-stepline__num">02</span> Highlights and tags</li>
-            <li><span className="dp-stepline__num">03</span> Work experience</li>
-            <li><span className="dp-stepline__num">04</span> Projects</li>
-            <li><span className="dp-stepline__num">05</span> Proof and intent</li>
+            {[
+              { num: '01', label: 'Fundamentals', count: `${fundamentalsFilled}/${fundamentalsTotal}` },
+              { num: '02', label: 'Highlights & tags' },
+              { num: '03', label: 'Work experience' },
+              { num: '04', label: 'Projects' },
+              { num: '05', label: 'Proof & intent' },
+            ].map((step) => (
+              <li key={step.num} className="dp-stepline__item">
+                <span className="dp-stepline__num">{step.num}</span>
+                <span className="dp-stepline__label">{step.label}</span>
+                {step.count ? <span className="dp-stepline__count">{step.count}</span> : null}
+              </li>
+            ))}
           </ol>
         </div>
       </section>
@@ -401,49 +555,64 @@ export default function DashboardPage() {
               </p>
             </header>
 
-            <form className="dp-form" onSubmit={handleSubmit}>
+            <div className="dp-formProgress">
+              <span className="dp-formProgress__label">Fundamentals &middot; {fundamentalsFilled}/{fundamentalsTotal}</span>
+              <div className="dp-formProgress__bar"><div className="dp-formProgress__fill" style={{ width: `${completionPct}%` }} /></div>
+            </div>
+
+            <form className="dp-form" onSubmit={handleSubmit} noValidate>
+              {validationErrors.length > 0 ? (
+                <div className="dp-errorBanner" role="alert">
+                  {validationErrors.map((err) => (
+                    <span key={err.id} className="dp-errorBanner__item">
+                      {err.count} required field{err.count > 1 ? 's' : ''} missing in {err.section}.
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
               {/* Fundamentals */}
-              <div className="dp-block">
+              <div className="dp-block" id="dp-section-fundamentals">
                 <span className="dp-blockBrow">— 01 Fundamentals</span>
 
                 <div className="dp-grid2">
                   <label className="dp-field">
-                    <span className="dp-label">Name</span>
+                    <span className="dp-label">Name <span className="dp-required">*</span></span>
                     <input className="dp-input" type="text" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={80} placeholder="Mateo Ruiz" />
                   </label>
 
                   <label className="dp-field">
-                    <span className="dp-label">Phone</span>
+                    <span className="dp-label">Phone <span className="dp-required">*</span></span>
                     <input className="dp-input" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required pattern="^\+?[0-9()\-\s]{6,20}$" placeholder="+34 600 000 000" />
                   </label>
 
                   <label className="dp-field">
-                    <span className="dp-label">Current role</span>
+                    <span className="dp-label">Current role <span className="dp-required">*</span></span>
                     <input className="dp-input" type="text" value={currentRole} onChange={(e) => setCurrentRole(e.target.value)} required minLength={2} maxLength={80} placeholder="Product Designer" />
                   </label>
 
                   <label className="dp-field">
-                    <span className="dp-label">Organization</span>
+                    <span className="dp-label">Organization <span className="dp-required">*</span></span>
                     <input className="dp-input" type="text" value={organization} onChange={(e) => setOrganization(e.target.value)} required minLength={2} maxLength={80} placeholder="Zinfi" />
                   </label>
 
                   <label className="dp-field dp-field--full">
-                    <span className="dp-label">Location</span>
+                    <span className="dp-label">Location <span className="dp-required">*</span></span>
                     <input className="dp-input" type="text" value={location} onChange={(e) => setLocation(e.target.value)} required minLength={2} maxLength={80} placeholder="Madrid, Spain" />
                   </label>
 
                   <label className="dp-field">
-                    <span className="dp-label">Experience (years)</span>
+                    <span className="dp-label">Experience (years) <span className="dp-required">*</span></span>
                     <input className="dp-input" type="number" value={experience} onChange={(e) => setExperience(e.target.value)} required min={0} max={40} step={1} placeholder="6" />
                   </label>
 
                   <label className="dp-field">
-                    <span className="dp-label">Target comp ($k)</span>
+                    <span className="dp-label">Target comp ($k) <span className="dp-required">*</span></span>
                     <input className="dp-input" type="number" value={salary} onChange={(e) => setSalary(e.target.value)} required min={0} max={1000} step={1} placeholder="92" />
                   </label>
 
                   <label className="dp-field dp-field--full">
-                    <span className="dp-label">Intro</span>
+                    <span className="dp-label">Intro <span className="dp-required">*</span></span>
                     <textarea
                       className="dp-input dp-textarea"
                       value={intro}
@@ -457,10 +626,10 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Highlights */}
-              <div className="dp-block">
-                <span className="dp-blockBrow">— 02 Highlights</span>
-                <p className="dp-blockHint">Crisp capability labels. Pick from the suggestions or type your own.</p>
+              {/* Skills */}
+              <div className="dp-block" id="dp-section-skills">
+                <span className="dp-blockBrow">— 02 Skills</span>
+                <p className="dp-blockHint">Pick from the list — these are used to match you with relevant roles and connections.</p>
 
                 {highlightEntries.map((entry, index) => {
                   const matching = matchingHighlightsByIndex[index]
@@ -469,7 +638,7 @@ export default function DashboardPage() {
                   return (
                     <div className="dp-row" key={`hl-${index}`}>
                       <label className="dp-field dp-field--grow">
-                        <span className="dp-label">Highlight {String(index + 1).padStart(2, '0')}</span>
+                        <span className="dp-label">Skill {String(index + 1).padStart(2, '0')}</span>
                         <input
                           className="dp-input"
                           type="search"
@@ -477,7 +646,7 @@ export default function DashboardPage() {
                           onChange={(e) => handleHighlightChange(index, e.target.value)}
                           onFocus={() => handleHighlightFocus(index)}
                           onBlur={() => handleHighlightBlur(index)}
-                          placeholder="Search a highlight"
+                          placeholder="e.g. Frontend Engineering, Product Design, Python"
                           autoComplete="off"
                           aria-expanded={entry.menuOpen && matching.length > 0}
                           aria-controls={rowId}
@@ -512,7 +681,7 @@ export default function DashboardPage() {
                           type="button"
                           className="dp-iconBtn"
                           onClick={() => removeHighlightRow(index)}
-                          aria-label={`Remove highlight ${index + 1}`}
+                          aria-label={`Remove skill ${index + 1}`}
                         >
                           −
                         </button>
@@ -522,7 +691,7 @@ export default function DashboardPage() {
                             className="dp-iconBtn dp-iconBtn--ink"
                             onClick={addHighlightRow}
                             disabled={!canAddHighlight}
-                            aria-label="Add highlight"
+                            aria-label="Add skill"
                           >
                             +
                           </button>
@@ -534,9 +703,9 @@ export default function DashboardPage() {
               </div>
 
               {/* Tags */}
-              <div className="dp-block">
+              <div className="dp-block" id="dp-section-tags">
                 <span className="dp-blockBrow">— 03 Tags</span>
-                <p className="dp-blockHint">Short contextual chips — work mode, openness, preferences.</p>
+                <p className="dp-blockHint">Free-form tags — add anything that describes your preferences, work style, or interests.</p>
 
                 {tagEntries.map((entry, index) => {
                   const isLast = index === tagEntries.length - 1
@@ -551,7 +720,7 @@ export default function DashboardPage() {
                           onChange={(e) => updateTag(index, e.target.value)}
                           required
                           maxLength={40}
-                          placeholder="Hybrid"
+                          placeholder="e.g. Hybrid, Remote-first, Open to relocating"
                         />
                       </label>
 
@@ -582,10 +751,17 @@ export default function DashboardPage() {
               </div>
 
               {/* Work experience */}
-              <div className="dp-block">
-                <span className="dp-blockBrow">— 04 Work experience</span>
-                <p className="dp-blockHint">Where you have done the work. Add at least one entry.</p>
-
+              <div className="dp-block" id="dp-section-work">
+                <button type="button" className="dp-blockToggle" onClick={() => setCollapsedWork((v) => !v)} aria-expanded={!collapsedWork}>
+                  <span className="dp-blockBrow">— 04 Work experience</span>
+                  <span className="dp-blockToggle__icon">{collapsedWork ? '+' : '−'}</span>
+                </button>
+                {collapsedWork ? (
+                  <p className="dp-blockHint">
+                    {workEntries.some((w) => w.company.trim()) ? `${workEntries.filter((w) => w.company.trim()).length} entries added` : 'Optional. Add where you have done the work.'}
+                  </p>
+                ) : (
+                  <><p className="dp-blockHint">Where you have done the work. Add at least one entry.</p>
                 {workEntries.map((entry, index) => {
                   const isLast = index === workEntries.length - 1
                   return (
@@ -642,13 +818,21 @@ export default function DashboardPage() {
                     </div>
                   )
                 })}
+                </>)}
               </div>
 
               {/* Projects */}
-              <div className="dp-block">
-                <span className="dp-blockBrow">— 05 Projects</span>
-                <p className="dp-blockHint">Side work, open-source, or standout deliverables.</p>
-
+              <div className="dp-block" id="dp-section-projects">
+                <button type="button" className="dp-blockToggle" onClick={() => setCollapsedProjects((v) => !v)} aria-expanded={!collapsedProjects}>
+                  <span className="dp-blockBrow">— 05 Projects</span>
+                  <span className="dp-blockToggle__icon">{collapsedProjects ? '+' : '−'}</span>
+                </button>
+                {collapsedProjects ? (
+                  <p className="dp-blockHint">
+                    {projectEntries.some((p) => p.name.trim()) ? `${projectEntries.filter((p) => p.name.trim()).length} entries added` : 'Optional. Side work, open-source, or standout deliverables.'}
+                  </p>
+                ) : (
+                  <><p className="dp-blockHint">Side work, open-source, or standout deliverables.</p>
                 {projectEntries.map((entry, index) => {
                   const isLast = index === projectEntries.length - 1
                   return (
@@ -696,10 +880,11 @@ export default function DashboardPage() {
                     </div>
                   )
                 })}
+                </>)}
               </div>
 
               {/* Sections */}
-              <div className="dp-block">
+              <div className="dp-block" id="dp-section-proof-and-intent">
                 <span className="dp-blockBrow">— 06 Proof and intent</span>
                 <p className="dp-blockHint">
                   Narrative blocks. Each title is fixed; the points underneath are yours to write.
@@ -774,6 +959,26 @@ export default function DashboardPage() {
 
           {/* ── Why this matters rail ── */}
           <aside className="dp-rail">
+            <div className="dp-railProgress">
+              <span className="dp-eyebrow">Progress · Fundamentals</span>
+              <div className="dp-railProgress__bar" role="progressbar" aria-valuenow={completionPct} aria-valuemin={0} aria-valuemax={100} aria-label="Profile completion">
+                <div className="dp-railProgress__fill" style={{ width: `${completionPct}%` }} />
+              </div>
+              <span className="dp-railProgress__count">{fundamentalsFilled} of {fundamentalsTotal} fields complete</span>
+            </div>
+
+            <span className="dp-eyebrow">Checklist</span>
+            <p className="dp-rail__message">{railMessage}</p>
+            <div className="dp-checklist">
+              {sectionStatuses.map((section) => (
+                <div key={section.id} className={`dp-checklist__item${section.complete ? ' dp-checklist__item--done' : ''}`}>
+                  <span className="dp-checklist__icon">{section.complete ? '✓' : '·'}</span>
+                  <span className="dp-checklist__label">{section.label}</span>
+                  <span className="dp-checklist__detail">{section.detail}</span>
+                </div>
+              ))}
+            </div>
+
             <span className="dp-eyebrow">Why this matters · Read first</span>
             <h2 className="dp-rail__title">
               Structured cards make swiping feel like <em>evaluation</em>, not guessing.
