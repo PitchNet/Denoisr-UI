@@ -1,3 +1,7 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 :root {
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -11,4 +15,6 @@ body {
 
 #root {
   min-height: 100svh;
+  display: flex;
+  flex-direction: column;
 }

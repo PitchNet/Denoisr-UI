@@ -1,9 +1,8 @@
 /* ─────────────────────────────────────────────────────────────
    Denoisr · Editorial Mono — GLOBAL tokens
-   Loaded before src/styles/denoisr.css from main.tsx so the
-   whole app inherits paper/ink/Geist by default. The old --d-*
-   tokens are aliased into editorial equivalents so legacy pages
-   shift palette without needing rewrites.
+   The whole app inherits paper/ink/Geist by default. The old
+   --d-* tokens are aliased into editorial equivalents so legacy
+   pages shift palette without needing rewrites.
    ───────────────────────────────────────────────────────────── */
 
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap");
@@ -55,7 +54,7 @@
   --dur-base: 220ms;
   --dur-card: 260ms;
 
-  /* ── Aliases for legacy --d-* tokens so denoisr.css pages
+   /* ── Aliases for legacy --d-* tokens so old pages
         inherit the editorial palette without per-page rewrites */
   --d-dark:         var(--ink);
   --d-magenta:      var(--ink);
@@ -79,51 +78,85 @@ html, body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Shared Button — replaces the old .btn/.btn--* visuals.
-   Editorial: pill radius, ink primary, ghost secondary, no gradients.
+   Shared Button — pillar of the editorial system.
+   Small radius by default; pill radius is opt-in (auth pages).
    ───────────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  height: 44px;
-  padding: 0 22px;
-  border-radius: var(--radius-pill);
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-xs);
   font-family: var(--font-sans);
-  font-size: 14.5px;
+  font-size: 16px;
+  line-height: 1;
   font-weight: 500;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.16px;
   cursor: pointer;
   text-decoration: none;
-  border: 0;
-  transition: background-color var(--dur-fast) var(--easing-default),
-              color var(--dur-fast) var(--easing-default),
-              opacity var(--dur-fast) var(--easing-default);
+  border: 1px solid transparent;
+  transition: transform var(--dur-fast) var(--easing-default),
+              background var(--dur-fast) var(--easing-default),
+              border-color var(--dur-fast) var(--easing-default);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--paper-3);
+  outline-offset: 2px;
 }
 .btn--solidDark {
   background: var(--ink);
-  color: var(--paper);
+  color: #fff;
   box-shadow: var(--shadow-button);
+  border-color: rgba(1, 1, 32, 0.25);
 }
-.btn--solidDark:hover { background: #000; }
+.btn--solidDark:hover {
+  transform: translateY(-1px);
+  background: #000;
+}
 .btn--outlinedLight {
   background: transparent;
   color: var(--ink);
-  border: 1px solid var(--ink-5);
+  border-color: var(--ink-6);
 }
-.btn--outlinedLight:hover { background: var(--paper-2); }
+.btn--outlinedLight:hover {
+  background: var(--paper-2);
+  transform: translateY(-1px);
+}
 .btn--glassDark {
   background: rgba(255, 255, 255, 0.6);
   color: var(--ink);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--ink-6);
+  border-color: var(--ink-6);
 }
 .btn--glassDark:hover { background: rgba(255, 255, 255, 0.85); }
 
+/* App layout shell */
+.denoisrApp {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+.denoisrMain {
+  flex: 1;
+}
+
+/* Section eyebrow label */
+.sectionLabel {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.sectionLabel--mono {
+  color: var(--ink-3);
+}
+
 /* ─────────────────────────────────────────────────────────────
-   Global navbar — editorial. Replaces .nav visuals in denoisr.css.
+   Global navbar — editorial.
    Selectors are namespaced .nav__* and applied on every page that
    isn't the editorial landing.
    ───────────────────────────────────────────────────────────── */
@@ -338,10 +371,10 @@ html, body {
   left: 0;
   right: 0;
   z-index: 40;
-  background: rgba(251, 250, 246, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--ink-6);
+  background: rgba(251, 250, 246, 0.7);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border-top: 1px solid var(--ink-5);
   padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
   justify-content: space-around;
   align-items: center;

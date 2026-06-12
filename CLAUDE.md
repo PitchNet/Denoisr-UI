@@ -68,9 +68,8 @@ JWT stored in a cookie (`denoisr_auth_token`), not localStorage. Lifecycle in `s
 
 **CSS load order (from `src/main.tsx`):**
 1. `src/index.css` — minimal resets
-2. `src/styles/editorial.css` — global Editorial Mono tokens at `:root`, base type, `.btn` / `.nav` / `.footer` / `.info` / `.auth` styles. Also **aliases the legacy `--d-magenta / --d-orange / --d-dark / --d-lavender / --d-shadow-elev` tokens to editorial equivalents** so older pages in `denoisr.css` inherit the new palette without per-page rewrites.
-3. `src/styles/denoisr.css` — legacy stylesheet (~3300 lines) for app pages that haven't been migrated yet. The class names and structure still live here; the *colors* now resolve to editorial via the aliases.
-4. `src/styles/landing.css` — scoped under `.editorial-landing`, only loaded by `ProductPage.tsx`.
+2. `src/styles/editorial.css` — global Editorial Mono tokens at `:root`, base type, `.btn` / `.nav` / `.footer` / `.info` / `.auth` styles. Also **aliases the legacy `--d-magenta / --d-orange / --d-dark / --d-lavender / --d-shadow-elev` tokens to editorial equivalents** so older pages inherit the new palette without per-page rewrites.
+3. `src/styles/landing.css` — scoped under `.editorial-landing`, only loaded by `ProductPage.tsx`.
 
 **Editorial Mono fundamentals (must obey):**
 - Page background is `--paper` (#fbfaf6), never pure white.
@@ -85,7 +84,7 @@ JWT stored in a cookie (`denoisr_auth_token`), not localStorage. Lifecycle in `s
 
 Routes live in `src/pages/`, wired in `src/App.tsx`. On `/` only, App.tsx hides the global `Navbar` and `Footer` so the editorial landing owns its own chrome.
 
-**All pages now migrated to Editorial Mono.** Each has its own scoped stylesheet under `src/styles/` and JSX uses namespaced class prefixes (no longer the old legacy classes from `denoisr.css`):
+**All pages now migrated to Editorial Mono.** Each has its own scoped stylesheet under `src/styles/` and JSX uses namespaced class prefixes (no longer the old legacy classes from `denoisr.css` which has been removed):
 
 - `ProductPage.tsx` (`/`) — landing. Interactive swipe deck, Jobs/People mode toggle, `vs the feed` comparison, real-cited research, FAQ accordion, inline invite form. Scoped under `.editorial-landing` in `landing.css`. App.tsx hides the global Navbar/Footer here.
 - `InfoPage.tsx` — long-form article layout used by 11 marketing/legal/info wrapper pages (About, Careers, Contact, CookiePolicy, Features, ForRecruiters, HelpCenter, HowItWorks, PrivacyPolicy, Security, Status, TermsOfService). Editing a wrapper just changes `label / title / paragraphs`. Styles in `editorial.css` under `.info`.
@@ -95,9 +94,7 @@ Routes live in `src/pages/`, wired in `src/App.tsx`. On `/` only, App.tsx hides 
 - `MessagesPage.tsx` (`/messages`) — 3-col chat (connections · thread · profile context), ⌘+↵ to send, ink-on-paper outbound bubbles vs paper-on-paper inbound, Supabase realtime subscription preserved. Scoped CSS in `messages.css`, prefix `mp-`.
 - Shared components: `Navbar`, `Footer`, `Button`, `LoadingState` — restyled via `editorial.css`.
 
-**The legacy `denoisr.css` is now dead code** for active routes. It still loads (in case anything we missed references its classes), but no page in `src/pages/` should rely on its rules anymore. Safe to delete in a follow-up cleanup once it's confirmed nothing in the tree references its classes.
-
-When migrating one of those three, mirror what `ProductPage.tsx` and `InfoPage.tsx` do: use editorial tokens directly, prefer adding new scoped class names over editing `denoisr.css`, and consult the skill's `ui_kits/web/` for layout reference (3-column desktop dashboard pattern).
+**`denoisr.css` has been removed** — its 18 in-use classes (`.denoisrApp`, `.denoisrMain`, `.btn` system, `.sectionLabel`, etc.) were merged into `editorial.css`. The ~3300-line legacy file is gone.
 
 ### Data layer
 

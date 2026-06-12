@@ -48,7 +48,7 @@ export default function Footer() {
 
   return (
     <footer className="footer">
-      <div className="container footer__inner">
+      <div className="footer__inner">
         <div className="footer__logo" aria-label="Denoisr footer logo">
           Denoisr.
         </div>
