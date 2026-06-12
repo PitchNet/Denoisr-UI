@@ -443,6 +443,62 @@
   gap: 10px;
 }
 
+/* ── Hiring toggle ──────────────────────────────────────────── */
+.dp-hiringToggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  margin-top: 8px;
+  border-radius: var(--radius-lg);
+  background: var(--paper-2);
+  border: 1px solid var(--ink-6);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--easing-default),
+              background-color var(--dur-fast) var(--easing-default);
+  user-select: none;
+}
+.dp-hiringToggle:hover {
+  border-color: var(--ink-4);
+  background: var(--paper);
+}
+.dp-hiringToggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.dp-hiringToggle__indicator {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1.5px solid var(--ink-5);
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--dur-fast) var(--easing-default),
+              background-color var(--dur-fast) var(--easing-default);
+}
+.dp-hiringToggle input:checked + .dp-hiringToggle__indicator {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.dp-hiringToggle input:checked + .dp-hiringToggle__indicator::after {
+  content: '';
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid var(--paper);
+  border-bottom: 2px solid var(--paper);
+  transform: rotate(-45deg) translateY(-1px);
+}
+.dp-hiringToggle__label {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+
 /* ── Actions + error ───────────────────────────────────────── */
 .dp-actions {
   margin-top: 12px;

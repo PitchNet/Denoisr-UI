@@ -214,7 +214,6 @@
 /* ── Deck (center) ─────────────────────────────────────────── */
 .hp-deck {
   gap: 12px;
-  overflow: hidden;
   min-height: 0;
 }
 .hp-deck__topbar {
@@ -539,6 +538,7 @@
 /* ── Preview (right column) ────────────────────────────────── */
 .hp-preview {
   gap: 22px;
+  position: relative;
 }
 .hp-preview__head { display: flex; flex-direction: column; gap: 8px; }
 .hp-preview__title {
@@ -987,6 +987,40 @@
   .hp-actionLabels span { width: 54px; }
 }
 
+/* ── Scroll arrow hint (desktop only) ──────────────────────── */
+@media (min-width: 721px) {
+  .hp-scrollArrow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--ink-6);
+    color: var(--ink-4);
+    font-size: 12px;
+    line-height: 24px;
+    text-align: center;
+    pointer-events: none;
+    z-index: 5;
+    animation: hp-scrollBounce 2s ease-in-out infinite;
+  }
+  .hp-scrollArrow::after {
+    content: '↓';
+  }
+  .hp-scrollArrow--sticky {
+    position: sticky;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+@keyframes hp-scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(4px); }
+}
+
 /* ── Loading + error ───────────────────────────────────────── */
 .hp-loading {
   min-height: calc(100svh - 64px);
@@ -1003,3 +1037,71 @@
   gap: 12px;
   color: var(--ink-2);
 }
+
+/* ── Company CTA banner ────────────────────────────────────── */
+.hp-companyCta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  margin: 4px 0 20px;
+  background: transparent;
+  border-top: 1px solid var(--ink-6);
+  border-bottom: 1px solid var(--ink-6);
+  border-radius: 0;
+}
+.hp-companyCta--deck {
+  margin-bottom: 16px;
+}
+@media (min-width: 721px) {
+  .hp-companyCta--deck { display: none; }
+  .hp-filters .hp-companyCta { flex-direction: column; align-items: stretch; }
+  .hp-filters .hp-companyCta__actions { justify-content: stretch; }
+  .hp-filters .hp-companyCta__actions .btn { flex: 1; }
+}
+@media (max-width: 720px) {
+  .hp-filters .hp-companyCta { display: none; }
+  .hp-companyCta { flex-direction: column; align-items: flex-start; }
+  .hp-companyCta__actions { width: 100%; }
+  .hp-companyCta__actions .btn { flex: 1; }
+}
+.hp-companyCta__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hp-companyCta__text {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.hp-companyCta__text strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.hp-companyCta__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.hp-companyCta .btn {
+  border-radius: var(--radius-2xl);
+  font-size: 13px;
+  padding: 7px 18px;
+}
+.hp-companyCta__dismiss {
+  background: transparent;
+  border: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-4);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  transition: color var(--dur-fast) var(--easing-default);
+}
+.hp-companyCta__dismiss:hover { color: var(--ink); }

@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { getStoredFilters, setStoredFilters, clearStoredFilters } from '../auth'
+import { getStoredFilters, setStoredFilters, clearStoredFilters, getStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import MobileBottomNav from '../components/MobileBottomNav'
 import '../styles/home.css'
@@ -159,6 +159,15 @@ export default function HomePage() {
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [matchState, setMatchState] = useState<MatchState>({ open: false, name: '', photo: '' })
+  const [companyJobsCount, setCompanyJobsCount] = useState<number | null>(null)
+  const [companyCtaDismissed, setCompanyCtaDismissed] = useState(false)
+  const [cardOverflows, setCardOverflows] = useState(false)
+  const [previewOverflows, setPreviewOverflows] = useState(false)
+  const [cardAtBottom, setCardAtBottom] = useState(false)
+  const [previewAtBottom, setPreviewAtBottom] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const deckRef = useRef<HTMLElement>(null)
+  const previewRef = useRef<HTMLDivElement>(null)
   const swipeLockedRef = useRef(false)
 
   const activeCards = mode === 'jobs' ? jobCards : peopleCards
@@ -240,6 +249,52 @@ export default function HomePage() {
 
     fetchFeed()
   }, [mode, roleFilter, countryFilter, cityFilter, maxExperience, maxSalary])
+
+  useEffect(() => {
+    if (mode !== 'jobs') return
+    const profile = getStoredProfile()
+    if (!profile?.companyId) { setCompanyJobsCount(-1); return }
+    apiRequest('/CompanyController/companyJobs', { method: 'GET' })
+      .then((res) => res.ok ? res.json() : [])
+      .then((jobs) => setCompanyJobsCount(Array.isArray(jobs) ? jobs.length : -1))
+      .catch(() => setCompanyJobsCount(-1))
+  }, [mode])
+
+  useLayoutEffect(() => {
+    if (!cardRef.current) return
+    const el = cardRef.current
+    setCardOverflows(el.scrollHeight > el.clientHeight)
+    setCardAtBottom(false)
+    el.scrollTop = 0
+  }, [currentCard])
+
+  useLayoutEffect(() => {
+    if (!previewRef.current) return
+    const el = previewRef.current
+    setPreviewOverflows(el.scrollHeight > el.clientHeight)
+    setPreviewAtBottom(false)
+    el.scrollTop = 0
+  }, [currentCard])
+
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el) return
+    const handler = () => {
+      setCardAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 2)
+    }
+    el.addEventListener('scroll', handler, { passive: true })
+    return () => el.removeEventListener('scroll', handler)
+  }, [currentCard])
+
+  useEffect(() => {
+    const el = previewRef.current
+    if (!el) return
+    const handler = () => {
+      setPreviewAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 2)
+    }
+    el.addEventListener('scroll', handler, { passive: true })
+    return () => el.removeEventListener('scroll', handler)
+  }, [currentCard])
 
   useEffect(() => {
     setCurrentIndex(0)
@@ -503,6 +558,30 @@ export default function HomePage() {
             </p>
           </header>
 
+          {mode === 'jobs' && companyJobsCount !== null && companyJobsCount <= 0 && !companyCtaDismissed ? (
+            <div className="hp-companyCta">
+              <div className="hp-companyCta__body">
+                {companyJobsCount === 0 ? (
+                  <p className="hp-companyCta__text">
+                    Your company has <strong>0 open positions</strong> &mdash; create one to attract candidates.
+                  </p>
+                ) : (
+                  <p className="hp-companyCta__text">
+                    You haven&rsquo;t set up a company yet &mdash; <strong>create one</strong> to start posting jobs.
+                  </p>
+                )}
+              </div>
+              <div className="hp-companyCta__actions">
+                <button type="button" className="btn btn--solidDark" onClick={() => navigate('/company')}>
+                  {companyJobsCount === 0 ? 'Post a job' : 'Set up company'}
+                </button>
+                <button type="button" className="hp-companyCta__dismiss" onClick={() => setCompanyCtaDismissed(true)} aria-label="Dismiss">
+                  Later
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="hp-fieldset">
             <label className="hp-field">
               <span className="hp-field__label">Role</span>
@@ -607,7 +686,7 @@ export default function HomePage() {
         </section>
 
         {/* ─── Deck (center column) ─── */}
-        <section className="hp-panel hp-deck">
+        <section className="hp-panel hp-deck" ref={deckRef}>
           <div className="hp-deck__topbar">
             <div className="hp-deck__count el-meta">
               <span>{pad2(currentIndex + 1)}</span>
@@ -662,6 +741,31 @@ export default function HomePage() {
             </div>
           ) : null}
 
+          {mode === 'jobs' && companyJobsCount !== null && companyJobsCount <= 0 && !companyCtaDismissed ? (
+            <div className="hp-companyCta hp-companyCta--deck">
+              <div className="hp-companyCta__body">
+                <span className="hp-eyebrow">Your company</span>
+                {companyJobsCount === 0 ? (
+                  <p className="hp-companyCta__text">
+                    Your company has <strong>0 open positions</strong> &mdash; create one to attract candidates.
+                  </p>
+                ) : (
+                  <p className="hp-companyCta__text">
+                    You haven&rsquo;t set up a company yet &mdash; <strong>create one</strong> to start posting jobs.
+                  </p>
+                )}
+              </div>
+              <div className="hp-companyCta__actions">
+                <button type="button" className="btn btn--solidDark" onClick={() => navigate('/company')}>
+                  {companyJobsCount === 0 ? 'Post a job' : 'Set up company'}
+                </button>
+                <button type="button" className="hp-companyCta__dismiss" onClick={() => setCompanyCtaDismissed(true)} aria-label="Dismiss">
+                  Later
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           {currentCard ? (
             <>
               <div className="hp-stage">
@@ -680,13 +784,14 @@ export default function HomePage() {
                   ))}
 
                 <article
+                  ref={cardRef}
                   className={`hp-card hp-card--top ${
                     exitDirection === 'accept'
                       ? 'hp-card--exitRight'
                       : exitDirection === 'reject'
                         ? 'hp-card--exitLeft'
                         : ''
-                  } ${isDragging ? 'hp-card--dragging' : ''}`}
+                  } ${isDragging ? 'hp-card--dragging' : ''} ${cardOverflows ? 'hp-card--overflow' : ''}`}
                   style={{
                     transform:
                       exitDirection === null
@@ -773,6 +878,8 @@ export default function HomePage() {
                       ))}
                     </div>
                   ) : null}
+
+                  {cardOverflows && !cardAtBottom ? <div className="hp-scrollArrow" aria-hidden="true" /> : null}
                 </article>
               </div>
 
@@ -830,7 +937,7 @@ export default function HomePage() {
         </section>
 
         {/* ─── Preview (right column) ─── */}
-        <aside className="hp-panel hp-preview">
+        <aside className="hp-panel hp-preview" ref={previewRef}>
           {currentCard ? (
             <DiscoveryPreview card={currentCard} />
           ) : (
@@ -842,6 +949,7 @@ export default function HomePage() {
               </p>
             </>
           )}
+          {previewOverflows && !previewAtBottom ? <div className="hp-scrollArrow hp-scrollArrow--sticky" aria-hidden="true" /> : null}
         </aside>
       </div>
 

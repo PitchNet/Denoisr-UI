@@ -105,6 +105,7 @@ export default function DashboardPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [validationErrors, setValidationErrors] = useState<{ section: string; count: number; id: string }[]>([])
+  const [wantHiring, setWantHiring] = useState(false)
   const [collapsedWork, setCollapsedWork] = useState(true)
   const [collapsedProjects, setCollapsedProjects] = useState(true)
   const linkedinLoaded = useRef(false)
@@ -501,7 +502,7 @@ export default function DashboardPage() {
       await storeAuthTokenFromResponse(response)
       sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY)
       sessionStorage.removeItem(DRAFT_KEY)
-      navigate('/home')
+      navigate(wantHiring ? '/company' : '/home')
     } catch {
       setSaveError('Saving profile failed.')
     } finally {
@@ -943,6 +944,12 @@ export default function DashboardPage() {
                   )
                 })}
               </div>
+
+              <label className="dp-hiringToggle">
+                <input type="checkbox" checked={wantHiring} onChange={(e) => setWantHiring(e.target.checked)} />
+                <span className="dp-hiringToggle__indicator" aria-hidden="true" />
+                <span className="dp-hiringToggle__label">I&rsquo;m also hiring &mdash; set up a company page and post jobs</span>
+              </label>
 
               <div className="dp-actions">
                 <button type="submit" className="btn btn--solidDark" disabled={isSaving}>
