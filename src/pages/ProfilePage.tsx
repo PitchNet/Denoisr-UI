@@ -462,7 +462,7 @@ export default function ProfilePage() {
 
           {profile.highlights.length > 0 && (
             <div className="pr-col__card">
-              <span className="pr-eyebrow">Highlights</span>
+              <span className="pr-eyebrow">Skills</span>
               <div className="pr-chips">
                 {profile.highlights.map((item) => (
                   <span key={item} className="pr-chip">{item}</span>
