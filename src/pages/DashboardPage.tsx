@@ -546,7 +546,7 @@ export default function DashboardPage() {
       {/* ── Composer ── */}
       <section className="dp-section">
         <div className="dp-grid">
-          <article className="dp-card dp-composer">
+          <article className="dp-card">
             <header className="dp-card__head">
               <span className="dp-eyebrow">Composer · People payload</span>
               <h2 className="dp-card__title">Build the card someone would actually open.</h2>
