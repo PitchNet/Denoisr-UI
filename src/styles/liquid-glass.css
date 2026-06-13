@@ -77,6 +77,12 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
+/* ── Profile dropdowns — translucent ŌśĆ\205½ ── */
+.liquid-glass .nav__profileDropdown,
+.liquid-glass .mbn__menu {
+  background: rgba(16, 20, 36, 0.9);
+}
+
 /* ── Auth card specifics ── */
 .liquid-glass .auth__card {
   background: rgba(16, 20, 36, 0.3);
