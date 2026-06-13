@@ -1,4 +1,4 @@
-type NavIconName = 'home' | 'connections' | 'messages' | 'profile' | 'logout'
+type NavIconName = 'home' | 'connections' | 'messages' | 'profile' | 'logout' | 'notifications'
 
 type Props = {
   name: NavIconName
@@ -46,6 +46,16 @@ export default function NavIcon({ name, className = '' }: Props) {
     )
   }
 
+  if (name === 'notifications') {
+    return (
+      <svg className={classes} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 3.5C9.5 3.5 7.5 5.5 7.5 8V9.5C7.5 10.5 7 11.5 6.2 12.2L5.5 12.8V14.5H18.5V12.8L17.8 12.2C17 11.5 16.5 10.5 16.5 9.5V8C16.5 5.5 14.5 3.5 12 3.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9.5 14.5V15C9.5 16.4 10.6 17.5 12 17.5C13.4 17.5 14.5 16.4 14.5 15V14.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    )
+  }
+
+  // logout (fallback)
   return (
     <svg className={classes} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M10 6H6.8C6.1 6 5.5 6.6 5.5 7.3V16.7C5.5 17.4 6.1 18 6.8 18H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

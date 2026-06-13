@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { clearAuthToken, getStoredProfile } from '../auth'
 import NavIcon from './ui/NavIcon'
+import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
 
 type ActivePage = 'home' | 'messages' | 'profile' | 'applications' | 'company'
@@ -43,6 +44,7 @@ export default function MobileBottomNav({ activePage }: Props) {
         <NavIcon name="messages" />
         <span>Messages</span>
       </button>
+      <NotificationBell variant="mobile" />
       <div className="mbn__profileWrap">
         <button
           type="button"

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { clearAuthToken, isAuthenticated, getStoredProfile } from '../auth'
 import NavIcon from './ui/NavIcon'
+import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
 
 export default function Navbar() {
@@ -73,13 +74,14 @@ export default function Navbar() {
 
             <div className="nav__appLinks" aria-label="Primary navigation">
               <button type="button" className={`nav__appLink ${isHome ? 'nav__appLink--active' : ''}`} onClick={() => navigate('/home?mode=jobs')}>
-                <NavIcon name="connections" />
+                <NavIcon name="home" />
                 <span className="nav__appLabel">Home</span>
               </button>
               <button type="button" className={`nav__appLink ${isMessages ? 'nav__appLink--active' : ''}`} onClick={() => navigate('/messages')}>
                 <NavIcon name="messages" />
                 <span className="nav__appLabel">Messages</span>
               </button>
+              <NotificationBell />
               <div className="nav__profileMenuWrap">
                 <button
                   type="button"
