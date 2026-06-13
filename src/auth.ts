@@ -137,12 +137,38 @@ export function getStoredProfile(): CachedProfile | null {
 }
 
 export function setStoredProfile(profile: CachedProfile) {
-  const json = JSON.stringify(profile)
+  const existingGlass = getGlassMode()
+  const json = JSON.stringify({ ...profile, glassMode: existingGlass })
   document.cookie = `${PROFILE_COOKIE_NAME}=${encodeURIComponent(json)}; Max-Age=${PROFILE_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`
 }
 
 export function clearStoredProfile() {
   document.cookie = `${PROFILE_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
+}
+
+/** Read glass-mode preference from the denoisr_profile cookie */
+export function getGlassMode(): boolean {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${PROFILE_COOKIE_NAME}=([^;]*)`))
+  if (!match) return false
+  try {
+    const parsed = JSON.parse(decodeURIComponent(match[1]))
+    return parsed?.glassMode === true
+  } catch {
+    return false
+  }
+}
+
+/** Persist glass-mode preference to the denoisr_profile cookie */
+export function setGlassMode(enabled: boolean) {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${PROFILE_COOKIE_NAME}=([^;]*)`))
+  let data: Record<string, unknown> = {}
+  if (match) {
+    try {
+      data = JSON.parse(decodeURIComponent(match[1]))
+    } catch {}
+  }
+  data.glassMode = enabled
+  document.cookie = `${PROFILE_COOKIE_NAME}=${encodeURIComponent(JSON.stringify(data))}; Max-Age=${PROFILE_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`
 }
 
 export async function fetchAndCacheProfile() {

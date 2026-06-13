@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearAuthToken, getStoredProfile } from '../auth'
+import { clearAuthToken, getAuthenticatedUserId, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
 import NavIcon from './ui/NavIcon'
 import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
@@ -14,11 +14,27 @@ type Props = {
 export default function MobileBottomNav({ activePage }: Props) {
   const navigate = useNavigate()
   const cachedProfile = getStoredProfile()
+  const currentUserId = getAuthenticatedUserId()
+  const allowedUserIds = (import.meta.env.VITE_GLASS_USER_IDS || '').split(',').map((id) => id.trim())
+  const showGlassToggle = allowedUserIds.includes(currentUserId)
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
+  const [glass, setGlass] = useState(() => {
+    const enabled = getGlassMode()
+    document.documentElement.classList.toggle('liquid-glass', enabled)
+    return enabled
+  })
+
+  function toggleGlass() {
+    const next = !glass
+    document.documentElement.classList.toggle('liquid-glass', next)
+    setGlassMode(next)
+    setGlass(next)
+  }
 
   function handleMobileLogout() {
     unsubscribeFromPush()
     clearAuthToken()
+    document.documentElement.classList.remove('liquid-glass')
     navigate('/login')
   }
 
@@ -45,6 +61,15 @@ export default function MobileBottomNav({ activePage }: Props) {
         <span>Messages</span>
       </button>
       <NotificationBell variant="mobile" />
+      {showGlassToggle ? (
+        <button
+          type="button"
+          className={`mbn__item ${glass ? 'mbn__item--active' : ''}`}
+          onClick={toggleGlass}
+        >
+          <span style={{ fontSize: 9 }}>{glass ? 'GLASS' : 'PAPER'}</span>
+        </button>
+      ) : null}
       <div className="mbn__profileWrap">
         <button
           type="button"

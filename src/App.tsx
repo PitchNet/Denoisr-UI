@@ -43,6 +43,9 @@ function AppShell() {
     : 'home' as const
 
   useEffect(() => {
+    if (isEditorialLanding) {
+      document.documentElement.classList.remove('liquid-glass')
+    }
     if (isAuthenticated()) {
       fetchAndCacheProfile()
       registerServiceWorker().then(() => subscribeToPush()).catch(() => {})

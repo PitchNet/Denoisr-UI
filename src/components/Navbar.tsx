@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { clearAuthToken, isAuthenticated, getStoredProfile } from '../auth'
+import { clearAuthToken, isAuthenticated, getAuthenticatedUserId, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
 import NavIcon from './ui/NavIcon'
 import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
@@ -19,6 +19,21 @@ export default function Navbar() {
   const isAppPage = isHome || isMessages || isProfile || isApplications || isCompany
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
   const cachedProfile = getStoredProfile()
+  const currentUserId = getAuthenticatedUserId()
+  const allowedUserIds = (import.meta.env.VITE_GLASS_USER_IDS || '').split(',').map((id) => id.trim())
+  const showGlassToggle = allowedUserIds.includes(currentUserId)
+  const [glass, setGlass] = useState(() => {
+    const enabled = getGlassMode()
+    document.documentElement.classList.toggle('liquid-glass', enabled)
+    return enabled
+  })
+
+  function toggleGlass() {
+    const next = !glass
+    document.documentElement.classList.toggle('liquid-glass', next)
+    setGlassMode(next)
+    setGlass(next)
+  }
 
   function updateMode(nextMode: 'jobs' | 'people') {
     setSearchParams({ mode: nextMode })
@@ -27,6 +42,7 @@ export default function Navbar() {
   function handleLogout() {
     unsubscribeFromPush()
     clearAuthToken()
+    document.documentElement.classList.remove('liquid-glass')
     setProfileOpen(false)
     navigate('/login')
   }
@@ -81,6 +97,15 @@ export default function Navbar() {
                 <NavIcon name="messages" />
                 <span className="nav__appLabel">Messages</span>
               </button>
+              {showGlassToggle ? (
+                <button
+                  type="button"
+                  className={`nav__appLink ${glass ? 'nav__appLink--active' : ''}`}
+                  onClick={toggleGlass}
+                >
+                  <span className="nav__appLabel">{glass ? 'Glass' : 'Paper'}</span>
+                </button>
+              ) : null}
               <NotificationBell />
               <div className="nav__profileMenuWrap">
                 <button
