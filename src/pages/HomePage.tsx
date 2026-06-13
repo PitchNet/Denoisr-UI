@@ -173,6 +173,7 @@ export default function HomePage() {
   const [peopleCursor, setPeopleCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const [totalCount, setTotalCount] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   const deckRef = useRef<HTMLElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
@@ -326,6 +327,7 @@ export default function HomePage() {
     const cursor = mode === 'jobs' ? jobCursor : peopleCursor
     if (!cursor) return
     loadingMoreRef.current = true
+    setLoadingMore(true)
 
     try {
       const endpoint =
@@ -366,6 +368,7 @@ export default function HomePage() {
       // silently fail — user can keep swiping existing cards
     } finally {
       loadingMoreRef.current = false
+      setLoadingMore(false)
     }
   }
 
@@ -786,12 +789,14 @@ export default function HomePage() {
         {/* ─── Deck (center column) ─── */}
         <section className="hp-panel hp-deck" ref={deckRef}>
           <div className="hp-deck__topbar">
-            <div className="hp-deck__count el-meta">
-              <span>{pad2(currentIndex + 1)}</span>
-              <span style={{ color: 'var(--ink-5)' }}>/ {pad2(totalCount)}</span>
-              <span style={{ color: 'var(--ink-5)', margin: '0 6px' }}>·</span>
-              <span style={{ color: 'var(--ink-5)' }}>{totalCount - (currentIndex + 1)} left</span>
-            </div>
+            {currentCard ? (
+              <div className="hp-deck__count el-meta">
+                <span>{pad2(currentIndex + 1)}</span>
+                <span style={{ color: 'var(--ink-5)' }}>/ {pad2(totalCount)}</span>
+                <span style={{ color: 'var(--ink-5)', margin: '0 6px' }}>·</span>
+                <span style={{ color: 'var(--ink-5)' }}>{totalCount - (currentIndex + 1)} left</span>
+              </div>
+            ) : null}
             <button
               type="button"
               className="hp-mobileFilterBtn"
@@ -1020,6 +1025,13 @@ export default function HomePage() {
                 <span>{acceptLabel}</span>
               </div>
             </>
+          ) : loadingMore ? (
+            <div className="hp-empty hp-empty--loading">
+              <span className="hp-eyebrow">Denoisr · Loading more</span>
+              <div className="loader__pulse" aria-hidden="true">
+                <span /><span /><span />
+              </div>
+            </div>
           ) : (
             <div className="hp-empty">
               <span className="hp-eyebrow">End of the deck</span>
