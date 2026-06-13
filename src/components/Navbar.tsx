@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { clearAuthToken, isAuthenticated, getAuthenticatedUserId, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
+import { clearAuthToken, isAuthenticated, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
 import NavIcon from './ui/NavIcon'
 import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
@@ -19,9 +19,6 @@ export default function Navbar() {
   const isAppPage = isHome || isMessages || isProfile || isApplications || isCompany
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
   const cachedProfile = getStoredProfile()
-  const currentUserId = getAuthenticatedUserId()
-  const allowedUserIds = (import.meta.env.VITE_GLASS_USER_IDS || '').split(',').map((id) => id.trim())
-  const showGlassToggle = allowedUserIds.includes(currentUserId)
   const [glass, setGlass] = useState(() => {
     const enabled = getGlassMode()
     document.documentElement.classList.toggle('liquid-glass', enabled)
@@ -97,15 +94,6 @@ export default function Navbar() {
                 <NavIcon name="messages" />
                 <span className="nav__appLabel">Messages</span>
               </button>
-              {showGlassToggle ? (
-                <button
-                  type="button"
-                  className={`nav__appLink ${glass ? 'nav__appLink--active' : ''}`}
-                  onClick={toggleGlass}
-                >
-                  <span className="nav__appLabel">{glass ? 'Glass' : 'Paper'}</span>
-                </button>
-              ) : null}
               <NotificationBell />
               <div className="nav__profileMenuWrap">
                 <button
@@ -146,6 +134,9 @@ export default function Navbar() {
                     </button>
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/applications'); }}>
                       Job Applications
+                    </button>
+                    <button type="button" className={`nav__profileDropdownBtn ${glass ? 'nav__profileDropdownBtn--active' : ''}`} onClick={toggleGlass}>
+                      {glass ? 'Light mode' : 'Dark mode'}
                     </button>
                     <div className="nav__dropdownDivider" />
                     <span className="nav__dropdownLabel">Manage</span>

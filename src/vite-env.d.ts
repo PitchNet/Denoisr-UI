@@ -5,7 +5,6 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string
   readonly VITE_SUPABASE_ANON_KEY: string
   readonly VITE_FETCH_BATCH_SIZE: string
-  readonly VITE_GLASS_USER_IDS: string
 }
 
 interface ImportMeta {

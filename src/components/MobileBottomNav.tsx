@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearAuthToken, getAuthenticatedUserId, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
+import { clearAuthToken, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
 import NavIcon from './ui/NavIcon'
 import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
@@ -14,9 +14,6 @@ type Props = {
 export default function MobileBottomNav({ activePage }: Props) {
   const navigate = useNavigate()
   const cachedProfile = getStoredProfile()
-  const currentUserId = getAuthenticatedUserId()
-  const allowedUserIds = (import.meta.env.VITE_GLASS_USER_IDS || '').split(',').map((id) => id.trim())
-  const showGlassToggle = allowedUserIds.includes(currentUserId)
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
   const [glass, setGlass] = useState(() => {
     const enabled = getGlassMode()
@@ -61,15 +58,6 @@ export default function MobileBottomNav({ activePage }: Props) {
         <span>Messages</span>
       </button>
       <NotificationBell variant="mobile" />
-      {showGlassToggle ? (
-        <button
-          type="button"
-          className={`mbn__item ${glass ? 'mbn__item--active' : ''}`}
-          onClick={toggleGlass}
-        >
-          <span style={{ fontSize: 9 }}>{glass ? 'GLASS' : 'PAPER'}</span>
-        </button>
-      ) : null}
       <div className="mbn__profileWrap">
         <button
           type="button"
@@ -106,6 +94,9 @@ export default function MobileBottomNav({ activePage }: Props) {
             <span className="mbn__groupLabel">Account</span>
             <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/profile'); }}>View profile</button>
             <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/applications'); }}>Job applications</button>
+            <button type="button" className={`mbn__action ${glass ? 'mbn__action--active' : ''}`} onClick={toggleGlass}>
+              {glass ? 'Light mode' : 'Dark mode'}
+            </button>
             <div className="mbn__divider" />
             <span className="mbn__groupLabel">Manage</span>
             <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/company'); }}>Company</button>
