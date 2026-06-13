@@ -228,6 +228,7 @@
   text-align: left;
 }
 .dp-blockToggle:hover .dp-blockBrow { color: var(--ink); }
+.dp-blockToggle:active .dp-blockBrow { color: var(--ink-2); }
 .dp-blockToggle__icon {
   font-family: var(--font-mono);
   font-size: 14px;
@@ -333,6 +334,7 @@
   transition: background-color var(--dur-fast) var(--easing-default);
 }
 .dp-suggest__opt:hover { background: var(--paper-2); color: var(--ink); }
+.dp-suggest__opt:active { background: var(--paper-3); color: var(--ink); }
 
 /* ── Repeatable rows (highlights, tags, points) ────────────── */
 .dp-row {
@@ -365,12 +367,14 @@
   justify-content: center;
 }
 .dp-iconBtn:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink); }
+.dp-iconBtn:active { background: var(--paper-3); border-color: var(--ink-3); transform: scale(0.95); }
 .dp-iconBtn--ink {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
 }
 .dp-iconBtn--ink:hover { background: #000; color: var(--paper); }
+.dp-iconBtn--ink:active { background: #1a1a1a; transform: scale(0.95); }
 .dp-iconBtn--sm {
   width: auto;
   height: 34px;
@@ -433,6 +437,10 @@
 .dp-hiringToggle:hover {
   border-color: var(--ink-4);
   background: var(--paper);
+}
+.dp-hiringToggle:active {
+  border-color: var(--ink-3);
+  background: var(--paper-2);
 }
 .dp-hiringToggle input {
   position: absolute;

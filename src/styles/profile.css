@@ -189,6 +189,7 @@
   transition: opacity var(--dur-fast) var(--easing-default);
 }
 .pr-avatar--photo:hover { opacity: 0.8; }
+.pr-avatar--photo:active { opacity: 0.6; }
 
 /* ── Avatar wrap (centers the avatar, holds kebab in top right) ── */
 .pr-avatarWrap {
@@ -225,6 +226,10 @@
   background: var(--paper-2);
   color: var(--ink);
 }
+.pr-kebab__toggle:active {
+  background: var(--paper-3);
+  color: var(--ink);
+}
 
 .pr-kebab__menu {
   position: absolute;
@@ -254,6 +259,7 @@
   white-space: nowrap;
 }
 .pr-kebab__action:hover { background: var(--paper-2); color: var(--ink); }
+.pr-kebab__action:active { background: var(--paper-3); color: var(--ink); }
 
 /* ── Name / role / meta ─────────────────────────────────────── */
 .pr-hero__name {
@@ -535,6 +541,7 @@
   transition: color var(--dur-fast) var(--easing-default);
 }
 .pr-projects__link:hover { color: var(--ink); }
+.pr-projects__link:active { opacity: 0.7; }
 
 .pr-projects__desc {
   font-size: 14px;

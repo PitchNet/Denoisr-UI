@@ -151,6 +151,7 @@
               color var(--dur-fast) var(--easing-default);
 }
 .mp-requestsRow:hover { background: var(--paper-3); color: var(--ink); }
+.mp-requestsRow:active { background: var(--paper-4); color: var(--ink); }
 
 .mp-list {
   flex: 1;
@@ -178,6 +179,7 @@
   transition: background-color var(--dur-fast) var(--easing-default);
 }
 .mp-item:hover { background: var(--paper-2); }
+.mp-item:active { background: var(--paper-3); }
 .mp-item--active { background: var(--paper-2); border: 1px solid var(--ink-5); }
 .mp-item--locked {
   cursor: default;
@@ -505,6 +507,8 @@
   align-items: center;
   justify-content: center;
 }
+.mp-backbtn:hover { background: var(--paper-2); }
+.mp-backbtn:active { background: var(--paper-3); }
 .mp-error {
   padding: 80px 36px;
   max-width: 600px;

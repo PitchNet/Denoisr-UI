@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import LoadingState from '../components/ui/LoadingState'
-import MobileBottomNav from '../components/MobileBottomNav'
 import '../styles/profile.css'
 
 type ProfileData = {
@@ -578,7 +577,6 @@ export default function ProfilePage() {
         </aside>
       </div>
 
-      <MobileBottomNav activePage="profile" />
     </div>
   )
 }

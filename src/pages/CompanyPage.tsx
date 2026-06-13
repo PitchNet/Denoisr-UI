@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiRequest, getAuthTokenFromCookies } from '../api'
 import { getStoredProfile, setStoredProfile } from '../auth'
-import MobileBottomNav from '../components/MobileBottomNav'
 import PhotoEditor from '../components/ui/PhotoEditor'
 import '../styles/company.css'
 
@@ -861,7 +860,6 @@ export default function CompanyPage() {
         )}
 
       </div>
-      <MobileBottomNav activePage="company" />
     </div>
   )
 }

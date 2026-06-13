@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { apiRequest } from '../api'
 import { getAuthenticatedUserId } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
-import MobileBottomNav from '../components/MobileBottomNav'
 import { supabase } from '../supabase'
 import '../styles/messages.css'
 
@@ -533,7 +532,6 @@ export default function MessagesPage() {
         </aside>
       </div>
 
-      <MobileBottomNav activePage="messages" />
     </div>
   )
 }

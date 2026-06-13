@@ -54,6 +54,10 @@
   background: var(--paper-2);
   color: var(--ink);
 }
+.pe-photoClose:active {
+  background: var(--paper-3);
+  color: var(--ink);
+}
 
 .pe-photoEyebrow {
   font-family: var(--font-mono);
@@ -100,6 +104,10 @@
   border-color: var(--ink);
   color: var(--ink-2);
 }
+.pe-photoDrop:active {
+  background: var(--paper-4);
+  border-color: var(--ink-3);
+}
 
 .pe-photoDropText {
   font-size: 15px;
@@ -108,6 +116,7 @@
 }
 .pe-photoDrop:hover .pe-photoDropText,
 .pe-photoDrop--over .pe-photoDropText { color: var(--ink); }
+.pe-photoDrop:active .pe-photoDropText { color: var(--ink-2); }
 
 .pe-photoDropHint {
   font-family: var(--font-mono);

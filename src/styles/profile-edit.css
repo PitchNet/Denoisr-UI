@@ -155,12 +155,14 @@
   justify-content: center;
 }
 .pe-iconBtn:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink); }
+.pe-iconBtn:active { background: var(--paper-3); border-color: var(--ink-3); transform: scale(0.95); }
 .pe-iconBtn--ink {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
 }
 .pe-iconBtn--ink:hover { background: #000; color: var(--paper); }
+.pe-iconBtn--ink:active { background: #1a1a1a; transform: scale(0.95); }
 .pe-iconBtn[disabled] {
   opacity: 0.4;
   cursor: not-allowed;
@@ -209,6 +211,7 @@
   transition: background-color var(--dur-fast) var(--easing-default);
 }
 .pe-suggest__opt:hover { background: var(--paper-2); color: var(--ink); }
+.pe-suggest__opt:active { background: var(--paper-3); color: var(--ink); }
 
 /* ── Sub-block (work / projects) ───────────────────────────── */
 .pe-subblock {

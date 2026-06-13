@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import LoadingState from '../components/ui/LoadingState'
-import MobileBottomNav from '../components/MobileBottomNav'
 import '../styles/profile.css'
 import '../styles/job-applications.css'
 
@@ -285,7 +284,6 @@ export default function JobApplicationsPage() {
         </div>
       )}
 
-      <MobileBottomNav activePage="applications" />
     </div>
   )
 }

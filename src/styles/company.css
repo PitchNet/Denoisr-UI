@@ -119,6 +119,7 @@
   text-underline-offset: 3px;
 }
 .cp-link:hover { color: var(--ink); }
+.cp-link:active { opacity: 0.7; }
 
 .cp-detail {
   font-size: 14px;
@@ -176,6 +177,7 @@
   cursor: pointer;
 }
 .cp-chipRemove:hover { color: var(--decision-pass); }
+.cp-chipRemove:active { opacity: 0.7; }
 
 .cp-actions {
   display: flex;
@@ -244,6 +246,10 @@
   border-color: var(--ink-3);
   color: var(--ink);
 }
+.cp-jobPencil:active {
+  border-color: var(--ink-4);
+  color: var(--ink-2);
+}
 .cp-jobEdit {
   display: flex;
   flex-direction: column;
@@ -301,6 +307,8 @@
   flex-shrink: 0;
   cursor: pointer;
 }
+.cp-photoPreview:hover { border-color: var(--ink-3); }
+.cp-photoPreview:active { border-color: var(--ink-4); }
 .cp-photoPreview--empty {
   border: 1px dashed var(--ink-5);
   background: transparent;
@@ -310,6 +318,7 @@
   transition: border-color var(--dur-fast) var(--easing-default);
 }
 .cp-photoPreview--empty:hover { border-color: var(--ink-3); }
+.cp-photoPreview--empty:active { border-color: var(--ink-4); }
 .cp-photoPlaceholder {
   display: flex;
   flex-direction: column;
@@ -325,6 +334,7 @@
   height: 100%;
 }
 .cp-photoPreview--empty:hover .cp-photoPlaceholder { color: var(--ink-2); }
+.cp-photoPreview--empty:active .cp-photoPlaceholder { color: var(--ink-3); }
 .cp-photoRemove {
   position: absolute;
   top: -6px;
@@ -342,6 +352,7 @@
   padding: 0;
 }
 .cp-photoRemove:hover { color: var(--decision-pass); border-color: var(--decision-pass); }
+.cp-photoRemove:active { opacity: 0.7; }
 .cp-label {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -369,6 +380,8 @@
   appearance: none;
   cursor: pointer;
 }
+.cp-select:hover { border-color: var(--ink-3); }
+.cp-select:active { border-color: var(--ink-4); }
 .cp-textarea {
   resize: vertical;
   min-height: 80px;
@@ -409,6 +422,7 @@
   transition: color var(--dur-fast) var(--easing-default), background var(--dur-fast) var(--easing-default);
 }
 .cp-pipeline__tab:hover { color: var(--ink); background: var(--paper-2); }
+.cp-pipeline__tab:active { background: var(--paper-3); }
 .cp-pipeline__tab--active { color: var(--ink); background: var(--paper-2); font-weight: 600; }
 .cp-pipeline__grid {
   display: grid;
@@ -436,6 +450,7 @@
   position: relative;
 }
 .cp-pipeline__applicant:hover { background: var(--paper-2); }
+.cp-pipeline__applicant:active { background: var(--paper-3); }
 .cp-pipeline__applicant--active { background: var(--paper-2); }
 .cp-pipeline__applicantAvatar {
   width: 36px;
@@ -600,6 +615,7 @@
   transition: all var(--dur-fast) var(--easing-default);
 }
 .cp-pipeline__statusBtn:hover { border-color: var(--ink-3); color: var(--ink); }
+.cp-pipeline__statusBtn:active { border-color: var(--ink-4); color: var(--ink-2); }
 .cp-pipeline__statusBtn--active {
   background: var(--ink);
   border-color: var(--ink);
@@ -643,8 +659,10 @@
   transition: background var(--dur-fast) var(--easing-default), color var(--dur-fast) var(--easing-default);
 }
 .cp-jobBadge:hover { background: var(--ink-6); color: var(--ink-2); }
+.cp-jobBadge:active { background: var(--ink-5); }
 .cp-jobInfo--clickable { cursor: pointer; }
 .cp-jobInfo--clickable:hover .cp-jobHeadline { color: var(--ink-2); }
+.cp-jobInfo--clickable:active .cp-jobHeadline { color: var(--ink-3); }
 
 @media (max-width: 720px) {
   .cp-pipeline { padding: 16px; }

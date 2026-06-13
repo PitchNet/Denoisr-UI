@@ -90,6 +90,8 @@
   gap: 12px;
   cursor: pointer;
 }
+.ja-card__head:hover { background: var(--paper-2); }
+.ja-card__head:active { background: var(--paper-3); }
 .ja-card__topRight {
   display: flex;
   align-items: center;
@@ -106,6 +108,7 @@
   align-items: center;
 }
 .ja-card__chevron:hover { color: var(--ink); }
+.ja-card__chevron:active { color: var(--ink-2); }
 .ja-card__body {
   display: flex;
   flex-direction: column;

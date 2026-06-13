@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { getStoredFilters, setStoredFilters, clearStoredFilters, getStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
-import MobileBottomNav from '../components/MobileBottomNav'
 import '../styles/home.css'
 
 type DiscoveryMode = 'jobs' | 'people'
@@ -1187,7 +1186,6 @@ export default function HomePage() {
         </div>
       ) : null}
 
-      <MobileBottomNav activePage="home" />
     </div>
   )
 }

@@ -16,6 +16,7 @@ import ProfileEditPage from './pages/ProfileEditPage'
 import ProfilePage from './pages/ProfilePage'
 import ProductPage from './pages/ProductPage'
 import SignupPage from './pages/SignupPage'
+import MobileBottomNav from './components/MobileBottomNav'
 import AboutPage from './pages/AboutPage'
 import CareersPage from './pages/CareersPage'
 import CookiePolicyPage from './pages/CookiePolicyPage'
@@ -33,6 +34,13 @@ function AppShell() {
   const { pathname } = useLocation()
   const isEditorialLanding = pathname === '/'
   const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications' || pathname === '/company'
+
+  const activePage = pathname.startsWith('/profile') ? 'profile'
+    : pathname === '/home' ? 'home'
+    : pathname === '/messages' ? 'messages'
+    : pathname === '/applications' ? 'applications'
+    : pathname === '/company' ? 'company'
+    : 'home' as const
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -73,6 +81,7 @@ function AppShell() {
           <Route path="/terms-of-service" element={<TermsOfServicePage />} />
           <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         </Routes>
+        <MobileBottomNav activePage={activePage} />
       </main>
       {isEditorialLanding || isAppPage ? null : <Footer />}
     </div>
