@@ -84,7 +84,7 @@ function AppShell() {
           <Route path="/terms-of-service" element={<TermsOfServicePage />} />
           <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         </Routes>
-        <MobileBottomNav activePage={activePage} />
+        {isAuthenticated() ? <MobileBottomNav activePage={activePage} /> : null}
       </main>
       {isEditorialLanding || isAppPage ? null : <Footer />}
     </div>
