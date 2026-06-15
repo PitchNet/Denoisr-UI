@@ -39,7 +39,7 @@ Single-page React 19 + TypeScript + Vite app deployed to Vercel (`vercel.json` r
 `src/App.tsx` defines all routes. Three categories:
 
 - `PublicOnlyRoute` (`/`, `/login`, `/signup`) — redirects authenticated users to `/home`
-- `ProtectedRoute` (`/home`, `/dashboard`, `/messages`) — redirects unauthenticated users to `/login`
+- `ProtectedRoute` (`/home`, `/dashboard`, `/messages`, `/profile`, `/profile/edit`, `/applications`, `/company`) — redirects unauthenticated users to `/login`
 - Unguarded marketing/legal pages (features, about, careers, privacy, etc.)
 
 Both guards live in `src/components/AuthGuard.tsx` and key off `isAuthenticated()` from `src/auth.ts`. A special case: `/dashboard` is accessible mid-signup via the `hasSignupInProgress()` sessionStorage flag, before a real token exists.
@@ -52,13 +52,31 @@ JWT stored in a cookie (`denoisr_auth_token`), not localStorage. Lifecycle in `s
 - `getAuthenticatedUserId` decodes the JWT payload client-side and tries `user_id`/`userId`/`id`/`sub` in that order — backend responses may use any of these claim names
 - `SIGNUP_PLACEHOLDER_TOKEN = 'signup-token'` is treated as "not really authenticated" so the signup flow can store a sentinel without unlocking protected pages
 
+Additional utilities in `src/auth.ts`:
+
+- `getStoredFilters` / `setStoredFilters` / `clearStoredFilters` — persist active filter state per mode (`jobs` | `people`) in cookies (`denoisr_filters_jobs`, `denoisr_filters_people`)
+- `getStoredProfile` / `setStoredProfile` / `clearStoredProfile` — cache the user's profile in a `denoisr_profile` cookie (same 1-week TTL) to avoid a fetch on every page load
+- `fetchAndCacheProfile` — called on every route change (in `App.tsx` `useEffect`) when authenticated; silently updates the profile cookie from `/ProfileController/getProfile`
+- `getGlassMode` / `setGlassMode` — reads/writes a `glassMode` boolean persisted inside the `denoisr_profile` cookie; toggles the liquid-glass UI theme
+
 ### API layer
 
 `src/api.ts` exposes a single `apiRequest(path, { method, body })` helper that defaults to `POST`, JSON-serializes the body, and attaches `Authorization: Bearer <cookie>`. The Denoisr backend uses controller-style paths like `/FeedController/getMessages` (see `MessagesPage.tsx`). When adding new endpoints, go through `apiRequest` so the auth header and base URL stay consistent.
 
+Retry behaviour: `apiRequest` retries up to 10 times on 5xx or network errors using exponential backoff (`BASE_DELAY=500ms * 2^attempt + jitter`). 4xx responses are returned immediately without retry.
+
 ### Supabase
 
 `src/supabase.ts` exports a single shared `supabase` client. It's used alongside the REST API — primarily for realtime subscriptions on the messages feature, not as the source of truth for auth (auth tokens come from the Denoisr backend, not Supabase Auth).
+
+### Push notifications
+
+`src/notifications.ts` handles Web Push on the client side:
+
+1. `registerServiceWorker()` — registers `public/sw.js`
+2. `subscribeToPush()` — fetches the VAPID public key from `/NotificationController/vapidPublicKey`, calls `pushManager.subscribe`, then POSTs the subscription to `/NotificationController/subscribe`
+
+Both are called on every authenticated route change (in `App.tsx`). The service worker at `public/sw.js` handles `push` events and shows the notification.
 
 ### Styling — Editorial Mono is authoritative
 
@@ -88,11 +106,18 @@ Routes live in `src/pages/`, wired in `src/App.tsx`. On `/` only, App.tsx hides 
 
 - `ProductPage.tsx` (`/`) — landing. Interactive swipe deck, Jobs/People mode toggle, `vs the feed` comparison, real-cited research, FAQ accordion, inline invite form. Scoped under `.editorial-landing` in `landing.css`. App.tsx hides the global Navbar/Footer here.
 - `InfoPage.tsx` — long-form article layout used by 11 marketing/legal/info wrapper pages (About, Careers, Contact, CookiePolicy, Features, ForRecruiters, HelpCenter, HowItWorks, PrivacyPolicy, Security, Status, TermsOfService). Editing a wrapper just changes `label / title / paragraphs`. Styles in `editorial.css` under `.info`.
-- `LoginPage.tsx`, `SignupPage.tsx` — editorial auth card with pastel wash, mono labels, pill primary button. Styles in `editorial.css` under `.auth`.
+- `LoginPage.tsx`, `SignupPage.tsx` — editorial auth card with pastel wash, mono labels, pill primary button. Styles in `editorial.css` under `.auth`. `SignupPage` supports a LinkedIn import flow: user pastes their LinkedIn URL → hits `/LoginController/linkedinImport` → backend scrapes via Apify then restructures with Gemini → pre-fills the signup form.
 - `HomePage.tsx` (`/home`) — 3-column dashboard (filters · deck · preview) per the skill's `ui_kits/web/` spec. Drag-swipe, decision stamps that fade in proportional to drag distance, "It's a fit." match overlay, mobile bottom-nav, mobile chip rail for active filters. Scoped CSS in `home.css`, prefix `hp-`.
 - `DashboardPage.tsx` (`/dashboard`) — profile composer with repeatable rows (highlights / tags / proof sections), typeahead suggestions, sticky right rail. Scoped CSS in `dashboard.css`, prefix `dp-`.
 - `MessagesPage.tsx` (`/messages`) — 3-col chat (connections · thread · profile context), ⌘+↵ to send, ink-on-paper outbound bubbles vs paper-on-paper inbound, Supabase realtime subscription preserved. Scoped CSS in `messages.css`, prefix `mp-`.
+- `ProfilePage.tsx` (`/profile`) — read-only view of the current user's profile. Scoped CSS in `profile.css`.
+- `ProfileEditPage.tsx` (`/profile/edit`) — full profile editor (photo, headline, highlights, tags, sections, work experience, projects). Photo upload goes to `/ProfileController/uploadImage` (proxied to ImgBB). Scoped CSS in `profile-edit.css`.
+- `JobApplicationsPage.tsx` (`/applications`) — candidate's list of jobs they've swiped right on, with status badges. Fetches from `/FeedController/jobApplications`. Scoped CSS in `job-applications.css`, prefix `jap-`.
+- `CompanyPage.tsx` (`/company`) — recruiter-facing dashboard: company profile form, job listing management, applicant review with status pipeline (new → reviewing → shortlisted → messaged → hired / passed). Fetches from `CompanyController` endpoints. Scoped CSS in `company.css`, prefix `cp-`.
 - Shared components: `Navbar`, `Footer`, `Button`, `LoadingState` — restyled via `editorial.css`.
+- `MobileBottomNav` — rendered inside `App.tsx` for all authenticated app pages; receives an `activePage` prop derived from `pathname`.
+- `NotificationBell` (`src/components/ui/NotificationBell.tsx`) — shows unread notification count badge; polls `/NotificationController/unreadCount`.
+- `PhotoEditor` (`src/components/ui/PhotoEditor.tsx`) — crop/preview UI for profile photo uploads; used in `ProfileEditPage`. Scoped CSS in `photo-editor.css`.
 
 **`denoisr.css` has been removed** — its 18 in-use classes (`.denoisrApp`, `.denoisrMain`, `.btn` system, `.sectionLabel`, etc.) were merged into `editorial.css`. The ~3300-line legacy file is gone.
 
