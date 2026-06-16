@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import '../../styles/toast.css'
 
 export type ToastType = 'info' | 'success' | 'error'
@@ -73,6 +73,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     },
     [dismiss],
   )
+
+  useEffect(() => {
+    function onApiExhausted() {
+      showToast('Request failed. Check your connection and try again.', 'error')
+    }
+    window.addEventListener('api:exhausted', onApiExhausted)
+    return () => window.removeEventListener('api:exhausted', onApiExhausted)
+  }, [showToast])
 
   return (
     <ToastContext.Provider value={{ showToast }}>

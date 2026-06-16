@@ -1,5 +1,8 @@
 const AUTH_COOKIE_NAME = 'denoisr_auth_token'
 
+let _lastExhaustedToastAt = 0
+const EXHAUSTED_TOAST_DEBOUNCE_MS = 10_000
+
 type JsonValue =
   | string
   | number
@@ -65,6 +68,12 @@ export async function apiRequest(path: string, options: ApiRequestOptions = {}) 
         await new Promise((resolve) => setTimeout(resolve, delay))
       }
     }
+  }
+
+  const now = Date.now()
+  if (now - _lastExhaustedToastAt > EXHAUSTED_TOAST_DEBOUNCE_MS) {
+    _lastExhaustedToastAt = now
+    window.dispatchEvent(new CustomEvent('api:exhausted', { detail: { path } }))
   }
 
   if (lastResponse) return lastResponse
