@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { getStoredFilters, setStoredFilters, clearStoredFilters, getStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import { useToast } from '../components/ui/Toast'
 import '../styles/home.css'
 
 type DiscoveryMode = 'jobs' | 'people'
@@ -10,9 +11,30 @@ type SwipeDirection = 'accept' | 'reject'
 
 type MatchState = {
   open: boolean
+  id: string
   name: string
   photo: string
+  subheadline: string
 }
+
+const OPENER_TEMPLATES = [
+  (n: string) => `Hey ${n}, seems like we see eye to eye. Worth a conversation?`,
+  (n: string) => `Hi ${n} — mutual interest is a good start. Open to a chat?`,
+  (n: string) => `${n}, looked like a natural fit. Up for connecting?`,
+  (n: string) => `Hey ${n}, your profile stood out. Let's talk.`,
+]
+
+type Particle = { id: number; style: React.CSSProperties }
+const PARTICLES: Particle[] = [
+  { id: 1, style: { left: '22%', top: '38%', width: 7, height: 7, background: 'rgba(255,210,180,0.65)', animationDuration: '1.4s', animationDelay: '120ms' } },
+  { id: 2, style: { left: '74%', top: '42%', width: 5, height: 5, background: 'rgba(210,200,245,0.60)', animationDuration: '1.2s', animationDelay: '220ms' } },
+  { id: 3, style: { left: '48%', top: '34%', width: 4, height: 4, background: 'rgba(26,23,21,0.18)',    animationDuration: '1.6s', animationDelay: '80ms'  } },
+  { id: 4, style: { left: '35%', top: '55%', width: 6, height: 6, background: 'rgba(255,210,180,0.50)', animationDuration: '1.3s', animationDelay: '300ms' } },
+  { id: 5, style: { left: '62%', top: '50%', width: 5, height: 5, background: 'rgba(26,23,21,0.14)',    animationDuration: '1.5s', animationDelay: '160ms' } },
+  { id: 6, style: { left: '28%', top: '46%', width: 8, height: 8, background: 'rgba(210,200,245,0.45)', animationDuration: '1.8s', animationDelay: '50ms'  } },
+  { id: 7, style: { left: '68%', top: '58%', width: 4, height: 4, background: 'rgba(255,210,180,0.55)', animationDuration: '1.1s', animationDelay: '260ms' } },
+  { id: 8, style: { left: '54%', top: '44%', width: 6, height: 6, background: 'rgba(26,23,21,0.12)',    animationDuration: '1.4s', animationDelay: '190ms' } },
+]
 
 type DiscoveryCard = {
   id: string
@@ -127,6 +149,7 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 
 export default function HomePage() {
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
   const [peopleCards, setPeopleCards] = useState<DiscoveryCard[]>([])
   const [loading, setLoading] = useState(true)
@@ -161,7 +184,9 @@ export default function HomePage() {
   const [isDragging, setIsDragging] = useState(false)
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-  const [matchState, setMatchState] = useState<MatchState>({ open: false, name: '', photo: '' })
+  const [matchState, setMatchState] = useState<MatchState>({ open: false, id: '', name: '', photo: '', subheadline: '' })
+  const [openerText, setOpenerText] = useState('')
+  const [openerSending, setOpenerSending] = useState(false)
   const [companyJobsCount, setCompanyJobsCount] = useState<number | null>(null)
   const [companyCtaDismissed, setCompanyCtaDismissed] = useState(false)
   const [cardOverflows, setCardOverflows] = useState(false)
@@ -506,7 +531,10 @@ export default function HomePage() {
 
         const result = (await response.json()) as { matched?: boolean }
         if (result.matched) {
-          setMatchState({ open: true, name: currentCard.headline, photo: currentCard.photo })
+          const firstName = currentCard.headline.split(' ')[0]
+          const idx = Date.now() % OPENER_TEMPLATES.length
+          setOpenerText(OPENER_TEMPLATES[idx](firstName))
+          setMatchState({ open: true, id: currentCard.id, name: currentCard.headline, photo: currentCard.photo, subheadline: currentCard.subheadline })
           setExitDirection(direction)
           return
         }
@@ -551,12 +579,24 @@ export default function HomePage() {
   }
 
   function handleKeepSwiping() {
-    setMatchState({ open: false, name: '', photo: '' })
+    setMatchState({ open: false, id: '', name: '', photo: '', subheadline: '' })
     advanceCard()
   }
 
-  function handleStartChat() {
-    setMatchState({ open: false, name: '', photo: '' })
+  async function handleSendOpener() {
+    if (!openerText.trim() || openerSending) return
+    setOpenerSending(true)
+    try {
+      const res = await apiRequest('/FeedController/sendMessage', {
+        body: { recipientId: matchState.id, content: openerText.trim() },
+      })
+      if (!res.ok) showToast('Opener not sent — you can try from the thread.', 'info')
+    } catch {
+      showToast('Opener not sent — you can try from the thread.', 'info')
+    } finally {
+      setOpenerSending(false)
+    }
+    setMatchState({ open: false, id: '', name: '', photo: '', subheadline: '' })
     advanceCard()
     navigate('/messages')
   }
@@ -601,8 +641,15 @@ export default function HomePage() {
   return (
     <div className="hp">
       {matchState.open ? (
-        <div className="hp-match" role="dialog" aria-label="It's a fit">
+        <div className="hp-match" role="dialog" aria-modal="true" aria-label="It's a fit">
           <div className="hp-match__wash" aria-hidden="true" />
+
+          <div className="hp-match__particles" aria-hidden="true">
+            {PARTICLES.map((p) => (
+              <div key={p.id} className="hp-match__particle" style={p.style} />
+            ))}
+          </div>
+
           <div className="hp-match__cards" aria-hidden="true">
             <div className="hp-match__card hp-match__card--left">
               <div className="hp-match__avatar" style={{ background: SWATCHES[0] }}>You</div>
@@ -618,15 +665,32 @@ export default function HomePage() {
           </div>
 
           <div className="hp-match__panel">
-            <span className="hp-eyebrow">Mutual interest · Just now</span>
+            <span className="hp-match__eyebrow">Mutual interest · Just now</span>
             <h2 className="hp-match__title">It's a fit.</h2>
             <p className="hp-match__sub">
-              {matchState.name.split(' ')[0]} also liked your card. The thread is
-              open whenever you are.
+              {matchState.name.split(' ')[0]} also liked your card.
             </p>
+
+            <div className="hp-match__opener">
+              <span className="hp-match__openerLabel">Say something</span>
+              <textarea
+                className="hp-match__openerInput"
+                value={openerText}
+                onChange={(e) => setOpenerText(e.target.value)}
+                rows={2}
+                maxLength={280}
+                placeholder="Write your opener…"
+              />
+            </div>
+
             <div className="hp-match__actions">
-              <button type="button" className="btn btn--solidDark" onClick={handleStartChat}>
-                Send opener
+              <button
+                type="button"
+                className="btn btn--solidDark"
+                onClick={handleSendOpener}
+                disabled={openerSending || !openerText.trim()}
+              >
+                {openerSending ? 'Sending…' : 'Send opener'}
               </button>
               <button type="button" className="btn btn--outlinedLight" onClick={handleKeepSwiping}>
                 Keep swiping
