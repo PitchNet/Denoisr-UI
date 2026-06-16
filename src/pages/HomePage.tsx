@@ -193,6 +193,13 @@ export default function HomePage() {
   const [openerSending, setOpenerSending] = useState(false)
   const [companyJobsCount, setCompanyJobsCount] = useState<number | null>(null)
   const [companyCtaDismissed, setCompanyCtaDismissed] = useState(false)
+  const [profileCtaDismissed, setProfileCtaDismissed] = useState(
+    () => localStorage.getItem('denoisr_profile_cta_dismissed') === '1',
+  )
+  const cachedProfile = getStoredProfile()
+  const showProfileCta = !profileCtaDismissed && (
+    !cachedProfile?.photo || !cachedProfile?.subheadline || !(cachedProfile?.intro as string | undefined)
+  )
   const [cardOverflows, setCardOverflows] = useState(false)
   const [previewOverflows, setPreviewOverflows] = useState(false)
   const [cardAtBottom, setCardAtBottom] = useState(false)
@@ -642,6 +649,11 @@ export default function HomePage() {
   const acceptLabel = mode === 'jobs' ? 'Apply' : 'Send opener'
   const swipeIndicatorOpacity = Math.min(Math.abs(dragX) / 110, 1)
 
+  function dismissProfileCta() {
+    localStorage.setItem('denoisr_profile_cta_dismissed', '1')
+    setProfileCtaDismissed(true)
+  }
+
   function handleOnboardingDismiss() {
     localStorage.removeItem('denoisr_just_signed_up')
     setShowOnboarding(false)
@@ -742,6 +754,25 @@ export default function HomePage() {
                   {companyJobsCount === 0 ? 'Post a job' : 'Set up company'}
                 </button>
                 <button type="button" className="hp-companyCta__dismiss" onClick={() => setCompanyCtaDismissed(true)} aria-label="Dismiss">
+                  Later
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {showProfileCta ? (
+            <div className="hp-companyCta">
+              <div className="hp-companyCta__body">
+                <span className="hp-eyebrow">Your profile</span>
+                <p className="hp-companyCta__text">
+                  <strong>Profile incomplete.</strong> Add a photo, role, and intro to appear in the deck.
+                </p>
+              </div>
+              <div className="hp-companyCta__actions">
+                <button type="button" className="btn btn--solidDark" onClick={() => navigate('/profile/edit')}>
+                  Complete profile
+                </button>
+                <button type="button" className="hp-companyCta__dismiss" onClick={dismissProfileCta}>
                   Later
                 </button>
               </div>
@@ -938,6 +969,25 @@ export default function HomePage() {
                   {companyJobsCount === 0 ? 'Post a job' : 'Set up company'}
                 </button>
                 <button type="button" className="hp-companyCta__dismiss" onClick={() => setCompanyCtaDismissed(true)} aria-label="Dismiss">
+                  Later
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {showProfileCta ? (
+            <div className="hp-companyCta hp-companyCta--deck">
+              <div className="hp-companyCta__body">
+                <span className="hp-eyebrow">Your profile</span>
+                <p className="hp-companyCta__text">
+                  <strong>Profile incomplete.</strong> Add a photo, role, and intro to appear in the deck.
+                </p>
+              </div>
+              <div className="hp-companyCta__actions">
+                <button type="button" className="btn btn--solidDark" onClick={() => navigate('/profile/edit')}>
+                  Complete profile
+                </button>
+                <button type="button" className="hp-companyCta__dismiss" onClick={dismissProfileCta}>
                   Later
                 </button>
               </div>
