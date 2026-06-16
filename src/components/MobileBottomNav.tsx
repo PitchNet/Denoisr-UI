@@ -94,6 +94,7 @@ export default function MobileBottomNav({ activePage }: Props) {
             <span className="mbn__groupLabel">Account</span>
             <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/profile'); }}>View profile</button>
             <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/applications'); }}>Job applications</button>
+            <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/settings'); }}>Settings</button>
             <button type="button" className={`mbn__action ${glass ? 'mbn__action--active' : ''}`} onClick={toggleGlass}>
               {glass ? 'Light mode' : 'Dark mode'}
             </button>

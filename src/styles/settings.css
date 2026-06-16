@@ -1,0 +1,254 @@
+/* ── Settings page — .st-* ──────────────────────────────────── */
+
+.st {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 36px 80px;
+}
+
+/* ── Header ── */
+.st-header {
+  margin-bottom: 32px;
+}
+
+.st-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-4);
+  margin-bottom: 6px;
+}
+
+.st-title {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ── Tabs ── */
+.st-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--ink-6);
+}
+
+.st-tab {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: none;
+  border: none;
+  padding: 8px 16px 10px;
+  cursor: pointer;
+  position: relative;
+  transition: color var(--dur-fast) var(--easing-default);
+}
+
+.st-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--ink);
+  border-radius: var(--radius-pill);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--easing-default);
+}
+
+.st-tab--active {
+  color: var(--ink);
+}
+
+.st-tab--active::after {
+  opacity: 1;
+}
+
+/* ── Tab content ── */
+.st-tabContent {
+  padding-top: 32px;
+}
+
+/* ── Section ── */
+.st-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.st-section__head {
+  margin-bottom: 24px;
+}
+
+.st-section__title {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 4px 0 8px;
+}
+
+.st-section__desc {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--ink-3);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Form ── */
+.st-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Select ── */
+.st-select {
+  height: 42px;
+  padding: 0 36px 0 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-5);
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%231a1715' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color var(--dur-fast) var(--easing-default);
+}
+
+.st-select:focus {
+  border-color: var(--ink);
+}
+
+/* ── Toggle group ── */
+.st-toggleGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.st-toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--ink-6);
+  cursor: pointer;
+}
+
+.st-toggleRow:last-child {
+  border-bottom: none;
+}
+
+.st-toggleRow__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.st-toggleRow__label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.st-toggleRow__desc {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--ink-4);
+  margin-top: 2px;
+}
+
+/* ── Toggle pill ── */
+.st-toggle {
+  flex-shrink: 0;
+  width: 44px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-5);
+  border: none;
+  position: relative;
+  cursor: pointer;
+  transition: background var(--dur-base) var(--easing-default);
+  padding: 0;
+}
+
+.st-toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 1px 4px rgba(40, 30, 20, 0.20);
+  transition: transform var(--dur-base) var(--easing-default);
+}
+
+.st-toggle--on {
+  background: var(--ink);
+}
+
+.st-toggle--on::after {
+  transform: translateX(18px);
+}
+
+/* ── Feedback text ── */
+.st-success {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  color: var(--decision-like);
+  margin: 4px 0 0;
+}
+
+.st-fieldError {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  color: var(--decision-pass);
+  margin: 4px 0 0;
+}
+
+/* ── Mobile ── */
+@media (max-width: 720px) {
+  .st {
+    padding: 24px 20px 100px;
+  }
+
+  .st-title {
+    font-size: 24px;
+  }
+
+  .st-tab {
+    padding: 8px 12px 10px;
+    font-size: 10px;
+  }
+
+  .st-select {
+    font-size: 16px; /* prevents iOS zoom-on-focus */
+  }
+
+  .st-form {
+    gap: 12px;
+  }
+}

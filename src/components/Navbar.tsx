@@ -16,7 +16,8 @@ export default function Navbar() {
   const isProfile = pathname === '/profile' || pathname === '/profile/edit'
   const isApplications = pathname === '/applications'
   const isCompany = pathname === '/company'
-  const isAppPage = isHome || isMessages || isProfile || isApplications || isCompany
+  const isSettings = pathname === '/settings'
+  const isAppPage = isHome || isMessages || isProfile || isApplications || isCompany || isSettings
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
   const cachedProfile = getStoredProfile()
   const [glass, setGlass] = useState(() => {
@@ -134,6 +135,9 @@ export default function Navbar() {
                     </button>
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/applications'); }}>
                       Job Applications
+                    </button>
+                    <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/settings'); }}>
+                      Settings
                     </button>
                     <button type="button" className={`nav__profileDropdownBtn ${glass ? 'nav__profileDropdownBtn--active' : ''}`} onClick={toggleGlass}>
                       {glass ? 'Light mode' : 'Dark mode'}

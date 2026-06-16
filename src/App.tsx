@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage'
 import MessagesPage from './pages/MessagesPage'
 import JobApplicationsPage from './pages/JobApplicationsPage'
 import CompanyPage from './pages/CompanyPage'
+import SettingsPage from './pages/SettingsPage'
 import ProfileEditPage from './pages/ProfileEditPage'
 import ProfilePage from './pages/ProfilePage'
 import ProductPage from './pages/ProductPage'
@@ -33,9 +34,9 @@ import TermsOfServicePage from './pages/TermsOfServicePage'
 function AppShell() {
   const { pathname } = useLocation()
   const isEditorialLanding = pathname === '/'
-  const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications' || pathname === '/company'
+  const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications' || pathname === '/company' || pathname === '/settings'
 
-  const activePage = pathname.startsWith('/profile') ? 'profile'
+  const activePage = pathname.startsWith('/profile') || pathname === '/settings' ? 'profile'
     : pathname === '/home' ? 'home'
     : pathname === '/messages' ? 'messages'
     : pathname === '/applications' ? 'applications'
@@ -70,6 +71,7 @@ function AppShell() {
             <Route path="/profile/edit" element={<ProfileEditPage />} />
             <Route path="/applications" element={<JobApplicationsPage />} />
             <Route path="/company" element={<CompanyPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
