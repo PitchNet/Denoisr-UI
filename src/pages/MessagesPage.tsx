@@ -59,7 +59,11 @@ export default function MessagesPage() {
   const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([])
   const [isSending, setIsSending] = useState(false)
   const [threadLoading, setThreadLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
+  const [lastSearchedQuery, setLastSearchedQuery] = useState('')
   const activeConversationRef = useRef<Connection | null>(null)
+  const searchVersionRef = useRef(0)
 
   async function loadThreadMessages(conversation: Connection, showLoader = true) {
     try {
@@ -126,11 +130,15 @@ export default function MessagesPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  async function fetchConnections(showLoader = true) {
+  async function fetchConnections(showLoader = true, q = '') {
+    const version = ++searchVersionRef.current
     try {
       if (showLoader) setLoading(true)
 
-      const response = await apiRequest('/FeedController/getConnections', { method: 'GET' })
+      const url = q.trim()
+        ? `/FeedController/getConnections?q=${encodeURIComponent(q.trim())}`
+        : '/FeedController/getConnections'
+      const response = await apiRequest(url, { method: 'GET' })
 
       if (!response.ok) {
         setError('Failed to load connections')
@@ -182,15 +190,37 @@ export default function MessagesPage() {
           : undefined,
       }))
 
-      setConnections(formatted.length > 0 ? formatted : [])
+      if (version !== searchVersionRef.current) return []
+      setConnections(formatted)
       setError(null)
       return formatted
     } catch {
+      if (version !== searchVersionRef.current) return []
       setError('Failed to load connections')
       return []
     } finally {
-      if (showLoader) setLoading(false)
+      if (version === searchVersionRef.current) {
+        if (showLoader) setLoading(false)
+        setIsSearching(false)
+      }
     }
+  }
+
+  function handleSearchChange(value: string) {
+    setSearchQuery(value)
+    // Clear search: immediately reload the full list
+    if (!value.trim()) {
+      setLastSearchedQuery('')
+      fetchConnections(false, '')
+    }
+  }
+
+  function handleSearchSubmit() {
+    const q = searchQuery.trim()
+    if (!q) return
+    setLastSearchedQuery(q)
+    setIsSearching(true)
+    fetchConnections(false, q)
   }
 
   useEffect(() => {
@@ -295,7 +325,7 @@ export default function MessagesPage() {
         current.map((c) => (c.id === activeConversation.id ? { ...c, preview: content } : c)),
       )
       setDraftMessage('')
-      const refreshed = await fetchConnections(false)
+      const refreshed = await fetchConnections(false, searchQuery)
       const updated = refreshed.find((c) => c.id === activeConversation.id) ?? activeConversation
       await loadThreadMessages(updated, false)
       setError(null)
@@ -386,9 +416,12 @@ export default function MessagesPage() {
           <div className="mp-search">
             <input
               type="search"
-              className="mp-searchInput"
+              className={`mp-searchInput${isSearching ? ' mp-searchInput--searching' : ''}`}
               placeholder="Search by name or thread"
               aria-label="Search conversations"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit() }}
             />
           </div>
 
@@ -398,7 +431,11 @@ export default function MessagesPage() {
           </button>
 
           <div className="mp-list" aria-label="Conversation list">
-            {connections.map((c) => renderConversationItem(c))}
+            {connections.length === 0 && !isSearching && lastSearchedQuery ? (
+              <p className="mp-searchStatus">No results for "{lastSearchedQuery}"</p>
+            ) : (
+              connections.map((c) => renderConversationItem(c))
+            )}
           </div>
         </aside>
 

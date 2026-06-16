@@ -131,6 +131,16 @@
 }
 .mp-searchInput::placeholder { color: var(--ink-4); }
 .mp-searchInput:focus { border-color: var(--ink); }
+.mp-searchInput--searching { border-color: var(--ink-3); opacity: 0.7; }
+
+.mp-searchStatus {
+  padding: 24px 10px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: var(--tr-mono);
+  color: var(--ink-4);
+  text-align: center;
+}
 
 .mp-requestsRow {
   margin: 0 22px 8px;
