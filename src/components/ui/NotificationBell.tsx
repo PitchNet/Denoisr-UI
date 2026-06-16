@@ -57,7 +57,7 @@ export default function NotificationBell({ variant = 'desktop' }: Props) {
       .then((data) => { if (data) setUnreadCount(data.count) })
       .catch(() => {})
 
-    const channelName = 'notifications:' + userId + ':' + Date.now()
+    const channelName = 'notifications:' + userId + ':' + crypto.randomUUID()
     const channel = supabase
       .channel(channelName)
       .on('postgres_changes',
