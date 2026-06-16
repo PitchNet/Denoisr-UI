@@ -1,0 +1,121 @@
+/* ── Onboarding overlay ─────────────────────────────────────────
+   Shown once after a new user completes the dashboard.
+   Namespace: .ob-*
+   ─────────────────────────────────────────────────────────────── */
+
+.ob {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(251, 250, 246, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: ob-fade-in 240ms var(--easing-default) both;
+}
+
+@keyframes ob-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ob__wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 45% at 100% 0%,   var(--wash-peach),  transparent 70%),
+    radial-gradient(50% 45% at 0%   100%, var(--wash-violet), transparent 70%);
+}
+
+.ob__card {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  background: var(--paper);
+  border: 1px solid var(--ink-6);
+  border-radius: 24px;
+  box-shadow: var(--shadow-float);
+  padding: 40px 40px 36px;
+  animation: ob-card-in 380ms var(--easing-default) 60ms both;
+}
+
+@keyframes ob-card-in {
+  0%   { opacity: 0; transform: translateY(28px); }
+  65%  { opacity: 1; transform: translateY(-4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.ob__eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-4);
+  margin-bottom: 12px;
+}
+
+.ob__title {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  margin: 0 0 6px;
+  line-height: 1.15;
+}
+
+.ob__sub {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink-3);
+  margin: 0 0 28px;
+}
+
+.ob__features {
+  list-style: none;
+  margin: 0 0 32px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ob__feature {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--ink-6);
+}
+.ob__feature:first-child { border-top: 1px solid var(--ink-6); }
+
+.ob__featureLabel {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.ob__featureBody {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--ink-3);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.ob__cta {
+  width: 100%;
+}
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .ob__card {
+    padding: 32px 24px 28px;
+    border-radius: 20px;
+  }
+  .ob__title { font-size: 24px; }
+}

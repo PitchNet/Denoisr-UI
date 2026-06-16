@@ -502,6 +502,7 @@ export default function DashboardPage() {
       await storeAuthTokenFromResponse(response)
       sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY)
       sessionStorage.removeItem(DRAFT_KEY)
+      localStorage.setItem('denoisr_just_signed_up', '1')
       navigate(wantHiring ? '/company' : '/home')
     } catch {
       setSaveError('Saving profile failed.')

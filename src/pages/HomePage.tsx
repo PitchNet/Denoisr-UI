@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { getStoredFilters, setStoredFilters, clearStoredFilters, getStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import OnboardingModal from '../components/ui/OnboardingModal'
 import { useToast } from '../components/ui/Toast'
 import '../styles/home.css'
 
@@ -150,6 +151,9 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
 export default function HomePage() {
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => localStorage.getItem('denoisr_just_signed_up') === '1',
+  )
   const [jobCards, setJobCards] = useState<DiscoveryCard[]>([])
   const [peopleCards, setPeopleCards] = useState<DiscoveryCard[]>([])
   const [loading, setLoading] = useState(true)
@@ -638,8 +642,16 @@ export default function HomePage() {
   const acceptLabel = mode === 'jobs' ? 'Apply' : 'Send opener'
   const swipeIndicatorOpacity = Math.min(Math.abs(dragX) / 110, 1)
 
+  function handleOnboardingDismiss() {
+    localStorage.removeItem('denoisr_just_signed_up')
+    setShowOnboarding(false)
+  }
+
   return (
     <div className="hp">
+      {showOnboarding ? (
+        <OnboardingModal onDismiss={handleOnboardingDismiss} />
+      ) : null}
       {matchState.open ? (
         <div className="hp-match" role="dialog" aria-modal="true" aria-label="It's a fit">
           <div className="hp-match__wash" aria-hidden="true" />
