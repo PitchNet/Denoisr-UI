@@ -16,6 +16,7 @@ type Connection = {
   role: string
   status: string
   openable: boolean
+  muted?: boolean
   chips?: string[]
   details?: Array<{
     title: string
@@ -72,9 +73,12 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [lastSearchedQuery, setLastSearchedQuery] = useState('')
-  const [sentRequestsView, setSentRequestsView] = useState(false)
+  const [sidebarView, setSidebarView] = useState<'connections' | 'requests' | 'archived'>('connections')
   const [sentRequests, setSentRequests] = useState<SentRequest[]>([])
   const [sentRequestsLoading, setSentRequestsLoading] = useState(false)
+  const [archivedConnections, setArchivedConnections] = useState<Connection[]>([])
+  const [archivedLoading, setArchivedLoading] = useState(false)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const activeConversationRef = useRef<Connection | null>(null)
   const searchVersionRef = useRef(0)
   // Render-time ref updates — callbacks always read the latest values
@@ -184,6 +188,7 @@ export default function MessagesPage() {
         role: String(item.currentRole ?? item.role ?? 'Professional'),
         status: String(item.status ?? 'Connected'),
         openable: true,
+        muted: Boolean(item.muted),
         chips: Array.isArray(item.chips)
           ? item.chips.filter((c): c is string => typeof c === 'string')
           : undefined,
@@ -276,8 +281,129 @@ export default function MessagesPage() {
   }
 
   function openSentRequestsView() {
-    setSentRequestsView(true)
+    setSidebarView('requests')
     fetchSentRequests()
+  }
+
+  useEffect(() => {
+    if (!openMenuId) return
+    function handleOutsideClick(e: MouseEvent) {
+      const target = e.target as Element
+      if (!target.closest('.mp-item__menu') && !target.closest('.mp-item__menuBtn')) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [openMenuId])
+
+  async function fetchArchivedConnections() {
+    setArchivedLoading(true)
+    try {
+      const res = await apiRequest('/FeedController/getConnections?archived=true', { method: 'GET' })
+      if (res.ok) {
+        const data = (await res.json()) as Array<Record<string, unknown>>
+        const formatted: Connection[] = data.map((item, index) => ({
+          id: String(item.id ?? item.personId ?? item.userId ?? `connection-${index}`),
+          conversationId: item.conversationId === undefined ? undefined : String(item.conversationId),
+          name: String(item.name ?? item.headline ?? 'Unknown'),
+          preview: !item.lastMessage
+            ? 'Say hi to your new connection.'
+            : typeof item.lastMessage === 'string'
+              ? item.lastMessage
+              : String((item.lastMessage as Record<string, unknown>).content ?? item.lastMessage),
+          avatar: String(item.avatar ?? '')
+            ? String(item.avatar)
+            : String(item.name ?? 'U')
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join('')
+                .toUpperCase(),
+          photo: String(item.photo ?? ''),
+          role: String(item.currentRole ?? item.role ?? 'Professional'),
+          status: String(item.status ?? 'Connected'),
+          openable: true,
+          muted: Boolean(item.muted),
+        }))
+        setArchivedConnections(formatted)
+      }
+    } catch {
+      // silently fail — list just stays empty
+    } finally {
+      setArchivedLoading(false)
+    }
+  }
+
+  async function handleArchive(connection: Connection) {
+    if (!connection.conversationId) return
+    if (activeConversationId === connection.id) setActiveConversationId(null)
+    setConnections((prev) => prev.filter((c) => c.id !== connection.id))
+    try {
+      const res = await apiRequest('/FeedController/archiveConversation', {
+        method: 'POST',
+        body: { conversationId: connection.conversationId, archived: true },
+      })
+      if (!res.ok) throw new Error('failed')
+      setArchivedConnections((prev) => {
+        const already = prev.some((c) => c.id === connection.id)
+        return already ? prev : [connection, ...prev]
+      })
+    } catch {
+      setConnections((prev) => {
+        const already = prev.some((c) => c.id === connection.id)
+        return already ? prev : [connection, ...prev]
+      })
+      showToast('Failed to archive conversation', 'error')
+    }
+  }
+
+  async function handleUnarchive(connection: Connection) {
+    if (!connection.conversationId) return
+    setArchivedConnections((prev) => prev.filter((c) => c.id !== connection.id))
+    try {
+      const res = await apiRequest('/FeedController/archiveConversation', {
+        method: 'POST',
+        body: { conversationId: connection.conversationId, archived: false },
+      })
+      if (!res.ok) throw new Error('failed')
+      setConnections((prev) => {
+        const already = prev.some((c) => c.id === connection.id)
+        return already ? prev : [connection, ...prev]
+      })
+    } catch {
+      setArchivedConnections((prev) => {
+        const already = prev.some((c) => c.id === connection.id)
+        return already ? prev : [connection, ...prev]
+      })
+      showToast('Failed to unarchive conversation', 'error')
+    }
+  }
+
+  async function handleMute(connection: Connection) {
+    if (!connection.conversationId) return
+    const newMuted = !connection.muted
+    setConnections((prev) =>
+      prev.map((c) => (c.id === connection.id ? { ...c, muted: newMuted } : c)),
+    )
+    try {
+      const res = await apiRequest('/FeedController/muteConversation', {
+        method: 'POST',
+        body: { conversationId: connection.conversationId, muted: newMuted },
+      })
+      if (!res.ok) throw new Error('failed')
+    } catch {
+      setConnections((prev) =>
+        prev.map((c) => (c.id === connection.id ? { ...c, muted: !newMuted } : c)),
+      )
+      showToast('Failed to update mute setting', 'error')
+    }
+  }
+
+  function openArchivedView() {
+    setSidebarView('archived')
+    fetchArchivedConnections()
   }
 
   useEffect(() => {
@@ -435,7 +561,7 @@ export default function MessagesPage() {
     }
   }
 
-  function renderConversationItem(connection: Connection) {
+  function renderConversationItem(connection: Connection, showArchiveOption = true) {
     const isActive = activeConversationId === connection.id
     const content = (
       <>
@@ -449,7 +575,7 @@ export default function MessagesPage() {
         <div className="mp-item__body">
           <div className="mp-item__topline">
             <span className="mp-item__name">{connection.name}</span>
-            <span className="mp-item__status">{connection.status}</span>
+            <span className="mp-item__status">{connection.muted ? 'Muted' : connection.status}</span>
           </div>
           <p className="mp-item__preview">{connection.preview}</p>
         </div>
@@ -458,16 +584,58 @@ export default function MessagesPage() {
 
     const cls = `mp-item ${isActive ? 'mp-item--active' : ''} ${!connection.openable ? 'mp-item--locked' : ''}`.trim()
 
-    if (!connection.openable) {
-      return (
-        <article key={connection.id} className={cls}>{content}</article>
-      )
-    }
+    const itemEl = connection.openable
+      ? <button type="button" className={cls} onClick={() => openConversation(connection.id)}>{content}</button>
+      : <article className={cls}>{content}</article>
 
     return (
-      <button key={connection.id} type="button" className={cls} onClick={() => openConversation(connection.id)}>
-        {content}
-      </button>
+      <div key={connection.id} className="mp-item__wrap">
+        {itemEl}
+        <button
+          type="button"
+          className="mp-item__menuBtn"
+          aria-label={`Options for ${connection.name}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            setOpenMenuId(openMenuId === connection.id ? null : connection.id)
+          }}
+        >
+          ···
+        </button>
+        {openMenuId === connection.id && (
+          <div className="mp-item__menu" role="menu">
+            {showArchiveOption ? (
+              <>
+                <button
+                  type="button"
+                  className="mp-item__menuAction"
+                  role="menuitem"
+                  onClick={() => { handleArchive(connection); setOpenMenuId(null) }}
+                >
+                  Archive
+                </button>
+                <button
+                  type="button"
+                  className="mp-item__menuAction"
+                  role="menuitem"
+                  onClick={() => { handleMute(connection); setOpenMenuId(null) }}
+                >
+                  {connection.muted ? 'Unmute' : 'Mute'}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="mp-item__menuAction"
+                role="menuitem"
+                onClick={() => { handleUnarchive(connection); setOpenMenuId(null) }}
+              >
+                Unarchive
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     )
   }
 
@@ -507,14 +675,14 @@ export default function MessagesPage() {
         <aside
           className={`mp-sidebar ${activeConversation ? 'mp-sidebar--hiddenMobile' : ''}`}
         >
-          {sentRequestsView ? (
+          {sidebarView === 'requests' ? (
             /* ── Sent requests view ── */
             <>
               <header className="mp-sidebar__head mp-sidebar__head--requests">
                 <button
                   type="button"
                   className="mp-backBtn"
-                  onClick={() => setSentRequestsView(false)}
+                  onClick={() => setSidebarView('connections')}
                   aria-label="Back to threads"
                 >
                   ←
@@ -568,6 +736,42 @@ export default function MessagesPage() {
                 )}
               </div>
             </>
+          ) : sidebarView === 'archived' ? (
+            /* ── Archived conversations view ── */
+            <>
+              <header className="mp-sidebar__head mp-sidebar__head--requests">
+                <button
+                  type="button"
+                  className="mp-backBtn"
+                  onClick={() => setSidebarView('connections')}
+                  aria-label="Back to threads"
+                >
+                  ←
+                </button>
+                <div>
+                  <span className="mp-eyebrow">Conversations · Archived</span>
+                  <h2 className="mp-sidebar__title">
+                    Archived.
+                    {archivedConnections.length > 0 ? (
+                      <span className="mp-sidebar__count">{archivedConnections.length}</span>
+                    ) : null}
+                  </h2>
+                </div>
+              </header>
+
+              <div className="mp-list" aria-label="Archived conversations">
+                {archivedLoading ? (
+                  <p className="mp-searchStatus">Loading…</p>
+                ) : archivedConnections.length === 0 ? (
+                  <div className="mp-reqEmpty">
+                    <p className="mp-reqEmpty__title">Nothing archived yet.</p>
+                    <p className="mp-reqEmpty__sub">Archive conversations you've wrapped up to keep your inbox clean.</p>
+                  </div>
+                ) : (
+                  archivedConnections.map((c) => renderConversationItem(c, false))
+                )}
+              </div>
+            </>
           ) : (
             /* ── Default: connections list ── */
             <>
@@ -594,6 +798,13 @@ export default function MessagesPage() {
                   {sentRequests.length > 0 ? (
                     <span className="mp-requestsBadge">{sentRequests.length}</span>
                   ) : null}
+                  <span aria-hidden="true">→</span>
+                </span>
+              </button>
+
+              <button type="button" className="mp-requestsRow" onClick={openArchivedView}>
+                <span>Archived conversations</span>
+                <span className="mp-requestsRow__right">
                   <span aria-hidden="true">→</span>
                 </span>
               </button>
