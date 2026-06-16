@@ -50,6 +50,7 @@ function swatchFor(id: string) {
 
 export default function MessagesPage() {
   const { showToast } = useToast()
+  const userId = getAuthenticatedUserId()
   const messagesThreadBodyRef = useRef<HTMLDivElement>(null)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [connections, setConnections] = useState<Connection[]>([])
@@ -64,6 +65,10 @@ export default function MessagesPage() {
   const [lastSearchedQuery, setLastSearchedQuery] = useState('')
   const activeConversationRef = useRef<Connection | null>(null)
   const searchVersionRef = useRef(0)
+  // Render-time ref updates — callbacks always read the latest values
+  const searchQueryRef = useRef(searchQuery)
+  searchQueryRef.current = searchQuery
+  const fetchConnectionsRef = useRef<typeof fetchConnections | null>(null)
 
   async function loadThreadMessages(conversation: Connection, showLoader = true) {
     try {
@@ -81,7 +86,6 @@ export default function MessagesPage() {
         return
       }
 
-      const currentUserId = getAuthenticatedUserId()
       const data = (await response.json()) as Array<{
         id: string
         sender_id: string
@@ -92,10 +96,10 @@ export default function MessagesPage() {
       const formatted: ThreadMessage[] = data.map((message) => ({
         id: message.id,
         author:
-          currentUserId !== '' && message.sender_id === currentUserId ? 'You' : conversation.name,
+          userId !== '' && message.sender_id === userId ? 'You' : conversation.name,
         side:
-          currentUserId !== ''
-            ? message.sender_id === currentUserId
+          userId !== ''
+            ? message.sender_id === userId
               ? 'right'
               : 'left'
             : message.sender_id === conversation.id
@@ -206,6 +210,8 @@ export default function MessagesPage() {
     }
   }
 
+  fetchConnectionsRef.current = fetchConnections
+
   function handleSearchChange(value: string) {
     setSearchQuery(value)
     // Clear search: immediately reload the full list
@@ -248,6 +254,38 @@ export default function MessagesPage() {
     fetchConnections()
   }, [])
 
+  // Global inbox subscription — re-sorts the list and updates previews for
+  // messages received in ANY of the user's conversations, not just the active one.
+  const conversationIdsKey = connections
+    .map((c) => c.conversationId)
+    .filter(Boolean)
+    .sort()
+    .join(',')
+
+  useEffect(() => {
+    if (!conversationIdsKey || !userId) return
+
+    const channel = supabase
+      .channel(`inbox:${userId}:${crypto.randomUUID()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=in.(${conversationIdsKey})`,
+        },
+        (payload: { new: Record<string, unknown> }) => {
+          // Ignore messages we sent — handleSendMessage already calls fetchConnections
+          if (payload.new?.sender_id === userId) return
+          fetchConnectionsRef.current?.(false, searchQueryRef.current)
+        },
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [conversationIdsKey, userId])
+
   useEffect(() => {
     activeConversationRef.current = activeConversation
   }, [activeConversation])
@@ -281,11 +319,20 @@ export default function MessagesPage() {
 
     const channel = supabase
       .channel(`messages:${conversation.conversationId ?? conversation.id}`)
-      .on('postgres_changes', subscriptionConfig, () => {
+      .on('postgres_changes', subscriptionConfig, (payload: { new: Record<string, unknown> }) => {
         const latest = activeConversationRef.current
-        if (latest && latest.id === conversation.id) {
-          loadThreadMessages(latest, false)
-        }
+        if (!latest || latest.id !== conversation.id) return
+        loadThreadMessages(latest, false)
+        // Bubble this conversation to the top with the incoming message as the preview
+        const incomingContent = typeof payload.new?.content === 'string' ? payload.new.content : undefined
+        setConnections((prev) => {
+          const idx = prev.findIndex((c) => c.id === latest.id)
+          if (idx <= 0) return prev
+          const updated = [...prev]
+          const [item] = updated.splice(idx, 1)
+          updated.unshift({ ...item, preview: incomingContent ?? item.preview })
+          return updated
+        })
       })
       .subscribe()
 
