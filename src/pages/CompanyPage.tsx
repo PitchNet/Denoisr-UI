@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiRequest, getAuthTokenFromCookies } from '../api'
 import { getStoredProfile, setStoredProfile } from '../auth'
+import LoadingState from '../components/ui/LoadingState'
 import PhotoEditor from '../components/ui/PhotoEditor'
 import '../styles/company.css'
 
@@ -422,10 +423,14 @@ export default function CompanyPage() {
   )
   const selectedApplicant = applicants.find((a) => a.id === selectedApplicantId) ?? null
 
+  if (loading) {
+    return <LoadingState className="loader--page" label="Loading company" detail="Fetching your company profile." />
+  }
+
   return (
     <div className="cp">
       <div className="cp-body">
-        {loading ? null : isEditing ? (
+        {isEditing ? (
           <div className="cp-card">
             <span className="cp-eyebrow">{company ? 'Edit company' : 'Create company'}</span>
             <h1 className="cp-title">

@@ -1043,6 +1043,9 @@ html, body {
   padding: 64px 32px;
   overflow: hidden;
 }
+.loader--page {
+  min-height: calc(100svh - 64px);
+}
 .loader__wash {
   position: absolute;
   inset: 0;
