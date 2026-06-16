@@ -18,6 +18,7 @@ import ProfilePage from './pages/ProfilePage'
 import ProductPage from './pages/ProductPage'
 import SignupPage from './pages/SignupPage'
 import MobileBottomNav from './components/MobileBottomNav'
+import { ToastProvider } from './components/ui/Toast'
 import AboutPage from './pages/AboutPage'
 import CareersPage from './pages/CareersPage'
 import CookiePolicyPage from './pages/CookiePolicyPage'
@@ -96,7 +97,9 @@ function AppShell() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppShell />
+      <ToastProvider>
+        <AppShell />
+      </ToastProvider>
       <SpeedInsights />
     </BrowserRouter>
   )

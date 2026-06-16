@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { apiRequest } from '../api'
 import { getAuthenticatedUserId } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import { useToast } from '../components/ui/Toast'
 import { supabase } from '../supabase'
 import '../styles/messages.css'
 
@@ -48,6 +49,7 @@ function swatchFor(id: string) {
 }
 
 export default function MessagesPage() {
+  const { showToast } = useToast()
   const messagesThreadBodyRef = useRef<HTMLDivElement>(null)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [connections, setConnections] = useState<Connection[]>([])
@@ -280,7 +282,12 @@ export default function MessagesPage() {
       })
 
       if (!response.ok) {
-        setError('Failed to send message')
+        if (response.status === 403) {
+          const data = await response.json().catch(() => ({}))
+          showToast((data as { detail?: string }).detail ?? 'You can\'t message this person', 'error')
+        } else {
+          showToast('Failed to send message', 'error')
+        }
         return
       }
 
@@ -293,7 +300,7 @@ export default function MessagesPage() {
       await loadThreadMessages(updated, false)
       setError(null)
     } catch {
-      setError('Failed to send message')
+      showToast('Failed to send message', 'error')
     } finally {
       setIsSending(false)
     }
