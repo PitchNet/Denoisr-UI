@@ -31,6 +31,15 @@ type ThreadMessage = {
   meta: string
 }
 
+type SentRequest = {
+  id: string
+  name: string
+  role: string
+  photo: string
+  avatar: string
+  sentAt: string
+}
+
 const SWATCHES = [
   'oklch(0.78 0.10 220)',
   'oklch(0.80 0.11 65)',
@@ -63,6 +72,9 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [lastSearchedQuery, setLastSearchedQuery] = useState('')
+  const [sentRequestsView, setSentRequestsView] = useState(false)
+  const [sentRequests, setSentRequests] = useState<SentRequest[]>([])
+  const [sentRequestsLoading, setSentRequestsLoading] = useState(false)
   const activeConversationRef = useRef<Connection | null>(null)
   const searchVersionRef = useRef(0)
   // Render-time ref updates — callbacks always read the latest values
@@ -229,6 +241,45 @@ export default function MessagesPage() {
     fetchConnections(false, q)
   }
 
+  async function fetchSentRequests() {
+    setSentRequestsLoading(true)
+    try {
+      const res = await apiRequest('/FeedController/getSentRequests', { method: 'GET' })
+      if (res.ok) {
+        const data = (await res.json()) as SentRequest[]
+        setSentRequests(data)
+      }
+    } catch {
+      // silently fail — list just stays empty
+    } finally {
+      setSentRequestsLoading(false)
+    }
+  }
+
+  async function handleWithdraw(req: SentRequest) {
+    // Optimistic remove
+    setSentRequests((prev) => prev.filter((r) => r.id !== req.id))
+    try {
+      const res = await apiRequest('/FeedController/withdrawRequest', {
+        method: 'POST',
+        body: { peopleId: req.id },
+      })
+      if (!res.ok) throw new Error('failed')
+    } catch {
+      // Restore on failure
+      setSentRequests((prev) => {
+        const already = prev.some((r) => r.id === req.id)
+        return already ? prev : [req, ...prev]
+      })
+      showToast('Failed to withdraw request', 'error')
+    }
+  }
+
+  function openSentRequestsView() {
+    setSentRequestsView(true)
+    fetchSentRequests()
+  }
+
   useEffect(() => {
     if (threadLoading || threadMessages.length === 0) return
     const container = messagesThreadBodyRef.current
@@ -252,6 +303,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     fetchConnections()
+    fetchSentRequests()
   }, [])
 
   // Global inbox subscription — re-sorts the list and updates previews for
@@ -451,39 +503,110 @@ export default function MessagesPage() {
       ) : null}
 
       <div className="mp-shell">
-        {/* ── Sidebar (connection list) ── */}
+        {/* ── Sidebar ── */}
         <aside
           className={`mp-sidebar ${activeConversation ? 'mp-sidebar--hiddenMobile' : ''}`}
         >
-          <header className="mp-sidebar__head">
-            <span className="mp-eyebrow">Connections · Mutual</span>
-            <h2 className="mp-sidebar__title">Open lines.</h2>
-          </header>
+          {sentRequestsView ? (
+            /* ── Sent requests view ── */
+            <>
+              <header className="mp-sidebar__head mp-sidebar__head--requests">
+                <button
+                  type="button"
+                  className="mp-backBtn"
+                  onClick={() => setSentRequestsView(false)}
+                  aria-label="Back to threads"
+                >
+                  ←
+                </button>
+                <div>
+                  <span className="mp-eyebrow">Connections · Pending</span>
+                  <h2 className="mp-sidebar__title">
+                    Sent requests.
+                    {sentRequests.length > 0 ? (
+                      <span className="mp-sidebar__count">{sentRequests.length}</span>
+                    ) : null}
+                  </h2>
+                </div>
+              </header>
 
-          <div className="mp-search">
-            <input
-              type="search"
-              className={`mp-searchInput${isSearching ? ' mp-searchInput--searching' : ''}`}
-              placeholder="Search by name or thread"
-              aria-label="Search conversations"
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit() }}
-            />
-          </div>
+              <div className="mp-list" aria-label="Sent connection requests">
+                {sentRequestsLoading ? (
+                  <p className="mp-searchStatus">Loading…</p>
+                ) : sentRequests.length === 0 ? (
+                  <div className="mp-reqEmpty">
+                    <p className="mp-reqEmpty__title">No pending requests.</p>
+                    <p className="mp-reqEmpty__sub">When you swipe right on someone, they'll appear here until you connect.</p>
+                  </div>
+                ) : (
+                  sentRequests.map((req) => (
+                    <div key={req.id} className="mp-reqItem">
+                      <div
+                        className={`mp-item__avatar${req.photo ? ' mp-item__avatar--photo' : ''}`}
+                        style={req.photo
+                          ? { backgroundImage: `url(${req.photo})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                          : { background: swatchFor(req.id) }
+                        }
+                        aria-hidden="true"
+                      >
+                        {req.photo ? null : req.avatar}
+                      </div>
+                      <div className="mp-reqItem__body">
+                        <span className="mp-reqItem__name">{req.name}</span>
+                        {req.role ? <span className="mp-reqItem__role">{req.role}</span> : null}
+                      </div>
+                      <button
+                        type="button"
+                        className="mp-reqItem__withdraw"
+                        onClick={() => handleWithdraw(req)}
+                        aria-label={`Withdraw request to ${req.name}`}
+                      >
+                        Withdraw
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          ) : (
+            /* ── Default: connections list ── */
+            <>
+              <header className="mp-sidebar__head">
+                <span className="mp-eyebrow">Connections · Mutual</span>
+                <h2 className="mp-sidebar__title">Open lines.</h2>
+              </header>
 
-          <button type="button" className="mp-requestsRow">
-            <span>Sent connection requests</span>
-            <span aria-hidden="true">→</span>
-          </button>
+              <div className="mp-search">
+                <input
+                  type="search"
+                  className={`mp-searchInput${isSearching ? ' mp-searchInput--searching' : ''}`}
+                  placeholder="Search by name or thread"
+                  aria-label="Search conversations"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit() }}
+                />
+              </div>
 
-          <div className="mp-list" aria-label="Conversation list">
-            {connections.length === 0 && !isSearching && lastSearchedQuery ? (
-              <p className="mp-searchStatus">No results for "{lastSearchedQuery}"</p>
-            ) : (
-              connections.map((c) => renderConversationItem(c))
-            )}
-          </div>
+              <button type="button" className="mp-requestsRow" onClick={openSentRequestsView}>
+                <span>Sent connection requests</span>
+                <span className="mp-requestsRow__right">
+                  {sentRequests.length > 0 ? (
+                    <span className="mp-requestsBadge">{sentRequests.length}</span>
+                  ) : null}
+                  <span aria-hidden="true">→</span>
+                </span>
+              </button>
+
+              <div className="mp-list" aria-label="Conversation list">
+                {connections.length === 0 && !isSearching && lastSearchedQuery ? (
+                  <p className="mp-searchStatus">No results for "{lastSearchedQuery}"</p>
+                ) : (
+                  connections.map((c) => renderConversationItem(c))
+                )}
+              </div>
+            </>
+          )}
         </aside>
 
         {/* ── Thread ── */}
