@@ -454,8 +454,17 @@
 }
 
 /* ── Bubbles ───────────────────────────────────────────────── */
-.mp-bubble {
+.mp-bubble__wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   max-width: 78%;
+}
+.mp-bubble__wrap--in { align-self: flex-start; }
+.mp-bubble__wrap--out { align-self: flex-end; }
+
+.mp-bubble {
   padding: 12px 16px;
   border-radius: var(--radius-lg);
   display: flex;
@@ -463,16 +472,89 @@
   gap: 6px;
 }
 .mp-bubble--in {
-  align-self: flex-start;
   background: var(--paper);
   border: 1px solid var(--ink-6);
   border-bottom-left-radius: 6px;
 }
 .mp-bubble--out {
-  align-self: flex-end;
   background: var(--ink);
   color: var(--paper);
   border-bottom-right-radius: 6px;
+}
+
+.mp-bubble__reactBtn {
+  position: absolute;
+  top: -10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-5);
+  background: var(--paper);
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--easing-default);
+}
+.mp-bubble__wrap--in .mp-bubble__reactBtn { right: 8px; }
+.mp-bubble__wrap--out .mp-bubble__reactBtn { left: 8px; }
+.mp-bubble__wrap:hover .mp-bubble__reactBtn { opacity: 1; }
+@media (max-width: 720px) {
+  .mp-bubble__reactBtn { opacity: 1; }
+}
+
+.mp-reactionPicker {
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 50;
+  display: flex;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--paper);
+  border: 1px solid var(--ink-5);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-float);
+  animation: mp-menu-in 140ms var(--easing-default) both;
+}
+.mp-bubble__wrap--in .mp-reactionPicker { right: 8px; }
+.mp-bubble__wrap--out .mp-reactionPicker { left: 8px; }
+.mp-reactionPicker button {
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  padding: 4px 6px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--easing-default);
+}
+.mp-reactionPicker button:hover { background: var(--paper-2); }
+
+.mp-bubble__reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.mp-bubble__wrap--out .mp-bubble__reactions { justify-content: flex-end; }
+.mp-reaction {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--ink-6);
+  background: var(--paper);
+  font-size: 12px;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--easing-default), border-color var(--dur-fast) var(--easing-default);
+}
+.mp-reaction:hover { background: var(--paper-2); }
+.mp-reaction--mine {
+  border-color: var(--ink-3);
+  background: var(--paper-3);
 }
 .mp-bubble__text {
   font-size: 14.5px;

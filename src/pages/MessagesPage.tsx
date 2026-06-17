@@ -25,13 +25,23 @@ type Connection = {
   }>
 }
 
+type Reaction = {
+  emoji: string
+  count: number
+  mine: boolean
+}
+
 type ThreadMessage = {
   id: string
   author: string
   side: 'left' | 'right'
   text: string
   meta: string
+  createdAt: string
+  reactions: Reaction[]
 }
+
+const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏']
 
 type SentRequest = {
   id: string
@@ -83,6 +93,8 @@ export default function MessagesPage() {
   const [contextMenuOpen, setContextMenuOpen] = useState(false)
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [reportSubmitting, setReportSubmitting] = useState(false)
+  const [otherReadAt, setOtherReadAt] = useState<string | null>(null)
+  const [reactionPickerId, setReactionPickerId] = useState<string | null>(null)
   const activeConversationRef = useRef<Connection | null>(null)
   const searchVersionRef = useRef(0)
   // Render-time ref updates — callbacks always read the latest values
@@ -106,33 +118,54 @@ export default function MessagesPage() {
         return
       }
 
-      const data = (await response.json()) as Array<{
-        id: string
-        sender_id: string
-        content: string
-        created_at: string
-      }>
+      const payload = (await response.json()) as {
+        messages: Array<{
+          id: string
+          sender_id: string
+          content: string
+          created_at: string
+          message_reactions?: Array<{ id: string; user_id: string; emoji: string }>
+        }>
+        otherReadAt: string | null
+      }
 
-      const formatted: ThreadMessage[] = data.map((message) => ({
-        id: message.id,
-        author:
-          userId !== '' && message.sender_id === userId ? 'You' : conversation.name,
-        side:
-          userId !== ''
-            ? message.sender_id === userId
-              ? 'right'
-              : 'left'
-            : message.sender_id === conversation.id
-              ? 'left'
-              : 'right',
-        text: message.content,
-        meta: new Date(message.created_at).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      }))
+      const formatted: ThreadMessage[] = payload.messages.map((message) => {
+        const grouped = new Map<string, Reaction>()
+        for (const r of message.message_reactions ?? []) {
+          const existing = grouped.get(r.emoji)
+          const mine = userId !== '' && r.user_id === userId
+          if (existing) {
+            existing.count += 1
+            existing.mine = existing.mine || mine
+          } else {
+            grouped.set(r.emoji, { emoji: r.emoji, count: 1, mine })
+          }
+        }
+
+        return {
+          id: message.id,
+          author:
+            userId !== '' && message.sender_id === userId ? 'You' : conversation.name,
+          side:
+            userId !== ''
+              ? message.sender_id === userId
+                ? 'right'
+                : 'left'
+              : message.sender_id === conversation.id
+                ? 'left'
+                : 'right',
+          text: message.content,
+          createdAt: message.created_at,
+          meta: new Date(message.created_at).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          reactions: Array.from(grouped.values()),
+        }
+      })
 
       setThreadMessages(formatted)
+      setOtherReadAt(payload.otherReadAt)
       setError(null)
     } catch {
       setError('Failed to load messages')
@@ -144,6 +177,14 @@ export default function MessagesPage() {
   const activeConversation = useMemo(
     () => connections.find((c) => c.id === activeConversationId) ?? null,
     [activeConversationId, connections],
+  )
+
+  const lastOwnMessage = useMemo(
+    () => [...threadMessages].reverse().find((m) => m.side === 'right') ?? null,
+    [threadMessages],
+  )
+  const lastOwnMessageSeen = Boolean(
+    lastOwnMessage && otherReadAt && new Date(otherReadAt) >= new Date(lastOwnMessage.createdAt),
   )
 
   useEffect(() => {
@@ -312,6 +353,18 @@ export default function MessagesPage() {
     document.addEventListener('mousedown', handleOutsideClick)
     return () => document.removeEventListener('mousedown', handleOutsideClick)
   }, [contextMenuOpen])
+
+  useEffect(() => {
+    if (!reactionPickerId) return
+    function handleOutsideClick(e: MouseEvent) {
+      const target = e.target as Element
+      if (!target.closest('.mp-reactionPicker') && !target.closest('.mp-bubble__reactBtn')) {
+        setReactionPickerId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [reactionPickerId])
 
   async function fetchArchivedConnections() {
     setArchivedLoading(true)
@@ -531,7 +584,7 @@ export default function MessagesPage() {
     const conversation = activeConversation!
     activeConversationRef.current = conversation
 
-    loadThreadMessages(conversation, true)
+    loadThreadMessages(conversation, true).then(() => markRead(conversation))
 
     const subscriptionConfig = conversation.conversationId
       ? {
@@ -546,12 +599,12 @@ export default function MessagesPage() {
           table: 'messages',
         }
 
-    const channel = supabase
+    const channelBuilder = supabase
       .channel(`messages:${conversation.conversationId ?? conversation.id}`)
       .on('postgres_changes', subscriptionConfig, (payload: { new: Record<string, unknown> }) => {
         const latest = activeConversationRef.current
         if (!latest || latest.id !== conversation.id) return
-        loadThreadMessages(latest, false)
+        loadThreadMessages(latest, false).then(() => markRead(latest))
         // Bubble this conversation to the top with the incoming message as the preview
         const incomingContent = typeof payload.new?.content === 'string' ? payload.new.content : undefined
         setConnections((prev) => {
@@ -563,12 +616,91 @@ export default function MessagesPage() {
           return updated
         })
       })
-      .subscribe()
+
+    if (conversation.conversationId) {
+      channelBuilder
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'message_reactions',
+            filter: `conversation_id=eq.${conversation.conversationId}`,
+          },
+          () => {
+            const latest = activeConversationRef.current
+            if (!latest || latest.id !== conversation.id) return
+            loadThreadMessages(latest, false)
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'conversation_participants',
+            filter: `conversation_id=eq.${conversation.conversationId}`,
+          },
+          () => {
+            const latest = activeConversationRef.current
+            if (!latest || latest.id !== conversation.id) return
+            loadThreadMessages(latest, false)
+          },
+        )
+    }
+
+    const channel = channelBuilder.subscribe()
 
     return () => {
       supabase.removeChannel(channel)
     }
   }, [activeConversationId])
+
+  async function markRead(conversation: Connection) {
+    if (!conversation.conversationId) return
+    try {
+      await apiRequest('/FeedController/markRead', {
+        method: 'POST',
+        body: { conversationId: conversation.conversationId },
+      })
+    } catch {
+      // best-effort — a missed read receipt isn't worth surfacing to the user
+    }
+  }
+
+  async function handleReact(messageId: string, emoji: string) {
+    setThreadMessages((prev) =>
+      prev.map((m) => {
+        if (m.id !== messageId) return m
+        const existing = m.reactions.find((r) => r.emoji === emoji)
+        if (existing?.mine) {
+          const updated = m.reactions
+            .map((r) => (r.emoji === emoji ? { ...r, count: r.count - 1, mine: false } : r))
+            .filter((r) => r.count > 0)
+          return { ...m, reactions: updated }
+        }
+        if (existing) {
+          return {
+            ...m,
+            reactions: m.reactions.map((r) => (r.emoji === emoji ? { ...r, count: r.count + 1, mine: true } : r)),
+          }
+        }
+        return { ...m, reactions: [...m.reactions, { emoji, count: 1, mine: true }] }
+      }),
+    )
+
+    try {
+      const res = await apiRequest('/FeedController/reactToMessage', {
+        method: 'POST',
+        body: { messageId, emoji },
+      })
+      if (!res.ok) throw new Error('failed')
+    } catch {
+      showToast('Failed to react to message', 'error')
+      // Re-sync with the server rather than guess at the rollback shape
+      if (activeConversation) loadThreadMessages(activeConversation, false)
+    }
+  }
 
   function openConversation(id: string) {
     setDraftMessage('')
@@ -942,19 +1074,71 @@ export default function MessagesPage() {
                     <div className="mp-thread__loading el-meta">Loading messages…</div>
                   ) : threadMessages.length > 0 ? (
                     threadMessages.map((message) => (
-                      <article
+                      <div
                         key={message.id}
-                        className={`mp-bubble ${
-                          message.side === 'right' ? 'mp-bubble--out' : 'mp-bubble--in'
+                        className={`mp-bubble__wrap ${
+                          message.side === 'right' ? 'mp-bubble__wrap--out' : 'mp-bubble__wrap--in'
                         }`}
                       >
-                        <p className="mp-bubble__text">{message.text}</p>
-                        <div className="mp-bubble__meta">
-                          <span>{message.author}</span>
-                          <span className="dot">·</span>
-                          <span>{message.meta}</span>
-                        </div>
-                      </article>
+                        <article
+                          className={`mp-bubble ${
+                            message.side === 'right' ? 'mp-bubble--out' : 'mp-bubble--in'
+                          }`}
+                        >
+                          <p className="mp-bubble__text">{message.text}</p>
+                          <div className="mp-bubble__meta">
+                            <span>{message.author}</span>
+                            <span className="dot">·</span>
+                            <span>{message.meta}</span>
+                            {message.id === lastOwnMessage?.id && lastOwnMessageSeen ? (
+                              <>
+                                <span className="dot">·</span>
+                                <span>Seen</span>
+                              </>
+                            ) : null}
+                          </div>
+                        </article>
+
+                        {message.reactions.length > 0 ? (
+                          <div className="mp-bubble__reactions">
+                            {message.reactions.map((r) => (
+                              <button
+                                key={r.emoji}
+                                type="button"
+                                className={`mp-reaction${r.mine ? ' mp-reaction--mine' : ''}`}
+                                onClick={() => handleReact(message.id, r.emoji)}
+                              >
+                                {r.emoji} {r.count}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        <button
+                          type="button"
+                          className="mp-bubble__reactBtn"
+                          aria-label="Add reaction"
+                          onClick={() =>
+                            setReactionPickerId(reactionPickerId === message.id ? null : message.id)
+                          }
+                        >
+                          ☺
+                        </button>
+                        {reactionPickerId === message.id ? (
+                          <div className="mp-reactionPicker" role="menu">
+                            {QUICK_EMOJIS.map((emoji) => (
+                              <button
+                                key={emoji}
+                                type="button"
+                                role="menuitem"
+                                onClick={() => { handleReact(message.id, emoji); setReactionPickerId(null) }}
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
                     ))
                   ) : (
                     <div className="mp-thread__loading el-meta">
