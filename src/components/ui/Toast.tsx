@@ -11,7 +11,7 @@ type Toast = {
 }
 
 type ToastContextValue = {
-  showToast: (message: string, type?: ToastType) => void
+  showToast: (message: string, type?: ToastType, duration?: number, replace?: boolean) => void
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
@@ -66,9 +66,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const showToast = useCallback(
-    (message: string, type: ToastType = 'info', duration = 4000) => {
+    (message: string, type: ToastType = 'info', duration = 4000, replace = false) => {
       const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`
-      setToasts((prev) => [...prev, { id, message, type, exiting: false }])
+      setToasts((prev) => {
+        if (replace && prev.length > 0) {
+          return [...prev.map((t) => ({ ...t, exiting: true })), { id, message, type, exiting: false }]
+        }
+        return [...prev, { id, message, type, exiting: false }]
+      })
       setTimeout(() => dismiss(id), duration)
     },
     [dismiss],

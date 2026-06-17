@@ -187,6 +187,7 @@ export default function HomePage() {
   const [dragStartX, setDragStartX] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
+  const [entering, setEntering] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [matchState, setMatchState] = useState<MatchState>({ open: false, id: '', name: '', photo: '', subheadline: '' })
   const [openerText, setOpenerText] = useState('')
@@ -250,6 +251,12 @@ export default function HomePage() {
 
   const currentCard = filteredCards[currentIndex] ?? null
   const stackedCards = filteredCards.slice(currentIndex, currentIndex + 3)
+
+  useEffect(() => {
+    setEntering(true)
+    const t = setTimeout(() => setEntering(false), 350)
+    return () => clearTimeout(t)
+  }, [currentIndex])
 
   useEffect(() => {
     async function fetchFeed() {
@@ -550,14 +557,22 @@ export default function HomePage() {
           return
         }
       } catch {
-        setError('Failed to connect with person')
-        swipeLockedRef.current = false
-        return
-      }
-    }
+    setError('Failed to connect with person')
+    swipeLockedRef.current = false
+    return
+  }
+}
 
-    setExitDirection(direction)
-    window.setTimeout(() => advanceCard(), 260)
+setExitDirection(direction)
+if (direction === 'accept') {
+  showToast(
+    mode === 'jobs' ? 'Applied' : 'Like sent',
+    'success',
+    1200,
+    true,
+  )
+}
+window.setTimeout(() => advanceCard(), 260)
   }
 
   async function handleBookmark() {
@@ -1019,7 +1034,7 @@ export default function HomePage() {
                       : exitDirection === 'reject'
                         ? 'hp-card--exitLeft'
                         : ''
-                  } ${isDragging ? 'hp-card--dragging' : ''} ${cardOverflows ? 'hp-card--overflow' : ''}`}
+                  } ${entering ? 'hp-card--enter' : ''} ${isDragging ? 'hp-card--dragging' : ''} ${cardOverflows ? 'hp-card--overflow' : ''}`}
                   style={{
                     transform:
                       exitDirection === null
@@ -1034,14 +1049,14 @@ export default function HomePage() {
                 >
                   <div
                     className="hp-card__stamp hp-card__stamp--skip"
-                    style={{ opacity: dragX < 0 ? swipeIndicatorOpacity : 0 }}
+                    style={{ opacity: exitDirection === 'reject' ? 1 : dragX < 0 ? swipeIndicatorOpacity : 0 }}
                     aria-hidden="true"
                   >
                     SKIP
                   </div>
                   <div
                     className="hp-card__stamp hp-card__stamp--fit"
-                    style={{ opacity: dragX > 0 ? swipeIndicatorOpacity : 0 }}
+                    style={{ opacity: exitDirection === 'accept' ? 1 : dragX > 0 ? swipeIndicatorOpacity : 0 }}
                     aria-hidden="true"
                   >
                     {mode === 'jobs' ? 'APPLY' : 'FIT'}

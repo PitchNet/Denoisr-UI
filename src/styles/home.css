@@ -361,6 +361,13 @@
   transform: translateX(-130%) rotate(-12deg) !important;
   opacity: 0;
 }
+@keyframes hp-card-enter {
+  from { transform: translateY(30px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+.hp-card--enter {
+  animation: hp-card-enter 350ms var(--easing-default) forwards;
+}
 
 .hp-card__head {
   display: flex;
