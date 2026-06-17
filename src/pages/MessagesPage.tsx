@@ -510,26 +510,39 @@ export default function MessagesPage() {
     fetchArchivedConnections()
   }
 
+  // Tracks whether the user was scrolled to the bottom *before* the latest
+  // threadMessages update, so new content doesn't retroactively decide
+  // "was I at the bottom" using a scrollHeight that already includes itself.
+  const wasAtBottomRef = useRef(true)
+
+  useEffect(() => {
+    const container = messagesThreadBodyRef.current
+    if (!container) return
+    function handleScroll() {
+      wasAtBottomRef.current = container!.scrollHeight - container!.scrollTop - container!.clientHeight < 80
+    }
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [])
+
   useEffect(() => {
     if (threadLoading || threadMessages.length === 0) return
     const container = messagesThreadBodyRef.current
-    if (container) {
-      const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100
-      if (isAtBottom) {
-        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
-      }
+    if (container && wasAtBottomRef.current) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
     }
   }, [threadMessages, threadLoading])
 
   useEffect(() => {
-    if (activeConversationId) {
-      const timer = setTimeout(() => {
-        const container = messagesThreadBodyRef.current
-        if (container) container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
-      }, 500)
-      return () => clearTimeout(timer)
-    }
+    if (!activeConversationId) return
+    wasAtBottomRef.current = true
   }, [activeConversationId])
+
+  useEffect(() => {
+    if (threadLoading) return
+    const container = messagesThreadBodyRef.current
+    if (container) container.scrollTo({ top: container.scrollHeight, behavior: 'auto' })
+  }, [activeConversationId, threadLoading])
 
   useEffect(() => {
     fetchConnections()
