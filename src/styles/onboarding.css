@@ -111,6 +111,51 @@
   width: 100%;
 }
 
+.ob__formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ob__radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.ob__radio input { accent-color: var(--ink); }
+
+.ob__textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+.ob__textarea:focus { outline: none; border-color: var(--ink-4); }
+
+.ob__btnRow {
+  display: flex;
+  gap: 10px;
+}
+.ob__btnRow .ob__cta { flex: 1; }
+
+.ob__cancel {
+  flex: 1;
+  background: var(--paper);
+  border: 1px solid var(--ink-6);
+  color: var(--ink-2);
+}
+
 /* ── Mobile ──────────────────────────────────────────────────── */
 @media (max-width: 520px) {
   .ob__card {

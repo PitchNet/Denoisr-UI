@@ -428,6 +428,11 @@
   text-transform: uppercase;
   color: var(--ink-4);
 }
+.mp-thread__headRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .mp-thread__body {
   flex: 1;
@@ -586,6 +591,59 @@
   color: var(--ink-3);
   line-height: 1.5;
 }
+.mp-context__topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mp-context__kebab {
+  position: relative;
+}
+.mp-context__menuBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--dur-fast) var(--easing-default), color var(--dur-fast) var(--easing-default);
+}
+.mp-context__menuBtn:hover { background: var(--paper-2); color: var(--ink); }
+.mp-context__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 50;
+  background: var(--paper);
+  border: 1px solid var(--ink-5);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-float);
+  min-width: 140px;
+  overflow: hidden;
+  animation: mp-menu-in 140ms var(--easing-default) both;
+}
+.mp-context__menuAction {
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: 0;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--easing-default);
+}
+.mp-context__menuAction:hover { background: var(--paper-2); }
+.mp-context__menuAction:not(:last-child) { border-bottom: 1px solid var(--ink-6); }
 .mp-context__hero {
   display: flex;
   gap: 14px;

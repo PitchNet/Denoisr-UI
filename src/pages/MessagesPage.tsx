@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { apiRequest } from '../api'
 import { getAuthenticatedUserId } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import ReportUserModal from '../components/ui/ReportUserModal'
 import { useToast } from '../components/ui/Toast'
 import { supabase } from '../supabase'
 import '../styles/messages.css'
@@ -79,6 +80,9 @@ export default function MessagesPage() {
   const [archivedConnections, setArchivedConnections] = useState<Connection[]>([])
   const [archivedLoading, setArchivedLoading] = useState(false)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [contextMenuOpen, setContextMenuOpen] = useState(false)
+  const [reportModalOpen, setReportModalOpen] = useState(false)
+  const [reportSubmitting, setReportSubmitting] = useState(false)
   const activeConversationRef = useRef<Connection | null>(null)
   const searchVersionRef = useRef(0)
   // Render-time ref updates — callbacks always read the latest values
@@ -297,6 +301,18 @@ export default function MessagesPage() {
     return () => document.removeEventListener('mousedown', handleOutsideClick)
   }, [openMenuId])
 
+  useEffect(() => {
+    if (!contextMenuOpen) return
+    function handleOutsideClick(e: MouseEvent) {
+      const target = e.target as Element
+      if (!target.closest('.mp-context__menu') && !target.closest('.mp-context__menuBtn')) {
+        setContextMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [contextMenuOpen])
+
   async function fetchArchivedConnections() {
     setArchivedLoading(true)
     try {
@@ -398,6 +414,41 @@ export default function MessagesPage() {
         prev.map((c) => (c.id === connection.id ? { ...c, muted: !newMuted } : c)),
       )
       showToast('Failed to update mute setting', 'error')
+    }
+  }
+
+  async function handleBlock(connection: Connection) {
+    if (!window.confirm(`Block ${connection.name}? They won't be able to message you again, and you won't see each other anymore.`)) {
+      return
+    }
+    try {
+      const res = await apiRequest('/FeedController/blockUser', {
+        method: 'POST',
+        body: { peopleId: connection.id },
+      })
+      if (!res.ok) throw new Error('failed')
+      setConnections((prev) => prev.filter((c) => c.id !== connection.id))
+      if (activeConversationId === connection.id) setActiveConversationId(null)
+      showToast(`Blocked ${connection.name}`, 'success')
+    } catch {
+      showToast('Failed to block user', 'error')
+    }
+  }
+
+  async function handleReportSubmit(connection: Connection, reason: string, details: string) {
+    setReportSubmitting(true)
+    try {
+      const res = await apiRequest('/FeedController/reportUser', {
+        method: 'POST',
+        body: { peopleId: connection.id, reason, details },
+      })
+      if (!res.ok) throw new Error('failed')
+      setReportModalOpen(false)
+      showToast('Report submitted. Thanks for letting us know.', 'success')
+    } catch {
+      showToast('Failed to submit report', 'error')
+    } finally {
+      setReportSubmitting(false)
     }
   }
 
@@ -850,7 +901,39 @@ export default function MessagesPage() {
                     <h2 className="mp-thread__title">{activeConversation.name}</h2>
                   </div>
                 </div>
-                <span className="mp-thread__status">{activeConversation.status}</span>
+                <div className="mp-thread__headRight">
+                  <span className="mp-thread__status">{activeConversation.status}</span>
+                  <div className="mp-context__kebab">
+                    <button
+                      type="button"
+                      className="mp-context__menuBtn"
+                      aria-label={`Options for ${activeConversation.name}`}
+                      onClick={() => setContextMenuOpen((open) => !open)}
+                    >
+                      ···
+                    </button>
+                    {contextMenuOpen && (
+                      <div className="mp-context__menu" role="menu">
+                        <button
+                          type="button"
+                          className="mp-context__menuAction"
+                          role="menuitem"
+                          onClick={() => { setContextMenuOpen(false); setReportModalOpen(true) }}
+                        >
+                          Report
+                        </button>
+                        <button
+                          type="button"
+                          className="mp-context__menuAction"
+                          role="menuitem"
+                          onClick={() => { setContextMenuOpen(false); handleBlock(activeConversation) }}
+                        >
+                          Block
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </header>
 
               <div className="mp-thread__body" ref={messagesThreadBodyRef}>
@@ -957,6 +1040,14 @@ export default function MessagesPage() {
         </aside>
       </div>
 
+      {reportModalOpen && activeConversation && (
+        <ReportUserModal
+          name={activeConversation.name}
+          submitting={reportSubmitting}
+          onCancel={() => setReportModalOpen(false)}
+          onSubmit={(reason, details) => handleReportSubmit(activeConversation, reason, details)}
+        />
+      )}
     </div>
   )
 }
