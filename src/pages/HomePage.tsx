@@ -183,6 +183,13 @@ export default function HomePage() {
   const [bookmarkedOnly, setBookmarkedOnly] = useState(initialFilters?.bookmarked ?? false)
 
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [lastSwipe, setLastSwipe] = useState<{
+    card: DiscoveryCard
+    direction: SwipeDirection
+    index: number
+    mode: DiscoveryMode
+  } | null>(null)
+  const [rewinding, setRewinding] = useState(false)
   const [dragX, setDragX] = useState(0)
   const [dragStartX, setDragStartX] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -362,6 +369,7 @@ export default function HomePage() {
     setCurrentIndex(0)
     setDragX(0)
     setExitDirection(null)
+    setLastSwipe(null)
   }, [cityFilter, countryFilter, maxExperience, maxSalary, mode, roleFilter, searchFilter])
 
   async function loadMore() {
@@ -565,6 +573,7 @@ export default function HomePage() {
 }
 
 setExitDirection(direction)
+setLastSwipe({ card: currentCard, direction, index: currentIndex, mode })
 if (direction === 'accept') {
   showToast(
     mode === 'jobs' ? 'Applied' : 'Like sent',
@@ -574,6 +583,39 @@ if (direction === 'accept') {
   )
 }
 window.setTimeout(() => advanceCard(), 260)
+  }
+
+  async function handleRewind() {
+    if (!lastSwipe || exitDirection || swipeLockedRef.current || rewinding) return
+    swipeLockedRef.current = true
+    setRewinding(true)
+    setError(null)
+
+    if (lastSwipe.direction === 'accept') {
+      try {
+        const response = lastSwipe.mode === 'jobs'
+          ? await apiRequest('/FeedController/undoJobAction', { method: 'POST', body: { jobId: lastSwipe.card.id } })
+          : await apiRequest('/FeedController/withdrawRequest', { method: 'POST', body: { peopleId: lastSwipe.card.id } })
+        if (!response.ok) {
+          setError('Failed to rewind')
+          swipeLockedRef.current = false
+          setRewinding(false)
+          return
+        }
+      } catch {
+        setError('Failed to rewind')
+        swipeLockedRef.current = false
+        setRewinding(false)
+        return
+      }
+    }
+
+    setEntering(false)
+    resetDrag()
+    setCurrentIndex(lastSwipe.index)
+    setLastSwipe(null)
+    showToast('Brought back', 'info', 1000, true)
+    setRewinding(false)
   }
 
   async function handleBookmark() {
@@ -1130,6 +1172,18 @@ window.setTimeout(() => advanceCard(), 260)
               <div className="hp-actions">
                 <button
                   type="button"
+                  className="hp-actionbtn hp-actionbtn--rewind"
+                  aria-label="Rewind"
+                  disabled={!lastSwipe || rewinding}
+                  onClick={handleRewind}
+                >
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 10a7 7 0 1 1 2.1 5" />
+                    <path d="M3 14v-4h4" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
                   className="hp-actionbtn hp-actionbtn--pass"
                   aria-label="Skip"
                   onClick={() => handleDecision('reject')}
@@ -1161,6 +1215,7 @@ window.setTimeout(() => advanceCard(), 260)
               </div>
 
               <div className="hp-actionLabels el-meta">
+                <span>Rewind</span>
                 <span>Skip</span>
                 <span>Bookmark</span>
                 <span>{acceptLabel}</span>

@@ -532,6 +532,15 @@
 .hp-actionbtn--bookmark { color: var(--ink-3); }
 .hp-actionbtn--bookmarked { color: oklch(0.68 0.14 290); }
 .hp-actionbtn--like { color: var(--decision-like); }
+.hp-actionbtn--rewind { width: 46px; height: 46px; color: var(--ink-3); }
+.hp-actionbtn--rewind:disabled {
+  opacity: 0.35;
+  cursor: default;
+  background: var(--paper);
+  border-color: var(--ink-5);
+  box-shadow: none;
+}
+.hp-actionbtn--rewind:disabled:hover { background: var(--paper); border-color: var(--ink-5); box-shadow: none; }
 .hp-actionLabels {
   display: flex;
   justify-content: center;
