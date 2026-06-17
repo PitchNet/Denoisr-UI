@@ -1,10 +1,21 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest, getAuthTokenFromCookies } from '../api'
 import { setAuthToken } from '../auth'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 const LINKEDIN_DATA_KEY = 'denoisr-linkedin-data'
+
+// The import is a single ~20-50s backend call (Apify scrape + Gemini
+// restructuring) with no progress events, so we fake staged progress from
+// elapsed time and cap it short of 100% until the response actually lands.
+const IMPORT_STAGES = [
+  { at: 0, label: 'Fetching your LinkedIn profile…' },
+  { at: 30, label: 'Reading your experience…' },
+  { at: 60, label: 'Structuring your profile with AI…' },
+  { at: 85, label: 'Almost done…' },
+]
+const IMPORT_PROGRESS_CAP = 92
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -16,6 +27,35 @@ export default function SignupPage() {
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [error, setError] = useState('')
   const [importing, setImporting] = useState(false)
+  const [importProgress, setImportProgress] = useState(0)
+  const importTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const importStage =
+    [...IMPORT_STAGES].reverse().find((s) => importProgress >= s.at)?.label ?? IMPORT_STAGES[0].label
+
+  useEffect(() => {
+    return () => {
+      if (importTimerRef.current) clearInterval(importTimerRef.current)
+    }
+  }, [])
+
+  function startFakeProgress() {
+    setImportProgress(0)
+    importTimerRef.current = setInterval(() => {
+      setImportProgress((prev) => {
+        if (prev >= IMPORT_PROGRESS_CAP) return prev
+        const step = prev < 50 ? 4 : prev < 75 ? 2 : 0.5
+        return Math.min(prev + step, IMPORT_PROGRESS_CAP)
+      })
+    }, 350)
+  }
+
+  function stopFakeProgress() {
+    if (importTimerRef.current) {
+      clearInterval(importTimerRef.current)
+      importTimerRef.current = null
+    }
+  }
 
   async function handleLinkedInSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -36,6 +76,7 @@ export default function SignupPage() {
 
     setImporting(true)
     setError('')
+    startFakeProgress()
 
     try {
       const token = getAuthTokenFromCookies()
@@ -48,19 +89,25 @@ export default function SignupPage() {
         body: { url },
       })
       if (!response.ok) {
+        stopFakeProgress()
+        setImportProgress(0)
         setError('Could not import from that LinkedIn URL. Try again or sign up manually.')
         setImporting(false)
         return
       }
 
       const data = await response.json()
+      stopFakeProgress()
+      setImportProgress(100)
 
       setAuthToken('signup-token')
       sessionStorage.setItem(SIGNUP_CREDENTIALS_KEY, JSON.stringify({ email: email.trim(), password }))
       sessionStorage.setItem(LINKEDIN_DATA_KEY, JSON.stringify(data))
 
-      navigate('/dashboard')
+      setTimeout(() => navigate('/dashboard'), 250)
     } catch {
+      stopFakeProgress()
+      setImportProgress(0)
       setError('Could not import from that LinkedIn URL. Try again or sign up manually.')
       setImporting(false)
     }
@@ -143,6 +190,18 @@ export default function SignupPage() {
 
             {error ? (
               <div className="auth__error" role="alert">{error}</div>
+            ) : null}
+
+            {importing ? (
+              <div className="auth__progress" role="status" aria-live="polite">
+                <div className="auth__progressTrack">
+                  <div className="auth__progressFill" style={{ width: `${importProgress}%` }} />
+                </div>
+                <div className="auth__progressMeta">
+                  <span className="auth__progressStage">{importStage}</span>
+                  <span className="auth__progressPct">{Math.round(importProgress)}%</span>
+                </div>
+              </div>
             ) : null}
 
             <button
