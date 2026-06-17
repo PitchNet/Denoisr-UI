@@ -516,6 +516,7 @@ export default function HomePage() {
     if (!currentCard || exitDirection || swipeLockedRef.current) return
     swipeLockedRef.current = true
     setError(null)
+    setIsDragging(false)
 
     if (direction === 'accept' && mode === 'jobs') {
       try {
@@ -1020,7 +1021,7 @@ window.setTimeout(() => advanceCard(), 260)
                       key={card.id}
                       className="hp-card hp-card--stack"
                       style={{
-                        transform: `translateY(${(offset + 1) * 10}px) scale(${1 - (offset + 1) * 0.03})`,
+                        transform: `translateY(${(exitDirection ? offset : offset + 1) * 10}px) scale(${1 - (exitDirection ? offset : offset + 1) * 0.03})`,
                       }}
                       aria-hidden="true"
                     />
