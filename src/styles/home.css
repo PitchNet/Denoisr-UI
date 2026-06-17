@@ -199,7 +199,7 @@
   border: 2px solid var(--paper);
   cursor: pointer;
 }
-.hp-applyBtn { margin-top: 6px; border-radius: var(--radius-2xl); }
+.hp-applyBtn { margin-top: 6px; border-radius: var(--radius-pill); }
 
 .hp-filterActions {
   display: flex;
@@ -208,7 +208,7 @@
 }
 .hp-filterActions .btn {
   flex: 1;
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-pill);
 }
 
 /* ── Deck (center) ─────────────────────────────────────────── */
@@ -847,7 +847,7 @@
   justify-content: center;
   animation: hp-match-up 340ms var(--easing-default) 660ms both;
 }
-.hp-match__actions .btn { border-radius: var(--radius-2xl); }
+.hp-match__actions .btn { border-radius: var(--radius-pill); }
 
 /* ── Mobile ── */
 @media (max-width: 720px) {
@@ -913,7 +913,7 @@
   gap: 10px;
   padding-top: 4px;
 }
-.hp-filterSheet__actions .btn { flex: 1; border-radius: var(--radius-2xl); }
+.hp-filterSheet__actions .btn { flex: 1; border-radius: var(--radius-pill); }
 
 @media (max-width: 720px) {
   .hp-filterOverlay { display: flex; }
@@ -944,7 +944,7 @@
   line-height: 1;
   cursor: pointer;
   padding: 4px 6px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   transition: background-color var(--dur-fast) var(--easing-default);
 }
 .hp-banner__dismiss:hover { background: rgba(196, 74, 57, 0.12); }
@@ -1137,7 +1137,7 @@
   flex-shrink: 0;
 }
 .hp-companyCta .btn {
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-pill);
   font-size: 13px;
   padding: 7px 18px;
 }
@@ -1149,7 +1149,7 @@
   color: var(--ink-4);
   cursor: pointer;
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   transition: color var(--dur-fast) var(--easing-default);
 }
 .hp-companyCta__dismiss:hover { color: var(--ink); }

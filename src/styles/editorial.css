@@ -87,7 +87,7 @@ html, body {
   justify-content: center;
   gap: 10px;
   padding: 12px 16px;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-pill);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1;
@@ -308,7 +308,7 @@ html, body {
   padding: 10px 12px;
   font: inherit;
   color: var(--ink-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--easing-default);
 }
@@ -621,7 +621,7 @@ html, body {
   font-family: var(--font-sans);
   font-size: 14px;
   color: var(--ink-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   cursor: pointer;
 }
 .mbn__action:hover { background: var(--paper-2); color: var(--ink); }

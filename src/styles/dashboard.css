@@ -236,7 +236,7 @@
   line-height: 1;
 }
 
-.dp .btn { border-radius: var(--radius-2xl); }
+.dp .btn { border-radius: var(--radius-pill); }
 
 .dp-grid2 {
   display: grid;
@@ -329,7 +329,7 @@
   font-family: var(--font-sans);
   font-size: 14px;
   color: var(--ink-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--easing-default);
 }
@@ -350,7 +350,7 @@
 .dp-iconBtn {
   width: 38px;
   height: 38px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   border: 1px solid var(--ink-5);
   background: var(--paper);
   color: var(--ink-3);

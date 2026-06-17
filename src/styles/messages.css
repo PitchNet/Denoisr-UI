@@ -193,7 +193,7 @@
 .mp-backBtn {
   background: var(--paper-2);
   border: 1px solid var(--ink-6);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   width: 36px;
   height: 36px;
   flex-shrink: 0;
@@ -260,7 +260,7 @@
 .mp-reqItem__withdraw {
   background: transparent;
   border: 1px solid var(--ink-5);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   font-family: var(--font-sans);
   font-size: 12px;
   color: var(--ink-3);
@@ -623,7 +623,7 @@
   height: 38px;
   padding: 0 18px;
   font-size: 13.5px;
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-pill);
 }
 .mp-composer__send[disabled] {
   opacity: 0.4;
@@ -684,7 +684,7 @@
 .mp-context__menuBtn {
   width: 26px;
   height: 26px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   border: 0;
   background: transparent;
   color: var(--ink-3);
@@ -812,7 +812,7 @@
   transform: translateY(-50%);
   width: 28px;
   height: 28px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   border: 0;
   background: transparent;
   color: var(--ink-3);
