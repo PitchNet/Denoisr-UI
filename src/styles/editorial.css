@@ -138,6 +138,20 @@ html, body {
   -webkit-backdrop-filter: blur(10px);
   border-color: var(--ink-6);
 }
+.btn--danger {
+  background: var(--decision-pass);
+  color: #fff;
+  box-shadow: var(--shadow-button);
+  border-color: rgba(196, 74, 57, 0.4);
+}
+.btn--danger:hover {
+  transform: translateY(-1px);
+  background: #a83b2c;
+}
+.btn--danger:active {
+  transform: translateY(0);
+  background: #8f3225;
+}
 .btn--glassDark:hover { background: rgba(255, 255, 255, 0.85); }
 .btn--glassDark:active { background: rgba(255, 255, 255, 0.75); }
 

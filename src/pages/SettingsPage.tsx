@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
+import { clearSession } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import '../styles/profile-edit.css'
 import '../styles/settings.css'
 
-type Tab = 'security' | 'notifications' | 'privacy'
+type Tab = 'security' | 'notifications' | 'privacy' | 'data'
 type SectionStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 type Settings = {
@@ -44,6 +46,7 @@ function ToggleRow({
 }
 
 export default function SettingsPage() {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('security')
@@ -57,6 +60,12 @@ export default function SettingsPage() {
 
   const [notifStatus, setNotifStatus] = useState<SectionStatus>('idle')
   const [privacyStatus, setPrivacyStatus] = useState<SectionStatus>('idle')
+
+  const [exportStatus, setExportStatus] = useState<SectionStatus>('idle')
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteStatus, setDeleteStatus] = useState<SectionStatus>('idle')
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -140,6 +149,48 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleExport() {
+    setExportStatus('saving')
+    try {
+      const res = await apiRequest('/SettingsController/exportData', { method: 'GET' })
+      if (!res.ok) { setExportStatus('error'); return }
+      const data = await res.json()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `denoisr-data-export-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      setExportStatus('saved')
+      setTimeout(() => setExportStatus('idle'), 3000)
+    } catch {
+      setExportStatus('error')
+    }
+  }
+
+  async function handleDeleteAccount(e: React.FormEvent) {
+    e.preventDefault()
+    setDeleteError('')
+    setDeleteStatus('saving')
+    try {
+      const res = await apiRequest('/SettingsController/deleteAccount', {
+        body: { password: deletePassword },
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setDeleteError((data as { detail?: string }).detail || 'Failed to delete account')
+        setDeleteStatus('error')
+        return
+      }
+      clearSession()
+      navigate('/')
+    } catch {
+      setDeleteError('Failed to delete account')
+      setDeleteStatus('error')
+    }
+  }
+
   if (loading) {
     return <LoadingState label="Loading settings" detail="Fetching your account preferences." />
   }
@@ -160,7 +211,7 @@ export default function SettingsPage() {
       </header>
 
       <nav className="st-tabs" aria-label="Settings sections">
-        {(['security', 'notifications', 'privacy'] as Tab[]).map((tab) => (
+        {(['security', 'notifications', 'privacy', 'data'] as Tab[]).map((tab) => (
           <button
             key={tab}
             type="button"
@@ -306,6 +357,86 @@ export default function SettingsPage() {
               {privacyStatus === 'saving' ? 'Saving…' : 'Save settings'}
             </button>
           </section>
+        )}
+
+        {activeTab === 'data' && (
+          <>
+            <section className="st-section">
+              <div className="st-section__head">
+                <span className="st-eyebrow">YOUR DATA</span>
+                <h2 className="st-section__title">Export your data</h2>
+                <p className="st-section__desc">
+                  Download everything Denoisr holds about your account — profile, highlights, work history,
+                  connections, messages you&rsquo;ve sent, and notifications — as a single JSON file.
+                </p>
+              </div>
+              {exportStatus === 'error' ? <p className="st-fieldError">Failed to export. Try again.</p> : null}
+              <button
+                type="button"
+                className="btn btn--solidDark"
+                onClick={handleExport}
+                disabled={exportStatus === 'saving'}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                {exportStatus === 'saving' ? 'Preparing…' : 'Download my data'}
+              </button>
+            </section>
+
+            <section className="st-section st-dangerZone">
+              <div className="st-section__head">
+                <span className="st-eyebrow">DANGER ZONE</span>
+                <h2 className="st-section__title">Delete your account</h2>
+                <p className="st-section__desc">
+                  Permanently deletes your profile, highlights, tags, work history, projects, connections,
+                  sent messages, and notifications. This can&rsquo;t be undone. Jobs or a company page you&rsquo;ve
+                  posted are left in place since they may involve other people&rsquo;s data (applicants, teammates).
+                </p>
+              </div>
+
+              {!deleteConfirmOpen ? (
+                <button
+                  type="button"
+                  className="btn btn--danger"
+                  onClick={() => setDeleteConfirmOpen(true)}
+                  style={{ alignSelf: 'flex-start' }}
+                >
+                  Delete my account
+                </button>
+              ) : (
+                <form className="st-form" onSubmit={handleDeleteAccount} noValidate>
+                  <div className="pe-field">
+                    <label className="pe-label">Confirm your password</label>
+                    <input
+                      className="pe-input"
+                      type="password"
+                      value={deletePassword}
+                      onChange={(e) => { setDeletePassword(e.target.value); setDeleteError('') }}
+                      autoComplete="current-password"
+                      autoFocus
+                      required
+                    />
+                  </div>
+                  {deleteError ? <p className="st-fieldError" role="alert">{deleteError}</p> : null}
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button
+                      type="submit"
+                      className="btn btn--danger"
+                      disabled={deleteStatus === 'saving' || !deletePassword}
+                    >
+                      {deleteStatus === 'saving' ? 'Deleting…' : 'Permanently delete my account'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn--outlinedLight"
+                      onClick={() => { setDeleteConfirmOpen(false); setDeletePassword(''); setDeleteError('') }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+            </section>
+          </>
         )}
 
       </div>
