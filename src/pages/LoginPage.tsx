@@ -82,6 +82,8 @@ export default function LoginPage() {
         </form>
 
         <footer className="auth__foot">
+          <Link to="/forgot-password" className="auth__foot-link">Forgot password?</Link>
+          <span className="auth__foot-text" style={{ margin: '0 8px' }}>·</span>
           <span className="auth__foot-text">New here?</span>
           <Link to="/signup" className="auth__foot-link">Sign up →</Link>
         </footer>

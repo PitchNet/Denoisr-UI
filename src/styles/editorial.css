@@ -981,6 +981,16 @@ html, body {
   border-radius: var(--radius-sm);
 }
 
+.auth__success {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  color: var(--ink-3);
+  padding: 8px 12px;
+  background: var(--paper-2);
+  border-radius: var(--radius-sm);
+}
+
 .auth__submit {
   margin-top: 8px;
   width: 100%;

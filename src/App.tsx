@@ -9,6 +9,8 @@ import Navbar from './components/Navbar'
 import DashboardPage from './pages/DashboardPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import MessagesPage from './pages/MessagesPage'
 import JobApplicationsPage from './pages/JobApplicationsPage'
 import CompanyPage from './pages/CompanyPage'
@@ -63,7 +65,10 @@ function AppShell() {
             <Route path="/" element={<ProductPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           </Route>
+          {/* Token-driven, independent of session state — not gated either way */}
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />

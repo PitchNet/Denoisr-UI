@@ -101,3 +101,95 @@ test.describe('Signup (/signup)', () => {
     await expect(page).toHaveURL(/\/dashboard/)
   })
 })
+
+test.describe('Forgot password (/forgot-password)', () => {
+  test('navigates there from the login footer link', async ({ page }) => {
+    await page.goto('/login')
+    await page.getByRole('link', { name: 'Forgot password?' }).click()
+    await expect(page).toHaveURL('/forgot-password')
+  })
+
+  test('shows the same generic confirmation regardless of whether the email exists (email mode)', async ({ page }) => {
+    await page.route('**/LoginController/forgotPassword', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'If that email is registered, a reset link is on its way.' }),
+      }),
+    )
+    await page.goto('/forgot-password')
+    await page.getByLabel('Email', { exact: true }).fill('nobody@example.com')
+    await page.getByRole('button', { name: 'Continue' }).click()
+    await expect(page.getByRole('status')).toContainText(/reset link is on its way/i)
+  })
+
+  test('jumps straight to /reset-password when no email provider is configured', async ({ page }) => {
+    // LoginController.forgot_password hands the token back directly when
+    // RESEND_API_KEY isn't set, so the UI can skip the email step entirely.
+    await page.route('**/LoginController/forgotPassword', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'No email service is configured.', token: 'no-email-token' }),
+      }),
+    )
+    await page.goto('/forgot-password')
+    await page.getByLabel('Email', { exact: true }).fill('jane@work.com')
+    await page.getByRole('button', { name: 'Continue' }).click()
+    await expect(page).toHaveURL(/\/reset-password\?token=no-email-token/)
+  })
+})
+
+test.describe('Reset password (/reset-password)', () => {
+  test('without a token, shows an error and a link back to forgot-password', async ({ page }) => {
+    await page.goto('/reset-password')
+    await expect(page.getByRole('alert')).toContainText(/missing its token/i)
+    await page.getByRole('link', { name: 'forgot password' }).click()
+    await expect(page).toHaveURL('/forgot-password')
+  })
+
+  test('rejects mismatched passwords client-side without calling the API', async ({ page }) => {
+    let called = false
+    await page.route('**/LoginController/resetPassword', (route) => {
+      called = true
+      return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
+    })
+    await page.goto('/reset-password?token=abc123')
+    await page.getByLabel('New password', { exact: true }).fill('aaaaaaaa')
+    await page.getByLabel('Confirm new password').fill('bbbbbbbb')
+    await page.getByRole('button', { name: 'Update password' }).click()
+    await expect(page.getByRole('alert')).toContainText(/don.t match/i)
+    expect(called).toBe(false)
+  })
+
+  test('shows the backend error for an invalid or expired token', async ({ page }) => {
+    await page.route('**/LoginController/resetPassword', (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ detail: 'This reset link is invalid or has expired.' }),
+      }),
+    )
+    await page.goto('/reset-password?token=expired')
+    await page.getByLabel('New password', { exact: true }).fill('aaaaaaaa')
+    await page.getByLabel('Confirm new password').fill('aaaaaaaa')
+    await page.getByRole('button', { name: 'Update password' }).click()
+    await expect(page.getByRole('alert')).toContainText(/invalid or has expired/i)
+  })
+
+  test('valid submission shows confirmation and redirects to /login', async ({ page }) => {
+    await page.route('**/LoginController/resetPassword', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Password updated. You can now log in.' }),
+      }),
+    )
+    await page.goto('/reset-password?token=valid-token')
+    await page.getByLabel('New password', { exact: true }).fill('aaaaaaaa')
+    await page.getByLabel('Confirm new password').fill('aaaaaaaa')
+    await page.getByRole('button', { name: 'Update password' }).click()
+    await expect(page.getByRole('status')).toContainText(/password updated/i)
+    await expect(page).toHaveURL(/\/login/, { timeout: 5_000 })
+  })
+})
