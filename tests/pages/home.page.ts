@@ -69,15 +69,15 @@ export class HomePage extends BasePage {
   } = {}) {
     const { jobs = buildMockCards('jobs'), people = buildMockCards('people'), failJobs, failPeople, mode } = opts
 
-    // Inject a fake auth cookie so the route guard doesn't redirect us to /login
+    // The real auth JWT now lives in an httpOnly cookie the API sets — tests
+    // can't (and shouldn't) forge that. Instead, seed the two plain,
+    // non-secret cookies the app itself sets after login: one flags
+    // "logged in" for the route guard, the other carries the user id for
+    // getAuthenticatedUserId(). Mocked endpoints below don't check the real
+    // cookie anyway.
     await this.page.context().addCookies([
-      {
-        name: 'denoisr_auth_token',
-        // a real-shaped JWT with a sub claim so getAuthenticatedUserId works
-        value: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0LXVzZXIifQ.x',
-        domain: 'localhost',
-        path: '/',
-      },
+      { name: 'denoisr_session', value: '1', domain: 'localhost', path: '/' },
+      { name: 'denoisr_user_id', value: 'test-user', domain: 'localhost', path: '/' },
     ])
 
     await this.page.route('**/FeedController/fetchJobs', async (route: Route) => {

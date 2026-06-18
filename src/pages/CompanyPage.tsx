@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { apiRequest, getAuthTokenFromCookies } from '../api'
+import { apiRequest } from '../api'
 import { getStoredProfile, setStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import PhotoEditor from '../components/ui/PhotoEditor'
@@ -178,11 +178,10 @@ export default function CompanyPage() {
     formData.append('file', file)
 
     const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
-    const token = getAuthTokenFromCookies()
 
     fetch(`${baseUrl}/ProfileController/uploadImage`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
       body: formData,
     })
       .then((res) => res.json())

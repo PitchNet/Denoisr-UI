@@ -3,11 +3,14 @@ import { test, expect } from '@playwright/test'
 test.describe('Dashboard (/dashboard) — profile composer', () => {
   test.beforeEach(async ({ page }) => {
     // /dashboard is normally gated by the "signup in progress" sessionStorage flag.
-    // Seed it before navigation so the guard lets us in.
+    // Seed it before navigation so the guard lets us in. The password itself is
+    // never persisted to sessionStorage — it's only handed off in memory via
+    // router state, so a direct page load (like this test does) lands on the
+    // composer's fallback "confirm your password" field instead.
     await page.addInitScript(() => {
       sessionStorage.setItem(
         'denoisr-signup-credentials',
-        JSON.stringify({ email: 'jane@work.com', password: 'aaaaaaaa' }),
+        JSON.stringify({ email: 'jane@work.com' }),
       )
     })
     await page.goto('/dashboard')
@@ -76,7 +79,6 @@ test.describe('Dashboard (/dashboard) — profile composer', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           user: { id: 'u-1', email: 'jane@work.com' },
-          access_token: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1LTEifQ.x',
         }),
       })
     })

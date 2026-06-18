@@ -46,11 +46,14 @@ Both guards live in `src/components/AuthGuard.tsx` and key off `isAuthenticated(
 
 ### Auth model
 
-JWT stored in a cookie (`denoisr_auth_token`), not localStorage. Lifecycle in `src/auth.ts`:
+The real JWT lives in an **httpOnly** cookie (`denoisr_auth_token`) set by the API (`LoginController` `/login` and `/signup`, see `app/auth_utils.py` in Denoisr-API). Page JS never reads or writes it — `apiRequest` sends it automatically via `credentials: 'include'`. This is deliberate defense-in-depth: an XSS hole can't exfiltrate the session token because it's not reachable from `document.cookie`.
 
-- `setAuthToken` / `clearAuthToken` write the cookie with `Max-Age=60*10080` (one week — see commit `5d36637`)
-- `getAuthenticatedUserId` decodes the JWT payload client-side and tries `user_id`/`userId`/`id`/`sub` in that order — backend responses may use any of these claim names
-- `SIGNUP_PLACEHOLDER_TOKEN = 'signup-token'` is treated as "not really authenticated" so the signup flow can store a sentinel without unlocking protected pages
+Since JS can't read the real cookie, `src/auth.ts` maintains two plain, non-secret cookies purely for client-side routing/display — spoofing them only fools the UI, never the backend, since every real API call is authorized server-side off the httpOnly cookie:
+
+- `denoisr_session` — a `1`/absent flag; `isAuthenticated()` checks for its presence
+- `denoisr_user_id` — the current user's id, set from the `user.id` field in the login/signup response body; read directly by `getAuthenticatedUserId()` (no JWT decoding happens client-side anymore)
+
+Both are set together by `markAuthenticatedFromResponse(response)` (called after a successful `/LoginController/login` or the final `/LoginController/signup` in `DashboardPage.tsx`) and cleared by `clearSession()`, which also fires a best-effort `POST /LoginController/logout` to clear the httpOnly cookie server-side.
 
 Additional utilities in `src/auth.ts`:
 
@@ -61,7 +64,7 @@ Additional utilities in `src/auth.ts`:
 
 ### API layer
 
-`src/api.ts` exposes a single `apiRequest(path, { method, body })` helper that defaults to `POST`, JSON-serializes the body, and attaches `Authorization: Bearer <cookie>`. The Denoisr backend uses controller-style paths like `/FeedController/getMessages` (see `MessagesPage.tsx`). When adding new endpoints, go through `apiRequest` so the auth header and base URL stay consistent.
+`src/api.ts` exposes a single `apiRequest(path, { method, body })` helper that defaults to `POST`, JSON-serializes the body, and sends `credentials: 'include'` so the browser attaches the httpOnly auth cookie automatically. The Denoisr backend uses controller-style paths like `/FeedController/getMessages` (see `MessagesPage.tsx`). When adding new endpoints, go through `apiRequest` so credentials and the base URL stay consistent. The two raw (non-JSON) `fetch` calls for photo upload (`CompanyPage.tsx`, `ProfileEditPage.tsx`) also need `credentials: 'include'` since they bypass `apiRequest`.
 
 Retry behaviour: `apiRequest` retries up to 10 times on 5xx or network errors using exponential backoff (`BASE_DELAY=500ms * 2^attempt + jitter`). 4xx responses are returned immediately without retry.
 

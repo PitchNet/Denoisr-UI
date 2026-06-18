@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { storeAuthTokenFromResponse } from '../auth'
+import { markAuthenticatedFromResponse } from '../auth'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -26,7 +26,7 @@ export default function LoginPage() {
         return
       }
 
-      await storeAuthTokenFromResponse(response)
+      await markAuthenticatedFromResponse(response)
       navigate('/home')
     } catch {
       setError('Wrong email or password.')

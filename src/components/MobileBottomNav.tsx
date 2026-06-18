@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearAuthToken, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
+import { clearSession, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
 import NavIcon from './ui/NavIcon'
 import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
@@ -30,7 +30,7 @@ export default function MobileBottomNav({ activePage }: Props) {
 
   function handleMobileLogout() {
     unsubscribeFromPush()
-    clearAuthToken()
+    clearSession()
     document.documentElement.classList.remove('liquid-glass')
     navigate('/login')
   }

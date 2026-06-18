@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { apiRequest, getAuthTokenFromCookies } from '../api'
-import { setAuthToken } from '../auth'
+import { apiRequest } from '../api'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 const LINKEDIN_DATA_KEY = 'denoisr-linkedin-data'
@@ -79,11 +78,6 @@ export default function SignupPage() {
     startFakeProgress()
 
     try {
-      const token = getAuthTokenFromCookies()
-      if (!token) {
-        setAuthToken('signup-token')
-      }
-
       const response = await apiRequest('/LoginController/linkedinImport', {
         method: 'POST',
         body: { url },
@@ -100,11 +94,10 @@ export default function SignupPage() {
       stopFakeProgress()
       setImportProgress(100)
 
-      setAuthToken('signup-token')
-      sessionStorage.setItem(SIGNUP_CREDENTIALS_KEY, JSON.stringify({ email: email.trim(), password }))
+      sessionStorage.setItem(SIGNUP_CREDENTIALS_KEY, JSON.stringify({ email: email.trim() }))
       sessionStorage.setItem(LINKEDIN_DATA_KEY, JSON.stringify(data))
 
-      setTimeout(() => navigate('/dashboard'), 250)
+      setTimeout(() => navigate('/dashboard', { state: { password } }), 250)
     } catch {
       stopFakeProgress()
       setImportProgress(0)
@@ -124,13 +117,12 @@ export default function SignupPage() {
       return
     }
 
-    setAuthToken('signup-token')
     sessionStorage.setItem(
       SIGNUP_CREDENTIALS_KEY,
-      JSON.stringify({ email: email.trim(), password }),
+      JSON.stringify({ email: email.trim() }),
     )
 
-    navigate('/dashboard')
+    navigate('/dashboard', { state: { password } })
   }
 
   return (

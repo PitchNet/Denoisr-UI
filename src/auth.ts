@@ -1,73 +1,58 @@
-import { getAuthTokenFromCookies, apiRequest } from './api'
+import { apiRequest } from './api'
 
-const AUTH_COOKIE_NAME = 'denoisr_auth_token'
 const PROFILE_COOKIE_NAME = 'denoisr_profile'
 const PROFILE_COOKIE_MAX_AGE_SECONDS = 60 * 10080
-const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 10080
-const SIGNUP_PLACEHOLDER_TOKEN = 'signup-token'
+// The real JWT lives in an httpOnly cookie set by the API (LoginController) —
+// this file never reads or writes it, so page JS (and any XSS) can't get at
+// it. These two cookies are plain and non-secret: they only drive client-side
+// routing/display (isAuthenticated, getAuthenticatedUserId). Every real API
+// call is still authorized server-side off the httpOnly cookie, so spoofing
+// these only fools the UI, never the backend.
+const SESSION_COOKIE_NAME = 'denoisr_session'
+const USER_ID_COOKIE_NAME = 'denoisr_user_id'
+const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 10080
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 
 type AuthResponse = {
-  access_token?: string
-  token_type?: string
+  user?: { id?: string; [key: string]: unknown }
 }
 
-export function setAuthToken(token: string) {
-  document.cookie = `${AUTH_COOKIE_NAME}=${encodeURIComponent(token)}; Max-Age=${AUTH_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`
+function readCookie(name: string): string {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : ''
+}
+
+function markSession(userId: string) {
+  document.cookie = `${SESSION_COOKIE_NAME}=1; Max-Age=${SESSION_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`
+  if (userId) {
+    document.cookie = `${USER_ID_COOKIE_NAME}=${encodeURIComponent(userId)}; Max-Age=${SESSION_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`
+  }
   clearStoredProfile()
 }
 
-export function getAuthToken() {
-  return getAuthTokenFromCookies()
-}
-
-export function hasAuthToken() {
-  return getAuthToken() !== ''
-}
-
 export function isAuthenticated() {
-  const token = getAuthToken()
-  return token !== '' && token !== SIGNUP_PLACEHOLDER_TOKEN
+  return readCookie(SESSION_COOKIE_NAME) !== ''
 }
 
 export function getAuthenticatedUserId() {
-  const token = getAuthToken()
-
-  if (token === '' || token === SIGNUP_PLACEHOLDER_TOKEN) {
-    return ''
-  }
-
-  try {
-    const payload = token.split('.')[1]
-
-    if (!payload) {
-      return ''
-    }
-
-    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
-    const decodedPayload = JSON.parse(window.atob(normalizedPayload)) as {
-      sub?: string
-      user_id?: string
-      userId?: string
-      id?: string
-    }
-
-    return decodedPayload.user_id ?? decodedPayload.userId ?? decodedPayload.id ?? decodedPayload.sub ?? ''
-  } catch {
-    return ''
-  }
+  return readCookie(USER_ID_COOKIE_NAME)
 }
 
+/** Marks that an account has been started but the dashboard composer hasn't finished it yet. Stores only the email — never the password — so a leaked sessionStorage snapshot can't expose a plaintext credential. */
 export function hasSignupInProgress() {
   return sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY) !== null
 }
 
-export function clearAuthToken() {
-  document.cookie = `${AUTH_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
+export function clearSession() {
+  document.cookie = `${SESSION_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
+  document.cookie = `${USER_ID_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
   clearStoredProfile()
+  // Best-effort: clears the httpOnly cookie server-side. If this fails, the
+  // cookie simply expires on its own at the end of its 7-day Max-Age.
+  apiRequest('/LoginController/logout', { method: 'POST' }).catch(() => {})
 }
 
-export async function storeAuthTokenFromResponse(response: Response) {
+export async function markAuthenticatedFromResponse(response: Response) {
   const contentType = response.headers.get('Content-Type') ?? ''
 
   if (!contentType.includes('application/json')) {
@@ -76,8 +61,8 @@ export async function storeAuthTokenFromResponse(response: Response) {
 
   const data = (await response.json()) as AuthResponse
 
-  if (data.access_token) {
-    setAuthToken(data.access_token)
+  if (data.user?.id) {
+    markSession(String(data.user.id))
   }
 
   return data

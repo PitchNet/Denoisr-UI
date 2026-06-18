@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { apiRequest, getAuthTokenFromCookies } from '../api'
+import { apiRequest } from '../api'
 import { fetchAndCacheProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
 import PhotoEditor from '../components/ui/PhotoEditor'
@@ -453,11 +453,10 @@ export default function ProfileEditPage() {
     formData.append('file', file)
 
     const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
-    const token = getAuthTokenFromCookies()
 
     fetch(`${baseUrl}/ProfileController/uploadImage`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
       body: formData,
     })
       .then((res) => res.json())

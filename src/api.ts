@@ -1,5 +1,3 @@
-const AUTH_COOKIE_NAME = 'denoisr_auth_token'
-
 let _lastExhaustedToastAt = 0
 const EXHAUSTED_TOAST_DEBOUNCE_MS = 10_000
 
@@ -16,17 +14,6 @@ type ApiRequestOptions = {
   body?: JsonValue
 }
 
-export function getAuthTokenFromCookies() {
-  const cookies = document.cookie.split('; ')
-  const authCookie = cookies.find((cookie) => cookie.startsWith(`${AUTH_COOKIE_NAME}=`))
-
-  if (!authCookie) {
-    return ''
-  }
-
-  return decodeURIComponent(authCookie.split('=').slice(1).join('='))
-}
-
 export async function apiRequest(path: string, options: ApiRequestOptions = {}) {
   const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
   const url = `${baseUrl}${path}`
@@ -39,11 +26,14 @@ export async function apiRequest(path: string, options: ApiRequestOptions = {}) 
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
+      // The auth JWT lives in an httpOnly cookie set by the API — `credentials:
+      // 'include'` lets the browser attach it automatically. Page JS never
+      // sees the token, so an XSS hole can't exfiltrate it.
       const response = await fetch(url, {
         method: options.method ?? 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getAuthTokenFromCookies()}`,
         },
         body: options.body === undefined ? undefined : JSON.stringify(options.body),
       })

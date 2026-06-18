@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { storeAuthTokenFromResponse } from '../auth'
+import { markAuthenticatedFromResponse } from '../auth'
 import '../styles/dashboard.css'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
@@ -79,6 +79,13 @@ const highlightSuggestions = [
 
 export default function DashboardPage() {
   const navigate = useNavigate()
+  const routerLocation = useLocation()
+  // Carried in memory from SignupPage's navigate() call — never persisted to
+  // sessionStorage, so it can't leak via XSS or a shared-machine inspection.
+  // Lost on a hard refresh; the fallback field below recovers it.
+  const passwordFromHandoff = (routerLocation.state as { password?: string } | null)?.password ?? ''
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const password = passwordFromHandoff || confirmPassword
   const [name, setName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [currentRole, setCurrentRole] = useState('')
@@ -440,16 +447,21 @@ export default function DashboardPage() {
       return
     }
 
+    if (!password.trim()) {
+      setSaveError('Re-enter the password you chose to finish creating your account.')
+      return
+    }
+
     setValidationErrors([])
 
     const storedCredentials = sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY)
     const parsedCredentials = storedCredentials
-      ? (JSON.parse(storedCredentials) as { email?: string; password?: string })
+      ? (JSON.parse(storedCredentials) as { email?: string })
       : {}
 
     const payload = {
       email: parsedCredentials.email?.trim() ?? '',
-      password: parsedCredentials.password ?? '',
+      password,
       phoneNumber: phoneNumber.trim(),
       kind: 'people',
       name: name.trim(),
@@ -499,7 +511,7 @@ export default function DashboardPage() {
         return
       }
 
-      await storeAuthTokenFromResponse(response)
+      await markAuthenticatedFromResponse(response)
       sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY)
       sessionStorage.removeItem(DRAFT_KEY)
       localStorage.setItem('denoisr_just_signed_up', '1')
@@ -945,6 +957,23 @@ export default function DashboardPage() {
                   )
                 })}
               </div>
+
+              {!passwordFromHandoff ? (
+                <div className="dp-block" id="dp-section-account">
+                  <span className="dp-blockBrow">— Confirm your password</span>
+                  <label className="dp-field dp-field--full">
+                    <span className="dp-label">Password <span className="dp-required">*</span></span>
+                    <input
+                      className="dp-input"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                      placeholder="Re-enter the password you chose"
+                    />
+                  </label>
+                </div>
+              ) : null}
 
               <label className="dp-hiringToggle">
                 <input type="checkbox" checked={wantHiring} onChange={(e) => setWantHiring(e.target.checked)} />

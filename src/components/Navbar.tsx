@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { clearAuthToken, isAuthenticated, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
+import { clearSession, isAuthenticated, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
 import NavIcon from './ui/NavIcon'
 import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
@@ -39,7 +39,7 @@ export default function Navbar() {
 
   function handleLogout() {
     unsubscribeFromPush()
-    clearAuthToken()
+    clearSession()
     document.documentElement.classList.remove('liquid-glass')
     setProfileOpen(false)
     navigate('/login')

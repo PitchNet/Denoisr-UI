@@ -38,15 +38,16 @@ test.describe('Login (/login)', () => {
     await expect(page).toHaveURL('/signup')
   })
 
-  test('successful login stores the token and navigates to /home', async ({ page, context }) => {
+  test('successful login navigates to /home and marks the session', async ({ page, context }) => {
+    // The real JWT is set by the API as an httpOnly Set-Cookie header — out of
+    // reach for this mocked route (and for page JS in general). The frontend
+    // only reads the `user` object from the body to mark a non-secret,
+    // JS-readable "logged in" flag used for client-side routing.
     await page.route('**/LoginController/login', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          access_token: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyLTEyMyJ9.x',
-          token_type: 'bearer',
-        }),
+        body: JSON.stringify({ user: { id: 'user-123' } }),
       }),
     )
     // Also stub the protected feed endpoints so /home doesn't crash
@@ -58,7 +59,10 @@ test.describe('Login (/login)', () => {
     await expect(page).toHaveURL(/\/home/)
 
     const cookies = await context.cookies()
-    expect(cookies.find((c) => c.name === 'denoisr_auth_token')?.value).toContain('eyJ')
+    expect(cookies.find((c) => c.name === 'denoisr_session')?.value).toBe('1')
+    expect(cookies.find((c) => c.name === 'denoisr_user_id')?.value).toBe('user-123')
+    // The app never writes the real auth cookie itself — only the API can.
+    expect(cookies.find((c) => c.name === 'denoisr_auth_token')).toBeUndefined()
   })
 })
 
