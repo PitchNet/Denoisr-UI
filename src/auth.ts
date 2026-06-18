@@ -2,24 +2,38 @@ import { apiRequest } from './api'
 
 const PROFILE_COOKIE_NAME = 'denoisr_profile'
 const PROFILE_COOKIE_MAX_AGE_SECONDS = 60 * 10080
-// The real JWT lives in an httpOnly cookie set by the API (LoginController) —
-// this file never reads or writes it, so page JS (and any XSS) can't get at
-// it. These two cookies are plain and non-secret: they only drive client-side
-// routing/display (isAuthenticated, getAuthenticatedUserId). Every real API
-// call is still authorized server-side off the httpOnly cookie, so spoofing
-// these only fools the UI, never the backend.
+// Session cookies drive client-side routing/display (isAuthenticated,
+// getAuthenticatedUserId). The auth JWT is returned by the API as
+// access_token and stored in a JS-readable cookie — every API call sends it
+// as a Bearer header so cross-origin deployments work even when third-party
+// cookies are blocked. The httpOnly cookie (set by the API) is kept as a
+// fallback for local dev where same-site cookies work.
 const SESSION_COOKIE_NAME = 'denoisr_session'
 const USER_ID_COOKIE_NAME = 'denoisr_user_id'
+const AUTH_TOKEN_COOKIE = 'denoisr_bearer_token'
 const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 10080
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 
 type AuthResponse = {
   user?: { id?: string; [key: string]: unknown }
+  access_token?: string
 }
 
 function readCookie(name: string): string {
   const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
   return match ? decodeURIComponent(match[1]) : ''
+}
+
+function setAuthTokenCookie(token: string) {
+  document.cookie = `${AUTH_TOKEN_COOKIE}=${encodeURIComponent(token)}; Max-Age=${SESSION_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`
+}
+
+function clearAuthTokenCookie() {
+  document.cookie = `${AUTH_TOKEN_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax`
+}
+
+export function getAuthToken(): string {
+  return readCookie(AUTH_TOKEN_COOKIE)
 }
 
 function markSession(userId: string) {
@@ -46,6 +60,7 @@ export function hasSignupInProgress() {
 export function clearSession() {
   document.cookie = `${SESSION_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
   document.cookie = `${USER_ID_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
+  clearAuthTokenCookie()
   clearStoredProfile()
   // Best-effort: clears the httpOnly cookie server-side. If this fails, the
   // cookie simply expires on its own at the end of its 7-day Max-Age.
@@ -60,6 +75,10 @@ export async function markAuthenticatedFromResponse(response: Response) {
   }
 
   const data = (await response.json()) as AuthResponse
+
+  if (data.access_token) {
+    setAuthTokenCookie(data.access_token)
+  }
 
   if (data.user?.id) {
     markSession(String(data.user.id))

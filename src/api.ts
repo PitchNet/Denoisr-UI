@@ -1,3 +1,5 @@
+import { getAuthToken } from './auth'
+
 let _lastExhaustedToastAt = 0
 const EXHAUSTED_TOAST_DEBOUNCE_MS = 10_000
 
@@ -26,15 +28,19 @@ export async function apiRequest(path: string, options: ApiRequestOptions = {}) 
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      // The auth JWT lives in an httpOnly cookie set by the API — `credentials:
-      // 'include'` lets the browser attach it automatically. Page JS never
-      // sees the token, so an XSS hole can't exfiltrate it.
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+
+      const token = getAuthToken()
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch(url, {
         method: options.method ?? 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: options.body === undefined ? undefined : JSON.stringify(options.body),
       })
 
