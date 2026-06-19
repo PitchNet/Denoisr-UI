@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearSession, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
+import { clearSession, getStoredProfile, getGlassMode, setGlassMode, getStoredIsAdmin } from '../auth'
 import NavIcon from './ui/NavIcon'
 import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
@@ -14,6 +14,7 @@ type Props = {
 export default function MobileBottomNav({ activePage }: Props) {
   const navigate = useNavigate()
   const cachedProfile = getStoredProfile()
+  const isAdmin = getStoredIsAdmin()
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
   const [glass, setGlass] = useState(() => {
     const enabled = getGlassMode()
@@ -101,6 +102,9 @@ export default function MobileBottomNav({ activePage }: Props) {
             <div className="mbn__divider" />
             <span className="mbn__groupLabel">Manage</span>
             <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/company'); }}>Company</button>
+            {isAdmin ? (
+              <button type="button" className="mbn__action" onClick={() => { setMobileProfileOpen(false); navigate('/admin/companies'); }}>Admin review</button>
+            ) : null}
             <div className="mbn__divider" />
             <button
               type="button"
