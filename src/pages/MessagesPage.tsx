@@ -1307,16 +1307,12 @@ export default function MessagesPage() {
                         </article>
 
                         {message.side === 'right' && !message.deleted && editingMessageId !== message.id ? (
-                          <div
-                            className={`mp-bubble__ownActions${
-                              longPressActiveId === message.id ? ' mp-bubble__ownActions--visible' : ''
-                            }`}
-                          >
+                          <div className="mp-bubble__ownActions">
                             <button
                               type="button"
                               className="mp-bubble__ownActionBtn"
                               aria-label="Edit message"
-                              onClick={() => { startEditingMessage(message); setLongPressActiveId(null) }}
+                              onClick={() => startEditingMessage(message)}
                             >
                               Edit
                             </button>
@@ -1332,7 +1328,7 @@ export default function MessagesPage() {
                                 <button
                                   type="button"
                                   className="mp-bubble__ownActionBtn"
-                                  onClick={() => { setConfirmDeleteId(null); setLongPressActiveId(null) }}
+                                  onClick={() => setConfirmDeleteId(null)}
                                 >
                                   Cancel
                                 </button>
@@ -1348,6 +1344,57 @@ export default function MessagesPage() {
                               </button>
                             )}
                           </div>
+                        ) : null}
+
+                        {longPressActiveId === message.id ? (
+                          <>
+                            <div
+                              className="mp-actionMenu__backdrop"
+                              onClick={() => { setLongPressActiveId(null); setConfirmDeleteId(null) }}
+                            />
+                            <div className="mp-actionMenu" role="menu">
+                              {confirmDeleteId === message.id ? (
+                                <>
+                                  <div className="mp-actionMenu__prompt">Delete this message?</div>
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    className="mp-actionMenu__item mp-actionMenu__item--danger"
+                                    onClick={() => handleDeleteMessage(message.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    className="mp-actionMenu__item"
+                                    onClick={() => setConfirmDeleteId(null)}
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    className="mp-actionMenu__item"
+                                    onClick={() => { startEditingMessage(message); setLongPressActiveId(null) }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    className="mp-actionMenu__item mp-actionMenu__item--danger"
+                                    onClick={() => setConfirmDeleteId(message.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </>
                         ) : null}
 
                         {message.reactions.length > 0 ? (
