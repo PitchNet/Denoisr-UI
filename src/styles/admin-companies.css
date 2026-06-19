@@ -4,6 +4,24 @@
   background: var(--paper);
   min-height: calc(100svh - 64px);
 }
+.adm::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(50% 55% at 100% 0%, rgba(255,210,225,0.45), transparent 70%),
+    radial-gradient(45% 50% at 0% 100%, rgba(220,210,255,0.40), transparent 70%),
+    var(--paper);
+}
+
+.adm-loading {
+  min-height: calc(100svh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .adm-hero {
   max-width: 720px;
@@ -31,6 +49,30 @@
   color: var(--ink-3);
   margin: 0;
   max-width: 56ch;
+}
+
+.adm-tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.adm-tab {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: var(--paper-2);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.adm-tab:hover { color: var(--ink); }
+.adm-tab--active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
 }
 
 .adm-list {
