@@ -410,7 +410,10 @@ export default function MessagesPage() {
     }
   }, [longPressActiveId])
 
-  function handleBubbleTouchStart(messageId: string) {
+  function handleBubbleTouchStart(messageId: string, e: React.TouchEvent) {
+    // Stop iOS/Android's native long-press text-selection gesture from racing
+    // our own timer — CSS user-select alone doesn't reliably suppress it.
+    e.preventDefault()
     longPressFiredRef.current = false
     longPressTimeoutRef.current = setTimeout(() => {
       longPressFiredRef.current = true
@@ -1248,7 +1251,7 @@ export default function MessagesPage() {
                           }`}
                           onTouchStart={
                             message.side === 'right' && !message.deleted
-                              ? () => handleBubbleTouchStart(message.id)
+                              ? (e) => handleBubbleTouchStart(message.id, e)
                               : undefined
                           }
                           onTouchEnd={message.side === 'right' ? handleBubbleTouchEnd : undefined}
