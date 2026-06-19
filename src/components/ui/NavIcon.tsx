@@ -21,9 +21,7 @@ export default function NavIcon({ name, className = '' }: Props) {
   if (name === 'home') {
     return (
       <svg className={classes} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M4.5 10.5L12 4.5L19.5 10.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M6.5 9.8V18.5H17.5V9.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M10 18.5V13.5H14V18.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M12 3L21.5 10.7V19.1a1.5 1.5 0 0 1-1.5 1.5H14.5V16.1a1.5 1.5 0 0 0-1.5-1.5H11a1.5 1.5 0 0 0-1.5 1.5V20.6H4a1.5 1.5 0 0 1-1.5-1.5V10.7Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     )
   }
@@ -31,8 +29,10 @@ export default function NavIcon({ name, className = '' }: Props) {
   if (name === 'messages') {
     return (
       <svg className={classes} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="3.5" y="5.5" width="17" height="13" rx="3" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M6.5 9.5L12 12.7L17.5 9.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M8.6 20.6A9.4 9.4 0 1 0 4.3 16.3L2 22.3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="9" cy="11.4" r="1.05" fill="currentColor" />
+        <circle cx="13.3" cy="11.4" r="1.05" fill="currentColor" />
+        <circle cx="17.6" cy="11.4" r="1.05" fill="currentColor" />
       </svg>
     )
   }
@@ -40,8 +40,9 @@ export default function NavIcon({ name, className = '' }: Props) {
   if (name === 'profile') {
     return (
       <svg className={classes} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="8" r="3.1" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M5.5 18.5C6.8 15.8 9 14.5 12 14.5C15 14.5 17.2 15.8 18.5 18.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="12" cy="9.3" r="3.3" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M5.3 18.7a7.4 7.4 0 0 1 13.4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     )
   }
@@ -49,8 +50,8 @@ export default function NavIcon({ name, className = '' }: Props) {
   if (name === 'notifications') {
     return (
       <svg className={classes} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 3.5C9.5 3.5 7.5 5.5 7.5 8V9.5C7.5 10.5 7 11.5 6.2 12.2L5.5 12.8V14.5H18.5V12.8L17.8 12.2C17 11.5 16.5 10.5 16.5 9.5V8C16.5 5.5 14.5 3.5 12 3.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M9.5 14.5V15C9.5 16.4 10.6 17.5 12 17.5C13.4 17.5 14.5 16.4 14.5 15V14.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9.6 6.2C9.6 4.6 10.6 3.2 12 3.2C13.4 3.2 14.4 4.6 14.4 6.2C17.4 7 19.3 10.2 19.5 14C19.6 15.6 20.2 16.2 21 16.8L3 16.8C3.8 16.2 4.4 15.6 4.5 14C4.7 10.2 6.6 7 9.6 6.2Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9.6 17.8a2.4 2.4 0 0 0 4.8 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     )
   }
