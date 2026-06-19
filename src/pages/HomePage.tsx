@@ -200,6 +200,11 @@ export default function HomePage() {
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
   const [entering, setEntering] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+
+  useEffect(() => {
+    document.body.classList.toggle('hp-filters-open', mobileFiltersOpen)
+    return () => document.body.classList.remove('hp-filters-open')
+  }, [mobileFiltersOpen])
   const [matchState, setMatchState] = useState<MatchState>({ open: false, id: '', name: '', photo: '', subheadline: '' })
   const [openerText, setOpenerText] = useState('')
   const [openerSending, setOpenerSending] = useState(false)

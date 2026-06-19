@@ -423,6 +423,8 @@ html, body {
   .mbn { display: flex; }
   /* Chat thread open on mobile: hide the bottom nav to give the thread full height */
   body.mp-chat-open .mbn { display: none; }
+  /* Mobile filter sheet open: hide the bottom nav so it doesn't sit on top of (and hide) the sheet's action buttons — the sheet lives inside .hp's own stacking context, so raising its z-index alone can't outrank the nav */
+  body.hp-filters-open .mbn { display: none; }
 }
 
 .mbn__item {
