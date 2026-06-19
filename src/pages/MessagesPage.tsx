@@ -31,6 +31,13 @@ type Reaction = {
   mine: boolean
 }
 
+type ReplyPreview = {
+  id: string
+  author: string
+  text: string
+  deleted: boolean
+}
+
 type ThreadMessage = {
   id: string
   author: string
@@ -41,6 +48,7 @@ type ThreadMessage = {
   reactions: Reaction[]
   edited: boolean
   deleted: boolean
+  replyTo: ReplyPreview | null
 }
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏']
@@ -103,6 +111,7 @@ export default function MessagesPage() {
   const [isSavingEdit, setIsSavingEdit] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [longPressActiveId, setLongPressActiveId] = useState<string | null>(null)
+  const [replyingTo, setReplyingTo] = useState<ThreadMessage | null>(null)
   const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const longPressFiredRef = useRef(false)
   const reactionPickerCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -137,10 +146,15 @@ export default function MessagesPage() {
           created_at: string
           edited_at: string | null
           deleted_at: string | null
+          reply_to_id: string | null
+          reply_to: { id: string; sender_id: string; content: string; deleted_at: string | null } | null
           message_reactions?: Array<{ id: string; user_id: string; emoji: string }>
         }>
         otherReadAt: string | null
       }
+
+      const authorFor = (senderId: string) =>
+        userId !== '' && senderId === userId ? 'You' : conversation.name
 
       const formatted: ThreadMessage[] = payload.messages.map((message) => {
         const grouped = new Map<string, Reaction>()
@@ -155,10 +169,20 @@ export default function MessagesPage() {
           }
         }
 
+        // Postgrest can return an all-null embed object (instead of a true null)
+        // when reply_to_id itself is null — guard on the scalar column, not the embed.
+        const replyTo: ReplyPreview | null = message.reply_to_id && message.reply_to?.id
+          ? {
+              id: message.reply_to.id,
+              author: authorFor(message.reply_to.sender_id),
+              text: message.reply_to.deleted_at ? 'This message was deleted' : message.reply_to.content,
+              deleted: Boolean(message.reply_to.deleted_at),
+            }
+          : null
+
         return {
           id: message.id,
-          author:
-            userId !== '' && message.sender_id === userId ? 'You' : conversation.name,
+          author: authorFor(message.sender_id),
           side:
             userId !== ''
               ? message.sender_id === userId
@@ -169,6 +193,7 @@ export default function MessagesPage() {
                 : 'right',
           text: message.deleted_at ? 'This message was deleted' : message.content,
           createdAt: message.created_at,
+          replyTo,
           meta: new Date(message.created_at).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
@@ -410,14 +435,16 @@ export default function MessagesPage() {
     }
   }, [longPressActiveId])
 
-  function handleBubbleTouchStart(messageId: string, e: React.TouchEvent) {
-    // Stop iOS/Android's native long-press text-selection gesture from racing
-    // our own timer — CSS user-select alone doesn't reliably suppress it.
-    e.preventDefault()
+  function handleBubbleTouchStart(messageId: string) {
+    // Don't preventDefault here — React/mobile browsers treat touchstart as a
+    // passive listener, so it throws and (worse) can block the scroll gesture
+    // that starts on this element. Text-selection suppression is handled in CSS
+    // (-webkit-user-select / -webkit-touch-callout on .mp-bubble) instead.
     longPressFiredRef.current = false
     longPressTimeoutRef.current = setTimeout(() => {
       longPressFiredRef.current = true
       setLongPressActiveId(messageId)
+      window.getSelection?.()?.removeAllRanges()
       if (navigator.vibrate) navigator.vibrate(10)
     }, 450)
   }
@@ -812,6 +839,7 @@ export default function MessagesPage() {
 
   function openConversation(id: string) {
     setDraftMessage('')
+    setReplyingTo(null)
     setActiveConversationId(id)
   }
 
@@ -875,16 +903,48 @@ export default function MessagesPage() {
   async function handleSendMessage() {
     if (!activeConversation || draftMessage.trim() === '' || isSending) return
 
+    const content = draftMessage.trim()
+    const replyToAtSend = replyingTo
+    // Clear the composer immediately — waiting on the network round-trip to
+    // reset it makes typing feel sticky/laggy. Restore both on failure.
+    setDraftMessage('')
+    setReplyingTo(null)
     setIsSending(true)
 
+    // Show the message in the thread right away instead of waiting on the
+    // round-trip + refetch. The temp id is replaced wholesale once
+    // loadThreadMessages lands the real row; on failure it's pulled back out.
+    const optimisticId = `optimistic-${crypto.randomUUID()}`
+    const optimisticMessage: ThreadMessage = {
+      id: optimisticId,
+      author: 'You',
+      side: 'right',
+      text: content,
+      meta: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      createdAt: new Date().toISOString(),
+      reactions: [],
+      edited: false,
+      deleted: false,
+      replyTo: replyToAtSend
+        ? { id: replyToAtSend.id, author: replyToAtSend.author, text: replyToAtSend.text, deleted: false }
+        : null,
+    }
+    setThreadMessages((prev) => [...prev, optimisticMessage])
+
     try {
-      const content = draftMessage.trim()
       const response = await apiRequest('/FeedController/sendMessage', {
         method: 'POST',
-        body: { recipientId: activeConversation.id, content },
+        body: {
+          recipientId: activeConversation.id,
+          content,
+          ...(replyToAtSend ? { replyToId: replyToAtSend.id } : {}),
+        },
       })
 
       if (!response.ok) {
+        setThreadMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+        setDraftMessage(content)
+        setReplyingTo(replyToAtSend)
         if (response.status === 403) {
           const data = await response.json().catch(() => ({}))
           showToast((data as { detail?: string }).detail ?? 'You can\'t message this person', 'error')
@@ -897,16 +957,24 @@ export default function MessagesPage() {
       setConnections((current) =>
         current.map((c) => (c.id === activeConversation.id ? { ...c, preview: content } : c)),
       )
-      setDraftMessage('')
       const refreshed = await fetchConnections(false, searchQuery)
       const updated = refreshed.find((c) => c.id === activeConversation.id) ?? activeConversation
       await loadThreadMessages(updated, false)
       setError(null)
     } catch {
+      setThreadMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+      setDraftMessage(content)
+      setReplyingTo(replyToAtSend)
       showToast('Failed to send message', 'error')
     } finally {
       setIsSending(false)
     }
+  }
+
+  function startReplyingTo(message: ThreadMessage) {
+    setLongPressActiveId(null)
+    setConfirmDeleteId(null)
+    setReplyingTo(message)
   }
 
   function renderConversationItem(connection: Connection, showArchiveOption = true) {
@@ -1246,22 +1314,31 @@ export default function MessagesPage() {
                         }`}
                       >
                         <article
+                          id={`mp-msg-${message.id}`}
                           className={`mp-bubble ${
                             message.side === 'right' ? 'mp-bubble--out' : 'mp-bubble--in'
                           }`}
                           onTouchStart={
-                            message.side === 'right' && !message.deleted
-                              ? (e) => handleBubbleTouchStart(message.id, e)
-                              : undefined
+                            !message.deleted ? () => handleBubbleTouchStart(message.id) : undefined
                           }
-                          onTouchEnd={message.side === 'right' ? handleBubbleTouchEnd : undefined}
-                          onTouchMove={message.side === 'right' ? handleBubbleTouchEnd : undefined}
-                          onContextMenu={
-                            message.side === 'right' && !message.deleted
-                              ? (e) => e.preventDefault()
-                              : undefined
-                          }
+                          onTouchEnd={handleBubbleTouchEnd}
+                          onTouchMove={handleBubbleTouchEnd}
+                          onContextMenu={!message.deleted ? (e) => e.preventDefault() : undefined}
                         >
+                          {message.replyTo ? (
+                            <button
+                              type="button"
+                              className="mp-bubble__replyQuote"
+                              onClick={() => {
+                                document
+                                  .getElementById(`mp-msg-${message.replyTo!.id}`)
+                                  ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                              }}
+                            >
+                              <span className="mp-bubble__replyQuote-author">{message.replyTo.author}</span>
+                              <span className="mp-bubble__replyQuote-text">{message.replyTo.text}</span>
+                            </button>
+                          ) : null}
                           {editingMessageId === message.id ? (
                             <div className="mp-bubble__editForm">
                               <textarea
@@ -1309,8 +1386,17 @@ export default function MessagesPage() {
                           </div>
                         </article>
 
-                        {message.side === 'right' && !message.deleted && editingMessageId !== message.id ? (
+                        {!message.deleted && editingMessageId !== message.id ? (
                           <div className="mp-bubble__ownActions">
+                            <button
+                              type="button"
+                              className="mp-bubble__ownActionBtn"
+                              aria-label="Reply to message"
+                              onClick={() => startReplyingTo(message)}
+                            >
+                              Reply
+                            </button>
+                            {message.side === 'right' ? (
                             <button
                               type="button"
                               className="mp-bubble__ownActionBtn"
@@ -1319,33 +1405,36 @@ export default function MessagesPage() {
                             >
                               Edit
                             </button>
-                            {confirmDeleteId === message.id ? (
-                              <>
-                                <button
-                                  type="button"
-                                  className="mp-bubble__ownActionBtn mp-bubble__ownActionBtn--danger"
-                                  onClick={() => handleDeleteMessage(message.id)}
-                                >
-                                  Confirm delete
-                                </button>
+                            ) : null}
+                            {message.side === 'right' ? (
+                              confirmDeleteId === message.id ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="mp-bubble__ownActionBtn mp-bubble__ownActionBtn--danger"
+                                    onClick={() => handleDeleteMessage(message.id)}
+                                  >
+                                    Confirm delete
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="mp-bubble__ownActionBtn"
+                                    onClick={() => setConfirmDeleteId(null)}
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                              ) : (
                                 <button
                                   type="button"
                                   className="mp-bubble__ownActionBtn"
-                                  onClick={() => setConfirmDeleteId(null)}
+                                  aria-label="Delete message"
+                                  onClick={() => setConfirmDeleteId(message.id)}
                                 >
-                                  Cancel
+                                  Delete
                                 </button>
-                              </>
-                            ) : (
-                              <button
-                                type="button"
-                                className="mp-bubble__ownActionBtn"
-                                aria-label="Delete message"
-                                onClick={() => setConfirmDeleteId(message.id)}
-                              >
-                                Delete
-                              </button>
-                            )}
+                              )
+                            ) : null}
                           </div>
                         ) : null}
 
@@ -1382,18 +1471,30 @@ export default function MessagesPage() {
                                     type="button"
                                     role="menuitem"
                                     className="mp-actionMenu__item"
-                                    onClick={() => { startEditingMessage(message); setLongPressActiveId(null) }}
+                                    onClick={() => startReplyingTo(message)}
                                   >
-                                    Edit
+                                    Reply
                                   </button>
-                                  <button
-                                    type="button"
-                                    role="menuitem"
-                                    className="mp-actionMenu__item mp-actionMenu__item--danger"
-                                    onClick={() => setConfirmDeleteId(message.id)}
-                                  >
-                                    Delete
-                                  </button>
+                                  {message.side === 'right' ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="mp-actionMenu__item"
+                                        onClick={() => { startEditingMessage(message); setLongPressActiveId(null) }}
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="mp-actionMenu__item mp-actionMenu__item--danger"
+                                        onClick={() => setConfirmDeleteId(message.id)}
+                                      >
+                                        Delete
+                                      </button>
+                                    </>
+                                  ) : null}
                                 </>
                               )}
                             </div>
@@ -1462,6 +1563,22 @@ export default function MessagesPage() {
               </div>
 
               <footer className="mp-composer">
+                {replyingTo ? (
+                  <div className="mp-composer__reply">
+                    <div className="mp-composer__reply-body">
+                      <span className="mp-composer__reply-author">Replying to {replyingTo.author}</span>
+                      <span className="mp-composer__reply-text">{replyingTo.text}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="mp-composer__reply-cancel"
+                      aria-label="Cancel reply"
+                      onClick={() => setReplyingTo(null)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : null}
                 <textarea
                   className="mp-composer__input"
                   placeholder="Write something high-context. No fluff."
