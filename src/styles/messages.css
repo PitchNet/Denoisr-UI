@@ -526,6 +526,81 @@
   .mp-bubble__reactBtn { opacity: 1; }
 }
 
+.mp-bubble__text--deleted {
+  color: var(--ink-4);
+  font-style: italic;
+}
+
+.mp-bubble__editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mp-bubble__editInput {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--ink-5);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  line-height: 1.4;
+  resize: vertical;
+}
+.mp-bubble--out .mp-bubble__editInput {
+  background: rgba(251, 250, 246, 0.12);
+  border-color: rgba(251, 250, 246, 0.3);
+  color: var(--paper);
+}
+.mp-bubble__editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.mp-bubble__editActions button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: inherit;
+  opacity: 0.7;
+}
+.mp-bubble__editActions button:hover { opacity: 1; }
+
+.mp-bubble__ownActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 4px;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--easing-default);
+}
+.mp-bubble__wrap:hover .mp-bubble__ownActions { opacity: 1; }
+.mp-bubble__ownActions--visible { opacity: 1; }
+@media (max-width: 720px) {
+  .mp-bubble__wrap:hover .mp-bubble__ownActions { opacity: 0; }
+  .mp-bubble--out { -webkit-touch-callout: none; user-select: none; }
+}
+.mp-bubble__ownActionBtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.mp-bubble__ownActionBtn:hover { color: var(--ink); }
+.mp-bubble__ownActionBtn--danger:hover { color: var(--ink-2); }
+
 .mp-reactionPicker {
   position: absolute;
   top: -8px;

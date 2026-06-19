@@ -39,6 +39,8 @@ type ThreadMessage = {
   meta: string
   createdAt: string
   reactions: Reaction[]
+  edited: boolean
+  deleted: boolean
 }
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏']
@@ -96,6 +98,13 @@ export default function MessagesPage() {
   const [otherReadAt, setOtherReadAt] = useState<string | null>(null)
   const [reactionPickerId, setReactionPickerId] = useState<string | null>(null)
   const [reactionPickerClosing, setReactionPickerClosing] = useState(false)
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
+  const [editDraft, setEditDraft] = useState('')
+  const [isSavingEdit, setIsSavingEdit] = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [longPressActiveId, setLongPressActiveId] = useState<string | null>(null)
+  const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const longPressFiredRef = useRef(false)
   const reactionPickerCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const activeConversationRef = useRef<Connection | null>(null)
   const searchVersionRef = useRef(0)
@@ -126,6 +135,8 @@ export default function MessagesPage() {
           sender_id: string
           content: string
           created_at: string
+          edited_at: string | null
+          deleted_at: string | null
           message_reactions?: Array<{ id: string; user_id: string; emoji: string }>
         }>
         otherReadAt: string | null
@@ -156,13 +167,15 @@ export default function MessagesPage() {
               : message.sender_id === conversation.id
                 ? 'left'
                 : 'right',
-          text: message.content,
+          text: message.deleted_at ? 'This message was deleted' : message.content,
           createdAt: message.created_at,
           meta: new Date(message.created_at).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
           }),
           reactions: Array.from(grouped.values()),
+          edited: Boolean(message.edited_at),
+          deleted: Boolean(message.deleted_at),
         }
       })
 
@@ -376,8 +389,42 @@ export default function MessagesPage() {
   useEffect(() => {
     return () => {
       if (reactionPickerCloseTimeoutRef.current) clearTimeout(reactionPickerCloseTimeoutRef.current)
+      if (longPressTimeoutRef.current) clearTimeout(longPressTimeoutRef.current)
     }
   }, [])
+
+  useEffect(() => {
+    if (!longPressActiveId) return
+    function handleOutsideTap(e: MouseEvent | TouchEvent) {
+      const target = e.target as Element
+      if (!target.closest('.mp-bubble__wrap')) {
+        setLongPressActiveId(null)
+        setConfirmDeleteId(null)
+      }
+    }
+    document.addEventListener('touchstart', handleOutsideTap)
+    document.addEventListener('mousedown', handleOutsideTap)
+    return () => {
+      document.removeEventListener('touchstart', handleOutsideTap)
+      document.removeEventListener('mousedown', handleOutsideTap)
+    }
+  }, [longPressActiveId])
+
+  function handleBubbleTouchStart(messageId: string) {
+    longPressFiredRef.current = false
+    longPressTimeoutRef.current = setTimeout(() => {
+      longPressFiredRef.current = true
+      setLongPressActiveId(messageId)
+      if (navigator.vibrate) navigator.vibrate(10)
+    }, 450)
+  }
+
+  function handleBubbleTouchEnd() {
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current)
+      longPressTimeoutRef.current = null
+    }
+  }
 
   function closeReactionPicker() {
     setReactionPickerClosing(true)
@@ -682,6 +729,20 @@ export default function MessagesPage() {
           {
             event: 'UPDATE',
             schema: 'public',
+            table: 'messages',
+            filter: `conversation_id=eq.${conversation.conversationId}`,
+          },
+          () => {
+            const latest = activeConversationRef.current
+            if (!latest || latest.id !== conversation.id) return
+            loadThreadMessages(latest, false)
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
             table: 'conversation_participants',
             filter: `conversation_id=eq.${conversation.conversationId}`,
           },
@@ -749,6 +810,63 @@ export default function MessagesPage() {
   function openConversation(id: string) {
     setDraftMessage('')
     setActiveConversationId(id)
+  }
+
+  function startEditingMessage(message: ThreadMessage) {
+    setConfirmDeleteId(null)
+    setEditingMessageId(message.id)
+    setEditDraft(message.text)
+  }
+
+  function cancelEditingMessage() {
+    setEditingMessageId(null)
+    setEditDraft('')
+  }
+
+  async function handleSaveEdit(messageId: string) {
+    const content = editDraft.trim()
+    if (content === '' || isSavingEdit) return
+
+    const previous = threadMessages
+    setIsSavingEdit(true)
+    setThreadMessages((prev) =>
+      prev.map((m) => (m.id === messageId ? { ...m, text: content, edited: true } : m)),
+    )
+
+    try {
+      const res = await apiRequest('/FeedController/editMessage', {
+        method: 'POST',
+        body: { messageId, content },
+      })
+      if (!res.ok) throw new Error('failed')
+      setEditingMessageId(null)
+      setEditDraft('')
+    } catch {
+      setThreadMessages(previous)
+      showToast('Failed to edit message', 'error')
+    } finally {
+      setIsSavingEdit(false)
+    }
+  }
+
+  async function handleDeleteMessage(messageId: string) {
+    const previous = threadMessages
+    setConfirmDeleteId(null)
+    setLongPressActiveId(null)
+    setThreadMessages((prev) =>
+      prev.map((m) => (m.id === messageId ? { ...m, text: 'This message was deleted', deleted: true, reactions: [] } : m)),
+    )
+
+    try {
+      const res = await apiRequest('/FeedController/deleteMessage', {
+        method: 'POST',
+        body: { messageId },
+      })
+      if (!res.ok) throw new Error('failed')
+    } catch {
+      setThreadMessages(previous)
+      showToast('Failed to delete message', 'error')
+    }
   }
 
   async function handleSendMessage() {
@@ -1128,12 +1246,57 @@ export default function MessagesPage() {
                           className={`mp-bubble ${
                             message.side === 'right' ? 'mp-bubble--out' : 'mp-bubble--in'
                           }`}
+                          onTouchStart={
+                            message.side === 'right' && !message.deleted
+                              ? () => handleBubbleTouchStart(message.id)
+                              : undefined
+                          }
+                          onTouchEnd={message.side === 'right' ? handleBubbleTouchEnd : undefined}
+                          onTouchMove={message.side === 'right' ? handleBubbleTouchEnd : undefined}
+                          onContextMenu={
+                            message.side === 'right' && !message.deleted
+                              ? (e) => e.preventDefault()
+                              : undefined
+                          }
                         >
-                          <p className="mp-bubble__text">{message.text}</p>
+                          {editingMessageId === message.id ? (
+                            <div className="mp-bubble__editForm">
+                              <textarea
+                                className="mp-bubble__editInput"
+                                value={editDraft}
+                                onChange={(e) => setEditDraft(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault()
+                                    handleSaveEdit(message.id)
+                                  } else if (e.key === 'Escape') {
+                                    cancelEditingMessage()
+                                  }
+                                }}
+                                autoFocus
+                              />
+                              <div className="mp-bubble__editActions">
+                                <button type="button" onClick={cancelEditingMessage}>Cancel</button>
+                                <button type="button" onClick={() => handleSaveEdit(message.id)} disabled={isSavingEdit}>
+                                  Save
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className={`mp-bubble__text${message.deleted ? ' mp-bubble__text--deleted' : ''}`}>
+                              {message.text}
+                            </p>
+                          )}
                           <div className="mp-bubble__meta">
                             <span>{message.author}</span>
                             <span className="dot">·</span>
                             <span>{message.meta}</span>
+                            {message.edited && !message.deleted ? (
+                              <>
+                                <span className="dot">·</span>
+                                <span>Edited</span>
+                              </>
+                            ) : null}
                             {message.id === lastOwnMessage?.id && lastOwnMessageSeen ? (
                               <>
                                 <span className="dot">·</span>
@@ -1142,6 +1305,50 @@ export default function MessagesPage() {
                             ) : null}
                           </div>
                         </article>
+
+                        {message.side === 'right' && !message.deleted && editingMessageId !== message.id ? (
+                          <div
+                            className={`mp-bubble__ownActions${
+                              longPressActiveId === message.id ? ' mp-bubble__ownActions--visible' : ''
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              className="mp-bubble__ownActionBtn"
+                              aria-label="Edit message"
+                              onClick={() => { startEditingMessage(message); setLongPressActiveId(null) }}
+                            >
+                              Edit
+                            </button>
+                            {confirmDeleteId === message.id ? (
+                              <>
+                                <button
+                                  type="button"
+                                  className="mp-bubble__ownActionBtn mp-bubble__ownActionBtn--danger"
+                                  onClick={() => handleDeleteMessage(message.id)}
+                                >
+                                  Confirm delete
+                                </button>
+                                <button
+                                  type="button"
+                                  className="mp-bubble__ownActionBtn"
+                                  onClick={() => { setConfirmDeleteId(null); setLongPressActiveId(null) }}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                className="mp-bubble__ownActionBtn"
+                                aria-label="Delete message"
+                                onClick={() => setConfirmDeleteId(message.id)}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        ) : null}
 
                         {message.reactions.length > 0 ? (
                           <div className="mp-bubble__reactions">
@@ -1158,14 +1365,16 @@ export default function MessagesPage() {
                           </div>
                         ) : null}
 
-                        <button
-                          type="button"
-                          className={`mp-bubble__reactBtn${reactionPickerId === message.id ? ' mp-bubble__reactBtn--active' : ''}`}
-                          aria-label="Add reaction"
-                          onClick={() => toggleReactionPicker(message.id)}
-                        >
-                          ☺
-                        </button>
+                        {!message.deleted ? (
+                          <button
+                            type="button"
+                            className={`mp-bubble__reactBtn${reactionPickerId === message.id ? ' mp-bubble__reactBtn--active' : ''}`}
+                            aria-label="Add reaction"
+                            onClick={() => toggleReactionPicker(message.id)}
+                          >
+                            ☺
+                          </button>
+                        ) : null}
                         {reactionPickerId === message.id ? (
                           <div
                             className={`mp-reactionPicker${reactionPickerClosing ? ' mp-reactionPicker--closing' : ''}`}
