@@ -1208,22 +1208,30 @@ export default function MessagesPage() {
                 />
               </div>
 
-              <button type="button" className="mp-requestsRow" onClick={openSentRequestsView}>
-                <span>Sent connection requests</span>
-                <span className="mp-requestsRow__right">
-                  {sentRequests.length > 0 ? (
-                    <span className="mp-requestsBadge">{sentRequests.length}</span>
-                  ) : null}
-                  <span aria-hidden="true">→</span>
-                </span>
-              </button>
+              <div className="mp-requestsBar">
+                <button type="button" className="mp-requestsRow" onClick={openSentRequestsView}>
+                  <span className="mp-requestsRow__label">
+                    <span className="mp-requestsRow__label--full">Sent connection requests</span>
+                    <span className="mp-requestsRow__label--short">Requests</span>
+                  </span>
+                  <span className="mp-requestsRow__right">
+                    {sentRequests.length > 0 ? (
+                      <span className="mp-requestsBadge">{sentRequests.length}</span>
+                    ) : null}
+                    <span aria-hidden="true">→</span>
+                  </span>
+                </button>
 
-              <button type="button" className="mp-requestsRow" onClick={openArchivedView}>
-                <span>Archived conversations</span>
-                <span className="mp-requestsRow__right">
-                  <span aria-hidden="true">→</span>
-                </span>
-              </button>
+                <button type="button" className="mp-requestsRow" onClick={openArchivedView}>
+                  <span className="mp-requestsRow__label">
+                    <span className="mp-requestsRow__label--full">Archived conversations</span>
+                    <span className="mp-requestsRow__label--short">Archived</span>
+                  </span>
+                  <span className="mp-requestsRow__right">
+                    <span aria-hidden="true">→</span>
+                  </span>
+                </button>
+              </div>
 
               <div className="mp-list" aria-label="Conversation list">
                 {connections.length === 0 && !isSearching && lastSearchedQuery ? (

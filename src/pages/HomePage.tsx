@@ -5,6 +5,7 @@ import { getStoredFilters, setStoredFilters, clearStoredFilters, getStoredProfil
 import LoadingState from '../components/ui/LoadingState'
 import OnboardingModal from '../components/ui/OnboardingModal'
 import { useToast } from '../components/ui/Toast'
+import verifiedBadge from '../assets/verified-badge.svg'
 import '../styles/home.css'
 
 type DiscoveryMode = 'jobs' | 'people'
@@ -1122,7 +1123,14 @@ window.setTimeout(() => advanceCard(), 260)
                       <span>{currentCard.subheadline}</span>
                       <span className="dot">·</span>
                       <span>{currentCard.organization}</span>
-                      {mode === 'jobs' && !currentCard.companyVerified ? (
+                      {mode === 'jobs' && currentCard.companyVerified ? (
+                        <img
+                          className="hp-card__verifiedIcon"
+                          src={verifiedBadge}
+                          alt="Verified company"
+                          title="Verified company"
+                        />
+                      ) : mode === 'jobs' ? (
                         <span className="hp-chip hp-chip--unverified">Unverified</span>
                       ) : null}
                     </div>

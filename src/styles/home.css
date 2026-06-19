@@ -293,6 +293,14 @@
   text-transform: uppercase;
   padding: 3px 8px;
 }
+.hp-card__verifiedIcon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
 
 .hp-fieldset__toggle {
   padding-top: 4px;
