@@ -689,15 +689,25 @@
 .cp-jobInfo--clickable:hover .cp-jobHeadline { color: var(--ink-2); }
 .cp-jobInfo--clickable:active .cp-jobHeadline { color: var(--ink-3); }
 
+.cp-pipeline__backToList {
+  display: none;
+  align-items: center;
+  background: transparent;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  color: var(--ink-3);
+  cursor: pointer;
+  padding: 0;
+}
+.cp-pipeline__backToList:hover { color: var(--ink); }
+
 @media (max-width: 720px) {
   .cp-pipeline { padding: 16px; }
   .cp-pipeline__grid {
     grid-template-columns: 1fr;
     gap: 16px;
-  }
-  .cp-pipeline__list {
-    max-height: 260px;
-    overflow-y: auto;
   }
   .cp-pipeline__tabs {
     gap: 2px;
@@ -706,4 +716,16 @@
   }
   .cp-pipeline__tab { white-space: nowrap; font-size: 10px; padding: 5px 10px; }
   .cp-pipeline__profileCard { padding: 16px; }
+
+  .cp-pipeline__grid:not(.cp-pipeline__grid--detail) .cp-pipeline__profile,
+  .cp-pipeline__grid:not(.cp-pipeline__grid--detail) .cp-pipeline__notes {
+    display: none;
+  }
+  .cp-pipeline__grid--detail .cp-pipeline__list {
+    display: none;
+  }
+  .cp-pipeline__backToList {
+    display: inline-flex;
+    margin-bottom: 12px;
+  }
 }

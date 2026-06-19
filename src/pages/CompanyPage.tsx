@@ -743,7 +743,7 @@ export default function CompanyPage() {
                 )
               })}
             </div>
-            <div className="cp-pipeline__grid">
+            <div className={`cp-pipeline__grid${selectedApplicantId ? ' cp-pipeline__grid--detail' : ''}`}>
               <div className="cp-pipeline__list">
                 {applicantsLoading ? (
                   <p className="cp-detail" style={{ padding: 16, fontStyle: 'italic' }}>Loading applicants…</p>
@@ -770,6 +770,9 @@ export default function CompanyPage() {
                 )}
               </div>
               <div className="cp-pipeline__profile">
+                <button type="button" className="cp-pipeline__backToList" onClick={() => setSelectedApplicantId(null)}>
+                  ← Back to applicants
+                </button>
                 {selectedApplicant ? (
                   <div className="cp-pipeline__profileCard">
                     <div className="cp-pipeline__profileHead">
