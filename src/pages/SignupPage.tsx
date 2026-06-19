@@ -5,16 +5,20 @@ import { apiRequest } from '../api'
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
 const LINKEDIN_DATA_KEY = 'denoisr-linkedin-data'
 
-// The import is a single ~20-50s backend call (Apify scrape + Gemini
+// The import is two real backend calls (Apify scrape, then Gemini
 // restructuring) with no progress events, so we fake staged progress from
-// elapsed time and cap it short of 100% until the response actually lands.
+// elapsed time within each call and cap it short of each call's share of
+// 100% until that call's response actually lands.
 const IMPORT_STAGES = [
   { at: 0, label: 'Fetching your LinkedIn profile…' },
-  { at: 30, label: 'Reading your experience…' },
-  { at: 60, label: 'Structuring your profile with AI…' },
+  { at: 45, label: 'Reading your experience…' },
+  { at: 70, label: 'Structuring your profile with AI…' },
   { at: 85, label: 'Almost done…' },
 ]
-const IMPORT_PROGRESS_CAP = 92
+const SCRAPE_PROGRESS_CAP = 45
+const STRUCTURE_PROGRESS_CAP = 92
+
+type ImportStep = 'idle' | 'scraping' | 'structuring' | 'done' | 'scrape-failed' | 'structure-failed'
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -25,9 +29,12 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [error, setError] = useState('')
-  const [importing, setImporting] = useState(false)
+  const [importStep, setImportStep] = useState<ImportStep>('idle')
+  const [importId, setImportId] = useState<string | null>(null)
   const [importProgress, setImportProgress] = useState(0)
   const importTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const importing = importStep === 'scraping' || importStep === 'structuring'
 
   const importStage =
     [...IMPORT_STAGES].reverse().find((s) => importProgress >= s.at)?.label ?? IMPORT_STAGES[0].label
@@ -38,13 +45,13 @@ export default function SignupPage() {
     }
   }, [])
 
-  function startFakeProgress() {
-    setImportProgress(0)
+  function startFakeProgress(from: number, cap: number) {
+    setImportProgress(from)
     importTimerRef.current = setInterval(() => {
       setImportProgress((prev) => {
-        if (prev >= IMPORT_PROGRESS_CAP) return prev
-        const step = prev < 50 ? 4 : prev < 75 ? 2 : 0.5
-        return Math.min(prev + step, IMPORT_PROGRESS_CAP)
+        if (prev >= cap) return prev
+        const step = prev < cap * 0.55 ? 4 : prev < cap * 0.85 ? 2 : 0.5
+        return Math.min(prev + step, cap)
       })
     }, 350)
   }
@@ -54,6 +61,46 @@ export default function SignupPage() {
       clearInterval(importTimerRef.current)
       importTimerRef.current = null
     }
+  }
+
+  async function runStructureStep(id: string) {
+    setError('')
+    setImportStep('structuring')
+    startFakeProgress(SCRAPE_PROGRESS_CAP, STRUCTURE_PROGRESS_CAP)
+
+    try {
+      const response = await apiRequest('/LoginController/linkedinImport/structure', {
+        method: 'POST',
+        body: { importId: id },
+      })
+      if (!response.ok) {
+        stopFakeProgress()
+        setImportProgress(SCRAPE_PROGRESS_CAP)
+        setImportStep('structure-failed')
+        setError("Got your profile, but couldn't structure it. Retry without re-fetching.")
+        return
+      }
+
+      const data = await response.json()
+      stopFakeProgress()
+      setImportProgress(100)
+      setImportStep('done')
+
+      sessionStorage.setItem(SIGNUP_CREDENTIALS_KEY, JSON.stringify({ email: email.trim() }))
+      sessionStorage.setItem(LINKEDIN_DATA_KEY, JSON.stringify(data))
+
+      setTimeout(() => navigate('/dashboard', { state: { password } }), 250)
+    } catch {
+      stopFakeProgress()
+      setImportProgress(SCRAPE_PROGRESS_CAP)
+      setImportStep('structure-failed')
+      setError("Got your profile, but couldn't structure it. Retry without re-fetching.")
+    }
+  }
+
+  function handleRetryStructure() {
+    if (!importId) return
+    runStructureStep(importId)
   }
 
   async function handleLinkedInSubmit(e: FormEvent<HTMLFormElement>) {
@@ -73,36 +120,32 @@ export default function SignupPage() {
       return
     }
 
-    setImporting(true)
     setError('')
-    startFakeProgress()
+    setImportId(null)
+    setImportStep('scraping')
+    startFakeProgress(0, SCRAPE_PROGRESS_CAP)
 
     try {
-      const response = await apiRequest('/LoginController/linkedinImport', {
+      const response = await apiRequest('/LoginController/linkedinImport/scrape', {
         method: 'POST',
         body: { url },
       })
       if (!response.ok) {
         stopFakeProgress()
         setImportProgress(0)
+        setImportStep('scrape-failed')
         setError('Could not import from that LinkedIn URL. Try again or sign up manually.')
-        setImporting(false)
         return
       }
 
       const data = await response.json()
-      stopFakeProgress()
-      setImportProgress(100)
-
-      sessionStorage.setItem(SIGNUP_CREDENTIALS_KEY, JSON.stringify({ email: email.trim() }))
-      sessionStorage.setItem(LINKEDIN_DATA_KEY, JSON.stringify(data))
-
-      setTimeout(() => navigate('/dashboard', { state: { password } }), 250)
+      setImportId(data.importId)
+      await runStructureStep(data.importId)
     } catch {
       stopFakeProgress()
       setImportProgress(0)
+      setImportStep('scrape-failed')
       setError('Could not import from that LinkedIn URL. Try again or sign up manually.')
-      setImporting(false)
     }
   }
 
@@ -181,7 +224,14 @@ export default function SignupPage() {
             </label>
 
             {error ? (
-              <div className="auth__error" role="alert">{error}</div>
+              <div className="auth__error" role="alert">
+                <span>{error}</span>
+                {importStep === 'structure-failed' ? (
+                  <button type="button" className="auth__retryBtn" onClick={handleRetryStructure}>
+                    Retry
+                  </button>
+                ) : null}
+              </div>
             ) : null}
 
             {importing ? (

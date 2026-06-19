@@ -148,7 +148,12 @@ export default function DashboardPage() {
         setSections(data.sections.map((s) => ({ title: s.title, items: s.items.length > 0 ? s.items : [''] })))
       }
       if (data.workExperience && data.workExperience.length > 0) {
-        setWorkEntries(data.workExperience.map((w) => ({ ...w, duration: w.duration ?? '' })))
+        setWorkEntries(data.workExperience.map((w) => ({
+          company: w.company ?? '',
+          role: w.role ?? '',
+          duration: w.duration ?? '',
+          description: w.description ?? '',
+        })))
       }
       if (data.projects && data.projects.length > 0) {
         setProjectEntries(data.projects.map((p) => ({ name: p.name, url: (p.link ?? p.url ?? ''), description: p.description ?? '' })))

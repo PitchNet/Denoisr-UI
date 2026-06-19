@@ -993,7 +993,25 @@ html, body {
   padding: 8px 12px;
   background: rgba(196, 74, 57, 0.06);
   border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
+
+.auth__retryBtn {
+  background: transparent;
+  border: 0;
+  color: var(--decision-pass);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.auth__retryBtn:hover { opacity: 0.75; }
 
 .auth__success {
   font-family: var(--font-mono);
