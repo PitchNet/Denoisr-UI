@@ -506,7 +506,7 @@ export default function DashboardPage() {
       })
 
       if (!response.ok) {
-        setSaveError('Saving profile failed.')
+        setSaveError("Couldn't finish creating your profile. Check your connection and try again.")
         return
       }
 
@@ -516,7 +516,7 @@ export default function DashboardPage() {
       localStorage.setItem('denoisr_just_signed_up', '1')
       navigate(wantHiring ? '/company' : '/home')
     } catch {
-      setSaveError('Saving profile failed.')
+      setSaveError("Couldn't finish creating your profile. Check your connection and try again.")
     } finally {
       setIsSaving(false)
     }

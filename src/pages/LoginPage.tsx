@@ -29,7 +29,7 @@ export default function LoginPage() {
       await markAuthenticatedFromResponse(response)
       navigate('/home')
     } catch {
-      setError('Wrong email or password.')
+      setError("Couldn't sign in. Check your connection and try again.")
     } finally {
       setIsSubmitting(false)
     }

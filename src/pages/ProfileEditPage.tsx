@@ -521,7 +521,7 @@ export default function ProfileEditPage() {
       })
 
       if (!response.ok) {
-        setSaveError('Failed to save profile.')
+        setSaveError("Couldn't save your changes. Check your connection and try again.")
         return
       }
 
@@ -529,7 +529,7 @@ export default function ProfileEditPage() {
 
       navigate('/profile')
     } catch {
-      setSaveError('Failed to save profile.')
+      setSaveError("Couldn't save your changes. Check your connection and try again.")
     } finally {
       setSaving(false)
     }

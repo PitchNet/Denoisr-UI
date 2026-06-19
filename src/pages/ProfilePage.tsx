@@ -164,7 +164,7 @@ export default function ProfilePage() {
         const response = await apiRequest('/ProfileController/getProfile', { method: 'GET' })
 
         if (!response.ok) {
-          setError('Failed to load profile')
+          setError('Couldn\'t load your profile. Go back to home and try again.')
           return
         }
 
@@ -252,7 +252,7 @@ export default function ProfilePage() {
           resume: String(data.resume ?? ''),
         })
       } catch {
-        setError('Failed to load profile')
+        setError('Couldn\'t load your profile. Go back to home and try again.')
       } finally {
         setLoading(false)
       }

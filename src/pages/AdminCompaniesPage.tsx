@@ -61,7 +61,10 @@ export default function AdminCompaniesPage() {
         setForbidden(true)
         return
       }
-      if (!response.ok) return
+      if (!response.ok) {
+        showToast("Couldn't load the review queue. Try again.", 'error')
+        return
+      }
       const data = (await response.json()) as { companies: Company[] }
       setCompanies(data.companies ?? [])
     } finally {
@@ -77,7 +80,10 @@ export default function AdminCompaniesPage() {
         setForbidden(true)
         return
       }
-      if (!response.ok) return
+      if (!response.ok) {
+        showToast("Couldn't load the review queue. Try again.", 'error')
+        return
+      }
       const data = (await response.json()) as { reports: UserReport[] }
       setReports(data.reports ?? [])
     } finally {

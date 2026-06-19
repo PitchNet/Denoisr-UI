@@ -289,7 +289,7 @@ export default function HomePage() {
         })
 
         if (!res.ok) {
-          setError(`Failed to load ${mode}`)
+          setError(`Couldn't load ${mode}. Refresh the page and try again.`)
           return
         }
 
@@ -311,7 +311,7 @@ export default function HomePage() {
         setTotalCount(data.total_count ?? formatted.length)
       } catch (err) {
         console.error(err)
-        setError(`Failed to load ${mode}`)
+        setError(`Couldn't load ${mode}. Refresh the page and try again.`)
       } finally {
         setLoading(false)
       }

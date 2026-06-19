@@ -77,7 +77,7 @@ export default function SignupPage() {
         stopFakeProgress()
         setImportProgress(SCRAPE_PROGRESS_CAP)
         setImportStep('structure-failed')
-        setError("Got your profile, but couldn't structure it. Retry without re-fetching.")
+        setError("Got your profile, but couldn't finish setting it up. Hit retry — you won't need to re-paste your LinkedIn URL.")
         return
       }
 
@@ -94,7 +94,7 @@ export default function SignupPage() {
       stopFakeProgress()
       setImportProgress(SCRAPE_PROGRESS_CAP)
       setImportStep('structure-failed')
-      setError("Got your profile, but couldn't structure it. Retry without re-fetching.")
+      setError("Got your profile, but couldn't finish setting it up. Hit retry — you won't need to re-paste your LinkedIn URL.")
     }
   }
 
