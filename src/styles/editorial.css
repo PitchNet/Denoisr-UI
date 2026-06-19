@@ -415,6 +415,7 @@ html, body {
   padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
   justify-content: space-around;
   align-items: center;
+  transition: opacity 200ms var(--easing-default), transform 200ms var(--easing-default);
 }
 @media (min-width: 721px) {
   .mbn { display: none !important; }
@@ -423,8 +424,14 @@ html, body {
   .mbn { display: flex; }
   /* Chat thread open on mobile: hide the bottom nav to give the thread full height */
   body.mp-chat-open .mbn { display: none; }
-  /* Mobile filter sheet open: hide the bottom nav so it doesn't sit on top of (and hide) the sheet's action buttons — the sheet lives inside .hp's own stacking context, so raising its z-index alone can't outrank the nav */
-  body.hp-filters-open .mbn { display: none; }
+  /* Mobile filter sheet open: the sheet lives inside .hp's own stacking context, so raising
+     its z-index alone can't outrank the nav — fade/slide it out instead of `display: none`
+     so it eases back in smoothly once the sheet finishes its closing animation, rather than popping in. */
+  body.hp-filters-open .mbn {
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+  }
 }
 
 .mbn__item {

@@ -200,11 +200,28 @@ export default function HomePage() {
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
   const [entering, setEntering] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [filterSheetClosing, setFilterSheetClosing] = useState(false)
+  const filterSheetCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function closeMobileFilters() {
+    setFilterSheetClosing(true)
+    if (filterSheetCloseTimeoutRef.current) clearTimeout(filterSheetCloseTimeoutRef.current)
+    filterSheetCloseTimeoutRef.current = setTimeout(() => {
+      setMobileFiltersOpen(false)
+      setFilterSheetClosing(false)
+    }, 220)
+  }
 
   useEffect(() => {
-    document.body.classList.toggle('hp-filters-open', mobileFiltersOpen)
+    return () => {
+      if (filterSheetCloseTimeoutRef.current) clearTimeout(filterSheetCloseTimeoutRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    document.body.classList.toggle('hp-filters-open', mobileFiltersOpen || filterSheetClosing)
     return () => document.body.classList.remove('hp-filters-open')
-  }, [mobileFiltersOpen])
+  }, [mobileFiltersOpen, filterSheetClosing])
   const [matchState, setMatchState] = useState<MatchState>({ open: false, id: '', name: '', photo: '', subheadline: '' })
   const [openerText, setOpenerText] = useState('')
   const [openerSending, setOpenerSending] = useState(false)
@@ -1299,9 +1316,15 @@ window.setTimeout(() => advanceCard(), 260)
       </div>
 
       {/* ─── Mobile filter sheet ─── */}
-      {mobileFiltersOpen ? (
-        <div className="hp-filterOverlay" onClick={() => setMobileFiltersOpen(false)}>
-          <div className="hp-filterSheet" onClick={(e) => e.stopPropagation()}>
+      {mobileFiltersOpen || filterSheetClosing ? (
+        <div
+          className={`hp-filterOverlay${filterSheetClosing ? ' hp-filterOverlay--closing' : ''}`}
+          onClick={closeMobileFilters}
+        >
+          <div
+            className={`hp-filterSheet${filterSheetClosing ? ' hp-filterSheet--closing' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <header className="hp-filterSheet__head">
               <span className="hp-eyebrow">Filters · Tune the deck</span>
               <h2 className="hp-panel__title">Tune for relevance.</h2>
@@ -1309,7 +1332,7 @@ window.setTimeout(() => advanceCard(), 260)
                 type="button"
                 className="hp-filterSheet__close"
                 aria-label="Close filters"
-                onClick={() => setMobileFiltersOpen(false)}
+                onClick={closeMobileFilters}
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
                   <path d="M4 4l10 10M14 4L4 14" />
@@ -1406,14 +1429,14 @@ window.setTimeout(() => advanceCard(), 260)
               <button
                 type="button"
                 className="btn btn--outlinedLight"
-                onClick={() => { resetFiltersAll(); setMobileFiltersOpen(false) }}
+                onClick={() => { resetFiltersAll(); closeMobileFilters() }}
               >
                 Remove filters
               </button>
               <button
                 type="button"
                 className="btn btn--solidDark"
-                onClick={() => { applyFilters(); setMobileFiltersOpen(false) }}
+                onClick={() => { applyFilters(); closeMobileFilters() }}
               >
                 Apply filters
               </button>

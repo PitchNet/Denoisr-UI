@@ -908,6 +908,19 @@
   background: rgba(40, 30, 20, 0.3);
   align-items: flex-end;
   justify-content: center;
+  animation: hp-filterOverlay-in 220ms var(--easing-default);
+}
+.hp-filterOverlay--closing {
+  pointer-events: none;
+  animation: hp-filterOverlay-out 220ms var(--easing-default) forwards;
+}
+@keyframes hp-filterOverlay-in {
+  from { background: rgba(40, 30, 20, 0); }
+  to { background: rgba(40, 30, 20, 0.3); }
+}
+@keyframes hp-filterOverlay-out {
+  from { background: rgba(40, 30, 20, 0.3); }
+  to { background: rgba(40, 30, 20, 0); }
 }
 .hp-filterSheet {
   width: 100%;
@@ -922,9 +935,16 @@
   overflow-y: auto;
   animation: hp-filterSheet-in 240ms var(--easing-default);
 }
+.hp-filterSheet--closing {
+  animation: hp-filterSheet-out 220ms var(--easing-default) forwards;
+}
 @keyframes hp-filterSheet-in {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+@keyframes hp-filterSheet-out {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
 }
 .hp-filterSheet__head {
   display: flex;
