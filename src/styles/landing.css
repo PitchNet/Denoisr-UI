@@ -139,6 +139,9 @@
   justify-content: space-between;
   height: 64px;
 }
+.el-wordmark-link {
+  text-decoration: none;
+}
 .el-wordmark {
   font-family: var(--font-sans);
   font-weight: 700;
@@ -712,8 +715,8 @@
 }
 
 /* ── Hero CTA ────────────────────────────────────────────── */
-.el-hero__cta { margin-top: 24px; }
-.el-hero__cta-sub { margin-top: 8px; }
+.el-hero__cta { margin-top: 12px; }
+.el-hero__cta .el-hero__cta-sub { margin-top: 28px; }
 
 /* ── LinkedIn import section ─────────────────────────────── */
 .el-import {

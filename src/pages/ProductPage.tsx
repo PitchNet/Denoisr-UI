@@ -386,7 +386,7 @@ export default function ProductPage() {
       {/* ── Chrome ── */}
       <header className="el-chrome">
         <div className="el-container el-chrome__inner">
-          <Link to="/" aria-label="Denoisr">
+          <Link to="/" aria-label="Denoisr" className="el-wordmark-link">
             <Wordmark />
           </Link>
 
