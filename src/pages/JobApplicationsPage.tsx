@@ -175,6 +175,113 @@ function EmptyState({ variant, onBrowse }: { variant: 'none' | 'filter'; onBrows
   )
 }
 
+function ApplicationDetailBody({
+  job,
+  meta,
+  onViewMessages,
+  onWithdraw,
+  withdrawing,
+  noTopBorder = false,
+}: {
+  job: JobApplication
+  meta: ApplicationMeta | undefined
+  onViewMessages: () => void
+  onWithdraw: () => void
+  withdrawing: boolean
+  noTopBorder?: boolean
+}) {
+  const [confirmingWithdraw, setConfirmingWithdraw] = useState(false)
+  const canWithdraw = meta ? WITHDRAWABLE_STATUSES.has(meta.status) : false
+
+  return (
+    <div className={`ja-card__body${noTopBorder ? ' ja-card__body--noBorder' : ''}`}>
+      <div className="ja-card__row">
+        <span>{job.location}</span>
+        <span className="dot">·</span>
+        <span>{pad2(job.experience)} yrs</span>
+        <span className="dot">·</span>
+        <span>${job.salary}k</span>
+      </div>
+
+      <p className="ja-card__intro">{job.intro}</p>
+
+      {job.highlights.length > 0 && (
+        <div className="ja-card__chips">
+          {job.highlights.map((item) => (
+            <span key={item} className="pr-chip">{item}</span>
+          ))}
+        </div>
+      )}
+
+      {job.tags.length > 0 && (
+        <div className="ja-card__tags el-meta">
+          {job.tags.map((item) => (
+            <span key={item}>{item}</span>
+          ))}
+        </div>
+      )}
+
+      {job.sections.length > 0 && (
+        <div className="ja-card__sections">
+          {job.sections.map((section) => (
+            <section key={section.title} className="ja-card__section">
+              <span className="pr-eyebrow">{section.title}</span>
+              <ul className="ja-card__sectionList">
+                {section.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+
+      {meta && meta.timeline.length > 0 ? (
+        <div className="ja-card__timeline">
+          <span className="pr-eyebrow">Timeline</span>
+          <div className="ja-timeline">
+            {meta.timeline.map((entry, i) => (
+              <div key={i} className="ja-timeline__entry">
+                <div className="ja-timeline__dot" />
+                <div className="ja-timeline__content">
+                  <span className="ja-timeline__event">{entry.event}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {meta?.status === 'messaged' || canWithdraw ? (
+        <div className="ja-card__actions">
+          {meta?.status === 'messaged' ? (
+            <button type="button" className="btn btn--solidDark" onClick={onViewMessages}>
+              View messages
+            </button>
+          ) : null}
+          {canWithdraw ? (
+            <button
+              type="button"
+              className="btn btn--outlinedLight ja-card__withdrawBtn"
+              disabled={withdrawing}
+              onClick={() => {
+                if (!confirmingWithdraw) {
+                  setConfirmingWithdraw(true)
+                  return
+                }
+                setConfirmingWithdraw(false)
+                onWithdraw()
+              }}
+            >
+              {withdrawing ? 'Withdrawing…' : confirmingWithdraw ? 'Confirm withdrawal?' : 'Withdraw application'}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function ApplicationCard({
   job,
   meta,
@@ -192,9 +299,7 @@ function ApplicationCard({
   onWithdraw: () => void
   withdrawing: boolean
 }) {
-  const [confirmingWithdraw, setConfirmingWithdraw] = useState(false)
   const swatch = swatchFor(job.id)
-  const canWithdraw = meta ? WITHDRAWABLE_STATUSES.has(meta.status) : false
 
   return (
     <article className="ja-card">
@@ -221,93 +326,91 @@ function ApplicationCard({
       </div>
 
       {isOpen ? (
-        <div className="ja-card__body">
-          <div className="ja-card__row">
-            <span>{job.location}</span>
-            <span className="dot">·</span>
-            <span>{pad2(job.experience)} yrs</span>
-            <span className="dot">·</span>
-            <span>${job.salary}k</span>
-          </div>
-
-          <p className="ja-card__intro">{job.intro}</p>
-
-          {job.highlights.length > 0 && (
-            <div className="ja-card__chips">
-              {job.highlights.map((item) => (
-                <span key={item} className="pr-chip">{item}</span>
-              ))}
-            </div>
-          )}
-
-          {job.tags.length > 0 && (
-            <div className="ja-card__tags el-meta">
-              {job.tags.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
-            </div>
-          )}
-
-          {job.sections.length > 0 && (
-            <div className="ja-card__sections">
-              {job.sections.map((section) => (
-                <section key={section.title} className="ja-card__section">
-                  <span className="pr-eyebrow">{section.title}</span>
-                  <ul className="ja-card__sectionList">
-                    {section.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
-            </div>
-          )}
-
-          {meta && meta.timeline.length > 0 ? (
-            <div className="ja-card__timeline">
-              <span className="pr-eyebrow">Timeline</span>
-              <div className="ja-timeline">
-                {meta.timeline.map((entry, i) => (
-                  <div key={i} className="ja-timeline__entry">
-                    <div className="ja-timeline__dot" />
-                    <div className="ja-timeline__content">
-                      <span className="ja-timeline__event">{entry.event}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {meta?.status === 'messaged' || canWithdraw ? (
-            <div className="ja-card__actions">
-              {meta?.status === 'messaged' ? (
-                <button type="button" className="btn btn--solidDark" onClick={onViewMessages}>
-                  View messages
-                </button>
-              ) : null}
-              {canWithdraw ? (
-                <button
-                  type="button"
-                  className="btn btn--outlinedLight ja-card__withdrawBtn"
-                  disabled={withdrawing}
-                  onClick={() => {
-                    if (!confirmingWithdraw) {
-                      setConfirmingWithdraw(true)
-                      return
-                    }
-                    setConfirmingWithdraw(false)
-                    onWithdraw()
-                  }}
-                >
-                  {withdrawing ? 'Withdrawing…' : confirmingWithdraw ? 'Confirm withdrawal?' : 'Withdraw application'}
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
+        <ApplicationDetailBody
+          job={job}
+          meta={meta}
+          onViewMessages={onViewMessages}
+          onWithdraw={onWithdraw}
+          withdrawing={withdrawing}
+        />
       ) : null}
     </article>
+  )
+}
+
+function ApplicationRow({
+  job,
+  meta,
+  isActive,
+  onSelect,
+}: {
+  job: JobApplication
+  meta: ApplicationMeta | undefined
+  isActive: boolean
+  onSelect: () => void
+}) {
+  const swatch = swatchFor(job.id)
+  return (
+    <button type="button" className={`ja-row${isActive ? ' ja-row--active' : ''}`} onClick={onSelect}>
+      <div className="ja-row__avatar" style={{ background: swatch }}>
+        {initialsOf(job.organization || job.headline)}
+      </div>
+      <div className="ja-row__meta">
+        <h3 className="ja-row__title">{job.headline}</h3>
+        <p className="ja-row__org">{meta?.companyName ?? job.subheadline}</p>
+      </div>
+      {meta ? (
+        <span className={`ja-badge ja-badge--${meta.status}`}>{STATUS_LABELS[meta.status]}</span>
+      ) : null}
+    </button>
+  )
+}
+
+function ApplicationDetailPanel({
+  job,
+  meta,
+  onViewMessages,
+  onWithdraw,
+  withdrawing,
+}: {
+  job: JobApplication | null
+  meta: ApplicationMeta | undefined
+  onViewMessages: () => void
+  onWithdraw: () => void
+  withdrawing: boolean
+}) {
+  if (!job) {
+    return (
+      <div className="ja-detail ja-detail--empty">
+        <span className="pr-eyebrow">No selection</span>
+        <p className="ja-hero__sub">Select an application from the list to see its details.</p>
+      </div>
+    )
+  }
+  const swatch = swatchFor(job.id)
+  return (
+    <div className="ja-detail">
+      <div className="ja-detail__head">
+        <div className="ja-card__avatar" style={{ background: swatch }}>
+          {initialsOf(job.organization || job.headline)}
+        </div>
+        <div className="ja-card__meta">
+          <h2 className="ja-card__title">{job.headline}</h2>
+          <p className="ja-card__org">{meta?.companyName ?? job.subheadline}</p>
+        </div>
+        {meta ? (
+          <span className={`ja-badge ja-badge--${meta.status}`}>{STATUS_LABELS[meta.status]}</span>
+        ) : null}
+      </div>
+      <ApplicationDetailBody
+        job={job}
+        meta={meta}
+        onViewMessages={onViewMessages}
+        onWithdraw={onWithdraw}
+        withdrawing={withdrawing}
+        noTopBorder
+      />
+    </div>
   )
 }
 
@@ -321,6 +424,8 @@ export default function JobApplicationsPage() {
   const [activeFilter, setActiveFilter] = useState<'all' | ApplicationStatus>('all')
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null)
   const [withdrawError, setWithdrawError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [desktopSelectedId, setDesktopSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchApplications() {
@@ -385,6 +490,27 @@ export default function JobApplicationsPage() {
     if (activeFilter === 'all') return applications
     return applications.filter((a) => a.status === activeFilter)
   }, [applications, activeFilter])
+
+  const desktopApplications = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return filteredApplications
+    return filteredApplications.filter((job) =>
+      job.headline.toLowerCase().includes(q) ||
+      job.organization.toLowerCase().includes(q) ||
+      job.subheadline.toLowerCase().includes(q) ||
+      (metaMap[job.id]?.companyName ?? '').toLowerCase().includes(q)
+    )
+  }, [filteredApplications, searchQuery, metaMap])
+
+  useEffect(() => {
+    if (desktopApplications.length === 0) {
+      setDesktopSelectedId(null)
+      return
+    }
+    if (!desktopApplications.some((job) => job.id === desktopSelectedId)) {
+      setDesktopSelectedId(desktopApplications[0].id)
+    }
+  }, [desktopApplications, desktopSelectedId])
 
   async function handleWithdraw(jobId: string) {
     setWithdrawError(null)
@@ -456,29 +582,72 @@ export default function JobApplicationsPage() {
       </header>
 
       {applications.length > 0 ? (
-        <div className="ja-list">
-          <StatsRow stats={stats} />
-          <FilterPills options={filterOptions} active={activeFilter} onChange={setActiveFilter} />
+        <>
+          <div className="ja-list ja-list--mobile">
+            <StatsRow stats={stats} />
+            <FilterPills options={filterOptions} active={activeFilter} onChange={setActiveFilter} />
 
-          {withdrawError ? <p className="ja-withdrawError">{withdrawError}</p> : null}
+            {withdrawError ? <p className="ja-withdrawError">{withdrawError}</p> : null}
 
-          {filteredApplications.length > 0 ? (
-            filteredApplications.map((job) => (
-              <ApplicationCard
-                key={job.id}
-                job={job}
-                meta={metaMap[job.id]}
-                isOpen={selectedAppId === job.id}
-                onToggle={() => setSelectedAppId(selectedAppId === job.id ? null : job.id)}
-                onViewMessages={() => navigate('/messages')}
-                onWithdraw={() => handleWithdraw(job.id)}
-                withdrawing={withdrawingId === job.id}
+            {filteredApplications.length > 0 ? (
+              filteredApplications.map((job) => (
+                <ApplicationCard
+                  key={job.id}
+                  job={job}
+                  meta={metaMap[job.id]}
+                  isOpen={selectedAppId === job.id}
+                  onToggle={() => setSelectedAppId(selectedAppId === job.id ? null : job.id)}
+                  onViewMessages={() => navigate('/messages')}
+                  onWithdraw={() => handleWithdraw(job.id)}
+                  withdrawing={withdrawingId === job.id}
+                />
+              ))
+            ) : (
+              <EmptyState variant="filter" onBrowse={() => navigate('/home')} />
+            )}
+          </div>
+
+          <div className="ja-split">
+            <div className="ja-split__left">
+              <StatsRow stats={stats} />
+              <input
+                type="search"
+                className="ja-searchInput"
+                placeholder="Search by role or company"
+                aria-label="Search applications"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-            ))
-          ) : (
-            <EmptyState variant="filter" onBrowse={() => navigate('/home')} />
-          )}
-        </div>
+              <FilterPills options={filterOptions} active={activeFilter} onChange={setActiveFilter} />
+
+              {withdrawError ? <p className="ja-withdrawError">{withdrawError}</p> : null}
+
+              <div className="ja-rowList">
+                {desktopApplications.length > 0 ? (
+                  desktopApplications.map((job) => (
+                    <ApplicationRow
+                      key={job.id}
+                      job={job}
+                      meta={metaMap[job.id]}
+                      isActive={desktopSelectedId === job.id}
+                      onSelect={() => setDesktopSelectedId(job.id)}
+                    />
+                  ))
+                ) : (
+                  <EmptyState variant="filter" onBrowse={() => navigate('/home')} />
+                )}
+              </div>
+            </div>
+
+            <ApplicationDetailPanel
+              job={desktopApplications.find((job) => job.id === desktopSelectedId) ?? null}
+              meta={desktopSelectedId ? metaMap[desktopSelectedId] : undefined}
+              onViewMessages={() => navigate('/messages')}
+              onWithdraw={() => desktopSelectedId && handleWithdraw(desktopSelectedId)}
+              withdrawing={withdrawingId === desktopSelectedId}
+            />
+          </div>
+        </>
       ) : (
         <EmptyState variant="none" onBrowse={() => navigate('/home')} />
       )}
