@@ -431,12 +431,6 @@ export default function DashboardPage() {
     if (!tagEntries.some(t => t.trim() !== '')) {
       errors.push({ section: 'Tags', count: 1, id: 'tags' })
     }
-    if (!workEntries.some(w => w.company.trim() !== '')) {
-      errors.push({ section: 'Work experience', count: 1, id: 'work' })
-    }
-    if (!projectEntries.some(p => p.name.trim() !== '')) {
-      errors.push({ section: 'Projects', count: 1, id: 'projects' })
-    }
     const proofCount = sections.reduce((acc, s) => acc + s.items.filter(i => i.trim() !== '').length, 0)
     if (proofCount < 1) {
       errors.push({ section: 'Proof & intent', count: 1, id: 'proof-and-intent' })

@@ -311,6 +311,7 @@ html, body {
   box-shadow: var(--shadow-panel);
   padding: 6px;
   min-width: 200px;
+  max-width: 280px;
   display: flex;
   flex-direction: column;
   z-index: 60;
@@ -387,9 +388,12 @@ html, body {
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: var(--ink-4);
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* ── Mobile bottom nav (shared) ── */
