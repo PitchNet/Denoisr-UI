@@ -585,7 +585,14 @@
 @media (max-width: 720px) {
   /* Mobile uses the long-press popup menu (.mp-actionMenu) instead of this hover row */
   .mp-bubble__ownActions { display: none; }
-  .mp-bubble--out { -webkit-touch-callout: none; user-select: none; }
+  /* Long-press triggers our own action menu — suppress the browser's native
+     text-selection/callout gesture so a slow release doesn't select the page. */
+  .mp-bubble--out {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
 }
 .mp-bubble__ownActionBtn {
   background: none;
