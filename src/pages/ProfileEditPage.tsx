@@ -53,6 +53,7 @@ type ProfileData = {
   }>
   photo: string
   resume: string
+  resumeFilename: string
 }
 
 type WorkEntry = {
@@ -120,6 +121,15 @@ export default function ProfileEditPage() {
   const [showPhotoEditor, setShowPhotoEditor] = useState(false)
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
   const [photoUrl, setPhotoUrl] = useState('')
+
+  const [resumeUrl, setResumeUrl] = useState('')
+  const [resumeFilename, setResumeFilename] = useState('')
+  const [isUploadingResume, setIsUploadingResume] = useState(false)
+  // The resume URL as last persisted to the DB, captured on load — used to
+  // tell a freshly-uploaded-but-unsaved file apart from the saved one so we
+  // know what's safe to delete immediately vs. what updateProfile will clean
+  // up itself on a real save.
+  const [originalResumeUrl, setOriginalResumeUrl] = useState('')
 
   const [highlightEntries, setHighlightEntries] = useState<HighlightEntry[]>([
     { query: '', selectedValue: '', menuOpen: false },
@@ -250,6 +260,7 @@ export default function ProfileEditPage() {
             : [],
           photo: String(data.photo ?? ''),
           resume: String(data.resume ?? ''),
+          resumeFilename: String(data.resumeFilename ?? ''),
         }
 
         setHeadline(profile.headline)
@@ -262,6 +273,10 @@ export default function ProfileEditPage() {
         const storedPhoto = profile.photo || ''
         setPhotoUrl(storedPhoto)
         if (storedPhoto) setPhotoPreviewUrl(storedPhoto)
+
+        setResumeUrl(profile.resume)
+        setResumeFilename(profile.resumeFilename)
+        setOriginalResumeUrl(profile.resume)
 
         setHighlightEntries(
           profile.highlights.length > 0
@@ -475,6 +490,60 @@ export default function ProfileEditPage() {
     setShowPhotoEditor(false)
   }
 
+  // Best-effort delete of a resume file that was uploaded to Storage this
+  // session but never made it into a saved profile (replaced, removed, or
+  // navigated away from) — updateProfile only cleans up the *previously
+  // saved* file on a real save, so anything still dangling is swept up here.
+  function deleteUnsavedResume(url: string) {
+    if (!url || url === originalResumeUrl) return
+    apiRequest('/ProfileController/deleteResume', {
+      method: 'POST',
+      body: { url },
+    }).catch(() => {})
+  }
+
+  async function handleResumeFile(file: File) {
+    const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
+    if (ext !== '.pdf' && ext !== '.docx') {
+      setSaveError('Only PDF or DOCX files are allowed')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setSaveError('File must be under 10MB')
+      return
+    }
+
+    setIsUploadingResume(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+      const res = await fetch(`${baseUrl}/ProfileController/uploadResume`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+      if (!res.ok) throw new Error('failed')
+      const data = (await res.json()) as { url: string; filename: string }
+      const previousUrl = resumeUrl
+      setResumeUrl(data.url)
+      setResumeFilename(data.filename)
+      // Replacing a file that was itself uploaded-but-unsaved this session —
+      // clean up the one being replaced so it doesn't linger orphaned.
+      deleteUnsavedResume(previousUrl)
+    } catch {
+      setSaveError("Couldn't upload that file. Try again.")
+    } finally {
+      setIsUploadingResume(false)
+    }
+  }
+
+  function removeResumeFile() {
+    deleteUnsavedResume(resumeUrl)
+    setResumeUrl('')
+    setResumeFilename('')
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSaving(true)
@@ -512,6 +581,8 @@ export default function ProfileEditPage() {
         }))
         .filter((entry) => entry.name !== ''),
       photo: photoUrl,
+      resume: resumeUrl,
+      resumeFilename: resumeFilename,
     }
 
     try {
@@ -685,21 +756,44 @@ export default function ProfileEditPage() {
 
           <div className="pr-col__card">
             <span className="pr-eyebrow">Resume</span>
-            <div className="pr-resume">
-              <div className="pr-resume__placeholder">
-                <span className="pr-resume__icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <polyline points="10 9 9 9 8 9" />
-                  </svg>
-                </span>
-                <span className="pr-resume__text">Upload your resume</span>
-                <span className="pr-resume__hint">Coming soon</span>
+            {resumeUrl ? (
+              <div className="pr-resume pr-resume--filled">
+                <a className="pr-resume__link" href={resumeUrl} target="_blank" rel="noreferrer">
+                  {resumeFilename || 'View resume'}
+                </a>
+                <button type="button" className="pr-resume__remove" onClick={removeResumeFile}>
+                  Remove
+                </button>
               </div>
-            </div>
+            ) : (
+              <label className="pr-resume">
+                <input
+                  type="file"
+                  accept=".pdf,.docx"
+                  disabled={isUploadingResume}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleResumeFile(file)
+                    e.target.value = ''
+                  }}
+                />
+                <div className="pr-resume__placeholder">
+                  <span className="pr-resume__icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                  </span>
+                  <span className="pr-resume__text">
+                    {isUploadingResume ? 'Uploading…' : 'Click to upload your resume'}
+                  </span>
+                  <span className="pr-resume__hint">PDF or DOCX &middot; up to 10MB</span>
+                </div>
+              </label>
+            )}
           </div>
 
           {/* ── Highlights (desktop) ── */}

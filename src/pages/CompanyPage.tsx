@@ -53,6 +53,8 @@ type Job = {
   highlights: string[]
   tags: string[]
   sections: JobSection[]
+  jobDescriptionUrl: string
+  jobDescriptionFilename: string
 }
 
 type Applicant = {
@@ -106,8 +108,13 @@ export default function CompanyPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [editingJobIndex, setEditingJobIndex] = useState<number | null>(null)
   const [editJob, setEditJob] = useState<Job | null>(null)
+  // The JD file URL as last persisted to the DB for the job being edited (or ''
+  // for a new job). Used to tell "a freshly uploaded, unsaved file" apart from
+  // "the file this job already had" when deciding what's safe to delete.
+  const [originalJobDescriptionUrl, setOriginalJobDescriptionUrl] = useState('')
   const [jobHighlightInput, setJobHighlightInput] = useState('')
   const [jobTagInput, setJobTagInput] = useState('')
+  const [isUploadingJobDescription, setIsUploadingJobDescription] = useState(false)
   const [pipelineJobId, setPipelineJobId] = useState<string | null>(null)
   const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null)
   const [pipelineTab, setPipelineTab] = useState<'all' | 'new' | 'shortlisted' | 'messaged' | 'hired' | 'passed'>('all')
@@ -273,6 +280,7 @@ export default function CompanyPage() {
   function startJobEdit(index: number) {
     setEditingJobIndex(index)
     setEditJob(JSON.parse(JSON.stringify(jobs[index])))
+    setOriginalJobDescriptionUrl(jobs[index].jobDescriptionUrl || '')
     setJobHighlightInput('')
     setJobTagInput('')
   }
@@ -291,10 +299,13 @@ export default function CompanyPage() {
       highlights: [],
       tags: [],
       sections: [],
+      jobDescriptionUrl: '',
+      jobDescriptionFilename: '',
     }
     setJobs([...jobs, blank])
     setEditingJobIndex(jobs.length)
     setEditJob(blank)
+    setOriginalJobDescriptionUrl('')
     setJobHighlightInput('')
     setJobTagInput('')
   }
@@ -302,6 +313,62 @@ export default function CompanyPage() {
   function handleJobField(field: keyof Job, value: string | number | string[] | JobSection[]) {
     if (!editJob) return
     setEditJob({ ...editJob, [field]: value })
+  }
+
+  // Best-effort delete of a JD file that was uploaded to Storage this session
+  // but never made it into a saved job row (replaced, removed, or the whole
+  // edit was cancelled) — jobDetails only cleans up the *previously saved*
+  // file on a real save, so anything still dangling has to be swept up here.
+  function deleteUnsavedJobDescription(url: string) {
+    if (!url || url === originalJobDescriptionUrl) return
+    apiRequest('/CompanyController/deleteJobDescription', {
+      method: 'POST',
+      body: { url },
+    }).catch(() => {})
+  }
+
+  async function handleJobDescriptionFile(file: File) {
+    if (!editJob) return
+    const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
+    if (ext !== '.pdf' && ext !== '.docx') {
+      showToast('Only PDF or DOCX files are allowed', 'error')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('File must be under 10MB', 'error')
+      return
+    }
+
+    setIsUploadingJobDescription(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+      const res = await fetch(`${baseUrl}/CompanyController/uploadJobDescription`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+      if (!res.ok) throw new Error('failed')
+      const data = (await res.json()) as { url: string; filename: string }
+      // Replacing a file that was itself uploaded-but-unsaved this session —
+      // clean up the one being replaced so it doesn't linger orphaned.
+      const previousUrl = editJob.jobDescriptionUrl
+      setEditJob((current) =>
+        current ? { ...current, jobDescriptionUrl: data.url, jobDescriptionFilename: data.filename } : current,
+      )
+      deleteUnsavedJobDescription(previousUrl)
+    } catch {
+      showToast("Couldn't upload that file. Try again.", 'error')
+    } finally {
+      setIsUploadingJobDescription(false)
+    }
+  }
+
+  function removeJobDescriptionFile() {
+    if (!editJob) return
+    deleteUnsavedJobDescription(editJob.jobDescriptionUrl)
+    setEditJob({ ...editJob, jobDescriptionUrl: '', jobDescriptionFilename: '' })
   }
 
   function addJobHighlight() {
@@ -390,6 +457,22 @@ export default function CompanyPage() {
     }
     setEditingJobIndex(null)
     setEditJob(null)
+    setOriginalJobDescriptionUrl('')
+  }
+
+  function cancelJobEdit() {
+    // startJobCreate optimistically pushes a blank row into `jobs` so the edit
+    // form has something to point at — if it was never saved, drop that row
+    // instead of leaving an empty entry behind.
+    if (editingJobIndex !== null && editJob) {
+      if (!editJob.id) {
+        setJobs((prev) => prev.filter((_, i) => i !== editingJobIndex))
+      }
+      deleteUnsavedJobDescription(editJob.jobDescriptionUrl)
+    }
+    setEditingJobIndex(null)
+    setEditJob(null)
+    setOriginalJobDescriptionUrl('')
   }
 
   const isEditing = mode === 'edit'
@@ -686,6 +769,52 @@ export default function CompanyPage() {
                           <span className="cp-label">Role description</span>
                           <textarea className="cp-input cp-textarea" value={editJob.intro} onChange={(e) => handleJobField('intro', e.target.value)} rows={3} />
                         </label>
+                        <div className="cp-field">
+                          <span className="cp-label">Job description document (PDF or DOCX)</span>
+                          {editJob.jobDescriptionUrl ? (
+                            <div className="cp-jdFile">
+                              <a
+                                className="cp-jdFile__link"
+                                href={editJob.jobDescriptionUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {editJob.jobDescriptionFilename || 'View file'}
+                              </a>
+                              <button
+                                type="button"
+                                className="cp-jdFile__remove"
+                                onClick={removeJobDescriptionFile}
+                                aria-label="Remove job description file"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="cp-jdFile__upload">
+                              <input
+                                type="file"
+                                accept=".pdf,.docx"
+                                disabled={isUploadingJobDescription}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0]
+                                  if (file) handleJobDescriptionFile(file)
+                                  e.target.value = ''
+                                }}
+                              />
+                              <svg className="cp-jdFile__uploadIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                                <path d="M12 18v-6" />
+                                <path d="M9.5 14.5 12 12l2.5 2.5" />
+                              </svg>
+                              <span className="cp-jdFile__uploadLabel">
+                                {isUploadingJobDescription ? 'Uploading…' : 'Click to upload job description'}
+                              </span>
+                              <span className="cp-jdFile__uploadHint">PDF or DOCX · up to 10MB</span>
+                            </label>
+                          )}
+                        </div>
                         <div className="cp-jobEditGrid">
                           <label className="cp-field">
                             <span className="cp-label">Skills</span>
@@ -754,7 +883,7 @@ export default function CompanyPage() {
                         </label>
                         <div className="cp-actions">
                           <button type="button" className="btn btn--solidDark" onClick={saveJobEdit}>Save</button>
-                          <button type="button" className="btn" onClick={() => { setEditingJobIndex(null); setEditJob(null) }}>Cancel</button>
+                          <button type="button" className="btn" onClick={cancelJobEdit}>Cancel</button>
                         </div>
                       </div>
                     ) : (
@@ -762,6 +891,17 @@ export default function CompanyPage() {
                         <div className="cp-jobInfo cp-jobInfo--clickable" onClick={() => openPipeline(job.id)}>
                           <span className="cp-jobHeadline">{job.headline}</span>
                           <span className="cp-jobMeta">{job.location} &middot; {job.experience}yrs &middot; ${job.salary}k</span>
+                          {job.jobDescriptionUrl ? (
+                            <a
+                              className="cp-jdFile__badge"
+                              href={job.jobDescriptionUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {job.jobDescriptionFilename || 'JD file'}
+                            </a>
+                          ) : null}
                         </div>
                         <span className="cp-jobBadge" onClick={() => openPipeline(job.id)}>{jobApplicantCounts[job.id] ?? 0} applicant{(jobApplicantCounts[job.id] ?? 0) !== 1 ? 's' : ''}</span>
                         <button type="button" className="cp-jobPencil" onClick={() => startJobEdit(idx)} aria-label="Edit job">

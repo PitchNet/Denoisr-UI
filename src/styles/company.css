@@ -253,6 +253,85 @@
   font-size: 11px;
   color: var(--ink-4);
 }
+.cp-jdFile__badge {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-decoration: underline;
+  text-decoration-color: var(--ink-5);
+}
+.cp-jdFile__badge:hover { color: var(--ink); }
+
+.cp-jdFile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--paper-2);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-md);
+}
+.cp-jdFile__link {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+.cp-jdFile__remove {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.cp-jdFile__remove:hover { color: var(--ink); }
+
+.cp-jdFile__upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 28px 16px;
+  background: var(--paper-2);
+  border: 1.5px dashed var(--ink-5);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-fast) var(--easing-default), background var(--dur-fast) var(--easing-default);
+}
+.cp-jdFile__upload:hover { border-color: var(--ink-3); background: var(--paper-3); }
+.cp-jdFile__upload:active { border-color: var(--ink-4); }
+.cp-jdFile__upload input { display: none; }
+.cp-jdFile__uploadIcon {
+  color: var(--ink-4);
+  transition: color var(--dur-fast) var(--easing-default);
+}
+.cp-jdFile__upload:hover .cp-jdFile__uploadIcon { color: var(--ink-2); }
+.cp-jdFile__uploadLabel {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.cp-jdFile__uploadHint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
 .cp-jobPencil {
   background: transparent;
   border: 1px solid var(--ink-6);

@@ -296,3 +296,28 @@
   text-align: center;
   padding: 24px;
 }
+
+/* ── Resume upload (editable) — base .pr-resume/.pr-resume--filled/
+   .pr-resume__link cards live in profile.css (shared with the read-only
+   ProfilePage); these rules are the editor-only upload-dropzone behavior. ── */
+.pe label.pr-resume {
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--easing-default), background var(--dur-fast) var(--easing-default);
+}
+.pe label.pr-resume:hover { border-color: var(--ink-3); background: var(--paper-2); }
+.pe label.pr-resume:hover .pr-resume__icon { color: var(--ink-2); }
+.pe label.pr-resume input { display: none; }
+
+.pr-resume__remove {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-4);
+  flex-shrink: 0;
+}
+.pr-resume__remove:hover { color: var(--ink); }

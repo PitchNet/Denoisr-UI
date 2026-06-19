@@ -403,6 +403,24 @@
   color: var(--ink-5);
 }
 
+.pr-resume--filled {
+  border-style: solid;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.pr-resume__link {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--ink);
+}
+
 /* ── Intro ──────────────────────────────────────────────────── */
 .pr-intro {
   font-size: 15px;
