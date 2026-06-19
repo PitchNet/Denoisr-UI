@@ -496,6 +496,19 @@
   border-bottom-right-radius: 6px;
 }
 
+/* Interactive labels (reaction/edit/delete buttons) should never show a
+   text-selection highlight, on mobile or desktop — they're controls, not copy. */
+.mp-bubble__reactBtn,
+.mp-bubble__ownActionBtn,
+.mp-actionMenu__item,
+.mp-actionMenu__prompt,
+.mp-reactionPicker button,
+.mp-reaction {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .mp-bubble__reactBtn {
   position: absolute;
   top: -10px;
