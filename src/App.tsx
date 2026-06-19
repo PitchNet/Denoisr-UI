@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Analytics } from '@vercel/analytics/react'
 import { ProtectedRoute, PublicOnlyRoute } from './components/AuthGuard'
 import { fetchAndCacheIsAdmin, fetchAndCacheProfile, isAuthenticated } from './auth'
 import { registerServiceWorker, subscribeToPush } from './notifications'
@@ -108,6 +109,7 @@ export default function App() {
         <AppShell />
       </ToastProvider>
       <SpeedInsights />
+      <Analytics />
     </BrowserRouter>
   )
 }
