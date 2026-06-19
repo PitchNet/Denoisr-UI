@@ -17,6 +17,10 @@
   padding-top: 24px;
 }
 @media (max-width: 720px) { .mp { padding-top: 8px; } }
+@media (max-width: 720px) {
+  /* Chat thread open: global header/bottom nav are hidden, so the panel can claim the full viewport */
+  body.mp-chat-open .mp { height: 100svh; padding-top: 0; }
+}
 
 /* ── Shell layout ──────────────────────────────────────────── */
 .mp-shell {
@@ -41,6 +45,16 @@
   }
   .mp-shell .mp-sidebar--hiddenMobile { display: none; }
   .mp-shell .mp-thread--hiddenMobile { display: none; }
+}
+@media (max-width: 720px) {
+  /* Chat thread open: drop the bottom-nav clearance and side gutters for an edge-to-edge panel */
+  body.mp-chat-open .mp-shell { padding: 0; }
+  body.mp-chat-open .mp-thread {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    box-shadow: none;
+  }
 }
 
 .mp-eyebrow {
@@ -502,25 +516,37 @@
 .mp-bubble__wrap--in .mp-bubble__reactBtn { right: 8px; }
 .mp-bubble__wrap--out .mp-bubble__reactBtn { left: 8px; }
 .mp-bubble__wrap:hover .mp-bubble__reactBtn { opacity: 1; }
+.mp-bubble__reactBtn--active {
+  opacity: 1;
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
 @media (max-width: 720px) {
   .mp-bubble__reactBtn { opacity: 1; }
 }
 
 .mp-reactionPicker {
   position: absolute;
-  top: calc(100% + 6px);
+  top: -8px;
   z-index: 50;
   display: flex;
+  align-items: center;
   gap: 2px;
   padding: 4px 6px;
   background: var(--paper);
   border: 1px solid var(--ink-5);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-float);
+  transform-origin: top right;
   animation: mp-menu-in 140ms var(--easing-default) both;
 }
-.mp-bubble__wrap--in .mp-reactionPicker { right: 8px; }
-.mp-bubble__wrap--out .mp-reactionPicker { left: 8px; }
+.mp-bubble__wrap--in .mp-reactionPicker { right: 8px; transform-origin: top right; }
+.mp-bubble__wrap--out .mp-reactionPicker { left: 8px; transform-origin: top left; }
+.mp-reactionPicker--closing {
+  animation: mp-menu-out 140ms var(--easing-default) both;
+  pointer-events: none;
+}
 .mp-reactionPicker button {
   border: 0;
   background: transparent;
@@ -531,6 +557,18 @@
   transition: background-color var(--dur-fast) var(--easing-default);
 }
 .mp-reactionPicker button:hover { background: var(--paper-2); }
+.mp-reactionPicker__divider {
+  width: 1px;
+  height: 16px;
+  background: var(--ink-6);
+  flex-shrink: 0;
+}
+.mp-reactionPicker__close {
+  font-size: 11px !important;
+  color: var(--ink-4);
+  padding: 4px 7px !important;
+}
+.mp-reactionPicker__close:hover { color: var(--ink); }
 
 .mp-bubble__reactions {
   display: flex;
@@ -850,6 +888,10 @@
 @keyframes mp-menu-in {
   from { opacity: 0; transform: translateY(-6px) scale(0.97); }
   to   { opacity: 1; transform: none; }
+}
+@keyframes mp-menu-out {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(-6px) scale(0.97); }
 }
 
 .mp-item__menuAction {

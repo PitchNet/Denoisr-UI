@@ -203,6 +203,10 @@ html, body {
   padding: 0 36px;
 }
 @media (max-width: 720px) { .nav__inner { padding: 0 22px; } }
+@media (max-width: 720px) {
+  /* Chat thread open on mobile: hide the global header to give the thread full height */
+  body.mp-chat-open .nav { display: none; }
+}
 
 .nav__brand {
   font-family: var(--font-sans);
@@ -417,6 +421,8 @@ html, body {
 }
 @media (max-width: 720px) {
   .mbn { display: flex; }
+  /* Chat thread open on mobile: hide the bottom nav to give the thread full height */
+  body.mp-chat-open .mbn { display: none; }
 }
 
 .mbn__item {

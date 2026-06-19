@@ -95,6 +95,8 @@ export default function MessagesPage() {
   const [reportSubmitting, setReportSubmitting] = useState(false)
   const [otherReadAt, setOtherReadAt] = useState<string | null>(null)
   const [reactionPickerId, setReactionPickerId] = useState<string | null>(null)
+  const [reactionPickerClosing, setReactionPickerClosing] = useState(false)
+  const reactionPickerCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const activeConversationRef = useRef<Connection | null>(null)
   const searchVersionRef = useRef(0)
   // Render-time ref updates — callbacks always read the latest values
@@ -178,6 +180,11 @@ export default function MessagesPage() {
     () => connections.find((c) => c.id === activeConversationId) ?? null,
     [activeConversationId, connections],
   )
+
+  useEffect(() => {
+    document.body.classList.toggle('mp-chat-open', Boolean(activeConversation))
+    return () => document.body.classList.remove('mp-chat-open')
+  }, [activeConversation])
 
   const lastOwnMessage = useMemo(
     () => [...threadMessages].reverse().find((m) => m.side === 'right') ?? null,
@@ -359,12 +366,36 @@ export default function MessagesPage() {
     function handleOutsideClick(e: MouseEvent) {
       const target = e.target as Element
       if (!target.closest('.mp-reactionPicker') && !target.closest('.mp-bubble__reactBtn')) {
-        setReactionPickerId(null)
+        closeReactionPicker()
       }
     }
     document.addEventListener('mousedown', handleOutsideClick)
     return () => document.removeEventListener('mousedown', handleOutsideClick)
   }, [reactionPickerId])
+
+  useEffect(() => {
+    return () => {
+      if (reactionPickerCloseTimeoutRef.current) clearTimeout(reactionPickerCloseTimeoutRef.current)
+    }
+  }, [])
+
+  function closeReactionPicker() {
+    setReactionPickerClosing(true)
+    reactionPickerCloseTimeoutRef.current = setTimeout(() => {
+      setReactionPickerId(null)
+      setReactionPickerClosing(false)
+    }, 140)
+  }
+
+  function toggleReactionPicker(messageId: string) {
+    if (reactionPickerId === messageId) {
+      closeReactionPicker()
+      return
+    }
+    if (reactionPickerCloseTimeoutRef.current) clearTimeout(reactionPickerCloseTimeoutRef.current)
+    setReactionPickerClosing(false)
+    setReactionPickerId(messageId)
+  }
 
   async function fetchArchivedConnections() {
     setArchivedLoading(true)
@@ -1129,26 +1160,36 @@ export default function MessagesPage() {
 
                         <button
                           type="button"
-                          className="mp-bubble__reactBtn"
+                          className={`mp-bubble__reactBtn${reactionPickerId === message.id ? ' mp-bubble__reactBtn--active' : ''}`}
                           aria-label="Add reaction"
-                          onClick={() =>
-                            setReactionPickerId(reactionPickerId === message.id ? null : message.id)
-                          }
+                          onClick={() => toggleReactionPicker(message.id)}
                         >
                           ☺
                         </button>
                         {reactionPickerId === message.id ? (
-                          <div className="mp-reactionPicker" role="menu">
+                          <div
+                            className={`mp-reactionPicker${reactionPickerClosing ? ' mp-reactionPicker--closing' : ''}`}
+                            role="menu"
+                          >
                             {QUICK_EMOJIS.map((emoji) => (
                               <button
                                 key={emoji}
                                 type="button"
                                 role="menuitem"
-                                onClick={() => { handleReact(message.id, emoji); setReactionPickerId(null) }}
+                                onClick={() => { handleReact(message.id, emoji); closeReactionPicker() }}
                               >
                                 {emoji}
                               </button>
                             ))}
+                            <span className="mp-reactionPicker__divider" aria-hidden="true" />
+                            <button
+                              type="button"
+                              className="mp-reactionPicker__close"
+                              aria-label="Close reactions"
+                              onClick={closeReactionPicker}
+                            >
+                              ✕
+                            </button>
                           </div>
                         ) : null}
                       </div>
