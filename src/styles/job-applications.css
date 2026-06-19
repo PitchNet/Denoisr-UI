@@ -74,6 +74,88 @@
   }
 }
 
+/* Stats row */
+.ja-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+@media (max-width: 720px) {
+  .ja-stats { grid-template-columns: repeat(2, 1fr); }
+}
+.ja-stats__tile {
+  background: var(--paper);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ja-stats__value {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -0.4px;
+  color: var(--ink);
+}
+.ja-stats__label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+/* Filter pills */
+.ja-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+@media (max-width: 720px) {
+  .ja-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+.ja-filters__btn {
+  background: transparent;
+  border: 1px solid var(--ink-5);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  padding: 6px 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--dur-fast) var(--easing-default);
+}
+.ja-filters__btn:hover { border-color: var(--ink-3); color: var(--ink); }
+.ja-filters__btn:active { border-color: var(--ink-4); color: var(--ink-2); }
+.ja-filters__btn--active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.ja-filters__count {
+  opacity: 0.6;
+}
+
+.ja-withdrawError {
+  font-size: 13px;
+  color: var(--decision-pass);
+  margin: 0;
+}
+
 .ja-card {
   background: var(--paper);
   border: 1px solid var(--ink-6);
@@ -250,6 +332,15 @@
 .ja-badge--passed {
   background: rgba(196, 74, 57, 0.12);
   color: var(--decision-pass);
+}
+.ja-badge--withdrawn {
+  background: var(--ink-6);
+  color: var(--ink-4);
+}
+
+.ja-card__withdrawBtn {
+  font-size: 13px;
+  padding: 8px 14px;
 }
 
 /* Timeline */
