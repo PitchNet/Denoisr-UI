@@ -72,6 +72,8 @@ type Applicant = {
   sections: JobSection[]
   workExperience: Array<{ company: string; role: string; duration: string; description: string }>
   projects: Array<{ name: string; url: string; description: string }>
+  resume: string
+  resumeFilename: string
   appliedDate: string
   status: 'new' | 'shortlisted' | 'messaged' | 'hired' | 'passed'
   notes: string
@@ -976,11 +978,28 @@ export default function CompanyPage() {
                       <div className="cp-pipeline__profileAvatar" style={selectedApplicant.photo ? { backgroundImage: `url(${selectedApplicant.photo})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
                         {selectedApplicant.photo ? null : selectedApplicant.name.charAt(0).toUpperCase()}
                       </div>
-                      <div>
+                      <div className="cp-pipeline__profileIdentity">
                         <h2 className="cp-pipeline__profileName">{selectedApplicant.name}</h2>
                         <p className="cp-pipeline__profileRole">{selectedApplicant.role} · {selectedApplicant.org}</p>
                         <p className="cp-pipeline__profileMeta">{selectedApplicant.location} · {selectedApplicant.experience}yrs · ${selectedApplicant.salary}k</p>
                       </div>
+                      {selectedApplicant.resume ? (
+                        <a
+                          className="cp-pipeline__resumeBtn"
+                          href={selectedApplicant.resume}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={selectedApplicant.resumeFilename || 'View resume'}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                          </svg>
+                          Resume
+                        </a>
+                      ) : null}
                     </div>
                     <p className="cp-pipeline__profileIntro">{selectedApplicant.intro}</p>
                     {selectedApplicant.highlights.length > 0 ? (

@@ -642,6 +642,34 @@
   gap: 14px;
   align-items: center;
 }
+.cp-pipeline__profileIdentity {
+  flex: 1;
+  min-width: 0;
+}
+.cp-pipeline__resumeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: 1px solid var(--ink-5);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--easing-default),
+              color var(--dur-fast) var(--easing-default),
+              border-color var(--dur-fast) var(--easing-default);
+}
+.cp-pipeline__resumeBtn:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink-3); }
+.cp-pipeline__resumeBtn:active { background: var(--paper-3); }
+@media (max-width: 720px) {
+  .cp-pipeline__profileHead { flex-wrap: wrap; }
+  .cp-pipeline__resumeBtn { margin-left: 70px; }
+}
 .cp-pipeline__profileAvatar {
   width: 56px;
   height: 56px;
