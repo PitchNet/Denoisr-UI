@@ -656,14 +656,16 @@ window.setTimeout(() => advanceCard(), 260)
         method: 'POST',
         body: { [idField]: currentCard.id, action: 'bookmark' },
       })
+      const data = await response.json().catch(() => null) as { bookmarked?: boolean; detail?: string } | null
       if (!response.ok) {
-        setError(`Failed to bookmark ${mode === 'jobs' ? 'job' : 'person'}`)
+        setError(data?.detail || `Failed to bookmark ${mode === 'jobs' ? 'job' : 'person'}`)
         swipeLockedRef.current = false
         return
       }
 
+      const nextBookmarked = data?.bookmarked ?? !currentCard.bookmarked
       const setCards = mode === 'jobs' ? setJobCards : setPeopleCards
-      setCards((prev) => prev.map((card) => card.id === currentCard.id ? { ...card, bookmarked: !card.bookmarked } : card))
+      setCards((prev) => prev.map((card) => card.id === currentCard.id ? { ...card, bookmarked: nextBookmarked } : card))
     } catch {
       setError(`Failed to bookmark ${mode === 'jobs' ? 'job' : 'person'}`)
       swipeLockedRef.current = false
