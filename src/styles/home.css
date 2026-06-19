@@ -407,6 +407,30 @@
   flex: 1;
   min-width: 0;
 }
+.hp-card__jdBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  min-height: 30px;
+  padding: 5px 10px;
+  background: var(--paper-2);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-fast) var(--easing-default),
+              border-color var(--dur-fast) var(--easing-default),
+              color var(--dur-fast) var(--easing-default);
+}
+.hp-card__jdBtn:hover { background: var(--paper-3); border-color: var(--ink-4); color: var(--ink-2); }
+.hp-card__jdBtn:active { background: var(--ink-6); }
 .hp-card__title {
   font-family: var(--font-sans);
   font-weight: 600;
@@ -1016,6 +1040,12 @@
     line-height: 1.4;
     letter-spacing: 0.4px;
     width: 100%;
+  }
+  .hp-card__jdBtn {
+    align-self: flex-end;
+    min-height: 34px;
+    padding: 7px 12px;
+    font-size: 11px;
   }
 
   /* Intro caps at 5 lines so cards stay browseable */

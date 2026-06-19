@@ -52,6 +52,8 @@ type DiscoveryCard = {
   photo: string
   companyPhoto: string
   companyVerified?: boolean
+  jobDescriptionUrl?: string
+  jobDescriptionFilename?: string
   sections: Array<{
     title: string
     items: string[]
@@ -1124,6 +1126,26 @@ window.setTimeout(() => advanceCard(), 260)
                         <span className="hp-chip hp-chip--unverified">Unverified</span>
                       ) : null}
                     </div>
+                    {mode === 'jobs' && currentCard.jobDescriptionUrl ? (
+                      <a
+                        className="hp-card__jdBtn"
+                        href={currentCard.jobDescriptionUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={currentCard.jobDescriptionFilename || 'View job description'}
+                        aria-label="View or download the job description"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <path d="M14 2v6h6" />
+                          <path d="M12 18v-6" />
+                          <path d="M9.5 14.5 12 17l2.5-2.5" />
+                        </svg>
+                        JD
+                      </a>
+                    ) : null}
                   </div>
 
                   <h3 className="hp-card__title">{currentCard.headline}</h3>
