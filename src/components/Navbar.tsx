@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { clearSession, isAuthenticated, getStoredProfile, getGlassMode, setGlassMode } from '../auth'
+import { clearSession, isAuthenticated, getStoredProfile, getGlassMode, setGlassMode, getStoredIsAdmin } from '../auth'
 import NavIcon from './ui/NavIcon'
 import NotificationBell from './ui/NotificationBell'
 import { unsubscribeFromPush } from '../notifications'
@@ -17,9 +17,11 @@ export default function Navbar() {
   const isApplications = pathname === '/applications'
   const isCompany = pathname === '/company'
   const isSettings = pathname === '/settings'
-  const isAppPage = isHome || isMessages || isProfile || isApplications || isCompany || isSettings
+  const isAdminPage = pathname === '/admin/companies'
+  const isAppPage = isHome || isMessages || isProfile || isApplications || isCompany || isSettings || isAdminPage
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
   const cachedProfile = getStoredProfile()
+  const isAdmin = getStoredIsAdmin()
   const [glass, setGlass] = useState(() => {
     const enabled = getGlassMode()
     document.documentElement.classList.toggle('liquid-glass', enabled)
@@ -147,6 +149,11 @@ export default function Navbar() {
                     <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/company'); }}>
                       Company
                     </button>
+                    {isAdmin ? (
+                      <button type="button" className="nav__profileDropdownBtn" onClick={() => { setProfileOpen(false); navigate('/admin/companies'); }}>
+                        Admin review
+                      </button>
+                    ) : null}
                     <div className="nav__dropdownDivider" />
                     <button type="button" className="nav__profileDropdownBtn nav__profileDropdownBtn--danger" onClick={handleLogout}>
                       Log out

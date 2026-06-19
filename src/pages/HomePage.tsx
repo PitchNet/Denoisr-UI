@@ -51,6 +51,7 @@ type DiscoveryCard = {
   tags: string[]
   photo: string
   companyPhoto: string
+  companyVerified?: boolean
   sections: Array<{
     title: string
     items: string[]
@@ -1119,6 +1120,9 @@ window.setTimeout(() => advanceCard(), 260)
                       <span>{currentCard.subheadline}</span>
                       <span className="dot">·</span>
                       <span>{currentCard.organization}</span>
+                      {mode === 'jobs' && !currentCard.companyVerified ? (
+                        <span className="hp-chip hp-chip--unverified">Unverified</span>
+                      ) : null}
                     </div>
                   </div>
 

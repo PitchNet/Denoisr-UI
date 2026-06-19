@@ -60,6 +60,7 @@ export function hasSignupInProgress() {
 export function clearSession() {
   document.cookie = `${SESSION_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
   document.cookie = `${USER_ID_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
+  document.cookie = `${IS_ADMIN_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
   clearAuthTokenCookie()
   clearStoredProfile()
   // Best-effort: clears the httpOnly cookie server-side. If this fails, the
@@ -184,5 +185,23 @@ export async function fetchAndCacheProfile() {
     setStoredProfile(data as CachedProfile)
   } catch {
     // silently fail — profile will be fetched on next page load
+  }
+}
+
+const IS_ADMIN_COOKIE_NAME = 'denoisr_is_admin'
+
+/** Convenience flag only — not a security boundary. AdminController re-checks ADMIN_USER_IDS server-side on every gated request. */
+export function getStoredIsAdmin(): boolean {
+  return readCookie(IS_ADMIN_COOKIE_NAME) === '1'
+}
+
+export async function fetchAndCacheIsAdmin() {
+  try {
+    const response = await apiRequest('/AdminController/isAdmin', { method: 'GET' })
+    if (!response.ok) return
+    const data = (await response.json()) as { isAdmin?: boolean }
+    document.cookie = `${IS_ADMIN_COOKIE_NAME}=${data.isAdmin ? '1' : '0'}; Max-Age=${SESSION_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`
+  } catch {
+    // silently fail — admin nav simply won't show until next successful check
   }
 }

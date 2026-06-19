@@ -283,6 +283,16 @@
   flex-shrink: 0;
 }
 .hp-chip--bookmarked { background: rgba(160, 140, 200, 0.15); color: oklch(0.68 0.14 290); }
+.hp-chip--unverified {
+  background: rgba(26, 23, 21, 0.06);
+  border-color: transparent;
+  color: var(--ink-4);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+}
 
 .hp-fieldset__toggle {
   padding-top: 4px;

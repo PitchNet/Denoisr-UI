@@ -13,6 +13,12 @@ const STATUS_LABELS: Record<string, string> = {
   passed: 'Rejected',
 }
 
+const VERIFICATION_LABELS: Record<string, string> = {
+  unverified: 'Pending review',
+  verified: 'Verified',
+  rejected: 'Rejected',
+}
+
 type CompanyData = {
   name: string
   photo: string
@@ -24,6 +30,8 @@ type CompanyData = {
   yearFounded: string
   tags: string[]
   commitments: string
+  verificationStatus?: string
+  verificationNotes?: string
 }
 
 type JobSection = {
@@ -553,8 +561,17 @@ export default function CompanyPage() {
               <div className="cp-card__meta">
                 <h1 className="cp-card__title">{company?.name ?? 'Your Company'}</h1>
                 {company?.size ? <span className="cp-chip">{company.size}</span> : null}
+                {company?.verificationStatus ? (
+                  <span className={`cp-verifyBadge cp-verifyBadge--${company.verificationStatus}`}>
+                    {VERIFICATION_LABELS[company.verificationStatus] ?? company.verificationStatus}
+                  </span>
+                ) : null}
               </div>
             </div>
+
+            {company?.verificationStatus === 'rejected' && company?.verificationNotes ? (
+              <p className="cp-detail cp-verifyNotes">Reviewer notes: {company.verificationNotes}</p>
+            ) : null}
 
             {company?.website ? (
               <a className="cp-link" href={`https://${company.website.replace(/^https?:\/\//, '')}`} target="_blank" rel="noopener noreferrer">
