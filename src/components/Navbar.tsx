@@ -18,6 +18,7 @@ export default function Navbar() {
   const isCompany = pathname.startsWith('/company')
   const isSettings = pathname === '/settings'
   const isAdminPage = pathname === '/admin/companies'
+  const isJobPage = pathname.startsWith('/job')
   const isAppPage = isHome || isMessages || isProfile || isApplications || isCompany || isSettings || isAdminPage
   const mode = searchParams.get('mode') === 'people' ? 'people' : 'jobs'
   const cachedProfile = getStoredProfile()
@@ -165,12 +166,18 @@ export default function Navbar() {
           </>
         ) : (
           <nav className="nav__marketingLinks" aria-label="Marketing navigation">
-            <Link to="/features" className="nav__marketingLink">Features</Link>
-            <Link to="/how-it-works" className="nav__marketingLink">How it works</Link>
+            {isJobPage && isLoggedIn ? null : (
+              <>
+                <Link to="/features" className="nav__marketingLink">Features</Link>
+                <Link to="/how-it-works" className="nav__marketingLink">How it works</Link>
+              </>
+            )}
             {isLoggedIn ? (
-              <Link to="/home" className="btn btn--solidDark" style={{ height: 36, padding: '0 16px', fontSize: 13.5 }}>
-                Open app
-              </Link>
+              isJobPage ? null : (
+                <Link to="/home" className="btn btn--solidDark" style={{ height: 36, padding: '0 16px', fontSize: 13.5 }}>
+                  Open app
+                </Link>
+              )
             ) : pathname === '/dashboard' ? null : (
               <Link to="/login" className="nav__marketingLink">Sign in</Link>
             )}

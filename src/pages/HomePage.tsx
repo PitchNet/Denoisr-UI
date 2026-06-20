@@ -192,6 +192,8 @@ export default function HomePage() {
   const [maxSalary, setMaxSalary] = useState(initialFilters?.salary ?? 200)
   const [draftBookmarkedOnly, setDraftBookmarkedOnly] = useState(initialFilters?.bookmarked ?? false)
   const [bookmarkedOnly, setBookmarkedOnly] = useState(initialFilters?.bookmarked ?? false)
+  const [companyIdFilter, setCompanyIdFilter] = useState(initialFilters?.companyId ?? '')
+  const [companyNameFilter, setCompanyNameFilter] = useState(() => searchParams.get('company') ?? '')
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [lastSwipe, setLastSwipe] = useState<{
@@ -316,6 +318,7 @@ export default function HomePage() {
             city: cityFilter || '',
             salary: maxSalary || null,
             bookmarked: bookmarkedOnly || null,
+            companyId: companyIdFilter || '',
             batch_size: Number(import.meta.env.VITE_FETCH_BATCH_SIZE) || 10,
           },
         })
@@ -350,7 +353,7 @@ export default function HomePage() {
     }
 
     fetchFeed()
-  }, [mode, roleFilter, searchFilter, countryFilter, cityFilter, maxExperience, maxSalary, bookmarkedOnly])
+  }, [mode, roleFilter, searchFilter, countryFilter, cityFilter, maxExperience, maxSalary, bookmarkedOnly, companyIdFilter])
 
   useEffect(() => {
     if (mode !== 'jobs') return
@@ -425,6 +428,7 @@ export default function HomePage() {
           city: cityFilter || '',
           salary: maxSalary || null,
           bookmarked: bookmarkedOnly || null,
+          companyId: companyIdFilter || '',
           cursor,
           batch_size: Number(import.meta.env.VITE_FETCH_BATCH_SIZE) || 10,
         },
@@ -485,6 +489,7 @@ export default function HomePage() {
       setMaxExperience(stored.experience)
       setMaxSalary(stored.salary)
       setBookmarkedOnly(stored.bookmarked)
+      setCompanyIdFilter(stored.companyId ?? '')
     } else {
       setDraftRoleFilter('')
       setDraftSearchFilter('')
@@ -500,6 +505,7 @@ export default function HomePage() {
       setMaxExperience(10)
       setMaxSalary(200)
       setBookmarkedOnly(false)
+      setCompanyIdFilter('')
     }
   }, [mode])
 
@@ -511,6 +517,8 @@ export default function HomePage() {
     setMaxExperience(draftMaxExperience)
     setMaxSalary(draftMaxSalary)
     setBookmarkedOnly(draftBookmarkedOnly)
+    setCompanyIdFilter('')
+    setCompanyNameFilter('')
     setStoredFilters(mode, {
       role: draftRoleFilter,
       search: draftSearchFilter,
@@ -520,6 +528,13 @@ export default function HomePage() {
       salary: draftMaxSalary,
       bookmarked: draftBookmarkedOnly,
     })
+  }
+
+  function clearCompanyScope() {
+    setCompanyIdFilter('')
+    setCompanyNameFilter('')
+    const stored = getStoredFilters(mode)
+    if (stored) setStoredFilters(mode, { ...stored, companyId: undefined })
   }
 
   function resetFiltersAll() {
@@ -537,6 +552,8 @@ export default function HomePage() {
     setMaxExperience(10)
     setMaxSalary(200)
     setBookmarkedOnly(false)
+    setCompanyIdFilter('')
+    setCompanyNameFilter('')
     clearStoredFilters(mode)
   }
 
@@ -649,6 +666,14 @@ window.setTimeout(() => advanceCard(), 260)
     setLastSwipe(null)
     showToast('Brought back', 'info', 1000, true)
     setRewinding(false)
+  }
+
+  function handleShareJob() {
+    if (!currentCard) return
+    navigator.clipboard
+      .writeText(`${window.location.origin}/job/${currentCard.id}`)
+      .then(() => showToast('Job link copied', 'success', 1500, true))
+      .catch(() => showToast('Could not copy link', 'error', 2000, true))
   }
 
   async function handleBookmark() {
@@ -1020,6 +1045,15 @@ window.setTimeout(() => advanceCard(), 260)
             </h2>
           </header>
 
+          {companyIdFilter ? (
+            <div className="hp-companyScopeBanner" role="status">
+              <span>Showing jobs at {companyNameFilter || 'this company'}</span>
+              <button type="button" className="hp-companyScopeBanner__clear" onClick={clearCompanyScope}>
+                Clear
+              </button>
+            </div>
+          ) : null}
+
           <div className="hp-mobileFilters" aria-label="Active filter summary">
             <span className="hp-chip">{roleFilter || 'Any role'}</span>
             <span className="hp-chip">≤ {pad2(maxExperience)}y</span>
@@ -1293,6 +1327,21 @@ window.setTimeout(() => advanceCard(), 260)
                     <path d="M11 19s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0118 9c0 5.5-7 10-7 10z" />
                   </svg>
                 </button>
+                {mode === 'jobs' ? (
+                  <button
+                    type="button"
+                    className="hp-actionbtn hp-actionbtn--share"
+                    aria-label="Share"
+                    onClick={handleShareJob}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="15" cy="4" r="2.2" />
+                      <circle cx="5" cy="10" r="2.2" />
+                      <circle cx="15" cy="16" r="2.2" />
+                      <path d="M7 8.8l6-3.2M7 11.2l6 3.2" />
+                    </svg>
+                  </button>
+                ) : null}
               </div>
 
               <div className="hp-actionLabels el-meta">
@@ -1300,6 +1349,7 @@ window.setTimeout(() => advanceCard(), 260)
                 <span>Skip</span>
                 <span>Bookmark</span>
                 <span>{acceptLabel}</span>
+                {mode === 'jobs' ? <span>Share</span> : null}
               </div>
             </>
           ) : loadingMore ? (

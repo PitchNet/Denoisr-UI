@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { markAuthenticatedFromResponse } from '../auth'
+import { markAuthenticatedFromResponse, getAndClearPendingRedirect } from '../auth'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -27,7 +27,7 @@ export default function LoginPage() {
       }
 
       await markAuthenticatedFromResponse(response)
-      navigate('/home')
+      navigate(getAndClearPendingRedirect() ?? '/home')
     } catch {
       setError("Couldn't sign in. Check your connection and try again.")
     } finally {

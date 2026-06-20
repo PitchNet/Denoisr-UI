@@ -587,6 +587,7 @@
 .hp-actionbtn--bookmark { color: var(--ink-3); }
 .hp-actionbtn--bookmarked { color: oklch(0.68 0.14 290); }
 .hp-actionbtn--like { color: var(--decision-like); }
+.hp-actionbtn--share { color: var(--ink-3); }
 .hp-actionbtn--rewind { width: 46px; height: 46px; color: var(--ink-3); }
 .hp-actionbtn--rewind:disabled {
   opacity: 0.35;
@@ -1024,6 +1025,37 @@
 }
 .hp-banner__dismiss:hover { background: rgba(196, 74, 57, 0.12); }
 .hp-banner__dismiss:active { background: rgba(196, 74, 57, 0.2); }
+
+/* ── Company-scoped feed banner ────────────────────────────── */
+.hp-companyScopeBanner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--ink-6);
+  border-radius: var(--radius-md);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.hp-companyScopeBanner__clear {
+  background: transparent;
+  border: 0;
+  color: var(--ink-4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  transition: color var(--dur-fast) var(--easing-default);
+}
+.hp-companyScopeBanner__clear:hover { color: var(--ink); }
 
 /* ─────────────────────────────────────────────────────────────
    Mobile card layout — let the card grow with its content

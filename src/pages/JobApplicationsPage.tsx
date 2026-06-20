@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import LoadingState from '../components/ui/LoadingState'
+import { useToast } from '../components/ui/Toast'
 import '../styles/profile.css'
 import '../styles/job-applications.css'
 
@@ -192,8 +193,16 @@ function ApplicationDetailBody({
   noTopBorder?: boolean
 }) {
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [confirmingWithdraw, setConfirmingWithdraw] = useState(false)
   const canWithdraw = meta ? WITHDRAWABLE_STATUSES.has(meta.status) : false
+
+  function handleShare() {
+    navigator.clipboard
+      .writeText(`${window.location.origin}/job/${job.id}`)
+      .then(() => showToast('Job link copied', 'success', 1500, true))
+      .catch(() => showToast('Could not copy link', 'error', 2000, true))
+  }
 
   return (
     <div className={`ja-card__body${noTopBorder ? ' ja-card__body--noBorder' : ''}`}>
@@ -254,37 +263,38 @@ function ApplicationDetailBody({
         </div>
       ) : null}
 
-      {job.companyId || meta?.status === 'messaged' || canWithdraw ? (
-        <div className="ja-card__actions">
-          {job.companyId ? (
-            <button type="button" className="btn btn--outlinedLight ja-card__companyBtn" onClick={() => navigate(`/company/${job.companyId}`)}>
-              View company
-            </button>
-          ) : null}
-          {meta?.status === 'messaged' ? (
-            <button type="button" className="btn btn--solidDark" onClick={onViewMessages}>
-              View messages
-            </button>
-          ) : null}
-          {canWithdraw ? (
-            <button
-              type="button"
-              className="btn btn--outlinedLight ja-card__withdrawBtn"
-              disabled={withdrawing}
-              onClick={() => {
-                if (!confirmingWithdraw) {
-                  setConfirmingWithdraw(true)
-                  return
-                }
-                setConfirmingWithdraw(false)
-                onWithdraw()
-              }}
-            >
-              {withdrawing ? 'Withdrawing…' : confirmingWithdraw ? 'Confirm withdrawal?' : 'Withdraw application'}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
+      <div className="ja-card__actions">
+        <button type="button" className="btn btn--outlinedLight" onClick={handleShare}>
+          Share
+        </button>
+        {job.companyId ? (
+          <button type="button" className="btn btn--outlinedLight ja-card__companyBtn" onClick={() => navigate(`/company/${job.companyId}`)}>
+            View company
+          </button>
+        ) : null}
+        {meta?.status === 'messaged' ? (
+          <button type="button" className="btn btn--solidDark" onClick={onViewMessages}>
+            View messages
+          </button>
+        ) : null}
+        {canWithdraw ? (
+          <button
+            type="button"
+            className="btn btn--outlinedLight ja-card__withdrawBtn"
+            disabled={withdrawing}
+            onClick={() => {
+              if (!confirmingWithdraw) {
+                setConfirmingWithdraw(true)
+                return
+              }
+              setConfirmingWithdraw(false)
+              onWithdraw()
+            }}
+          >
+            {withdrawing ? 'Withdrawing…' : confirmingWithdraw ? 'Confirm withdrawal?' : 'Withdraw application'}
+          </button>
+        ) : null}
+      </div>
     </div>
   )
 }

@@ -16,6 +16,7 @@ import MessagesPage from './pages/MessagesPage'
 import JobApplicationsPage from './pages/JobApplicationsPage'
 import CompanyPage from './pages/CompanyPage'
 import CompanyDetailPage from './pages/CompanyDetailPage'
+import JobDetailPage from './pages/JobDetailPage'
 import AdminCompaniesPage from './pages/AdminCompaniesPage'
 import SettingsPage from './pages/SettingsPage'
 import ProfileEditPage from './pages/ProfileEditPage'
@@ -40,7 +41,7 @@ import TermsOfServicePage from './pages/TermsOfServicePage'
 function AppShell() {
   const { pathname } = useLocation()
   const isEditorialLanding = pathname === '/'
-  const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications' || pathname.startsWith('/company') || pathname === '/settings' || pathname === '/admin/companies'
+  const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications' || pathname.startsWith('/company') || pathname.startsWith('/job') || pathname === '/settings' || pathname === '/admin/companies'
 
   const activePage = pathname.startsWith('/profile') || pathname === '/settings' ? 'profile'
     : pathname === '/home' ? 'home'
@@ -72,6 +73,7 @@ function AppShell() {
           </Route>
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/job/:id" element={<JobDetailPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />

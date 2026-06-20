@@ -57,6 +57,19 @@ export function hasSignupInProgress() {
   return sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY) !== null
 }
 
+const PENDING_REDIRECT_KEY = 'denoisr_post_auth_redirect'
+
+/** Remembers where to send the user after they finish logging in or signing up — e.g. back to a public job page they tried to apply to while logged out. */
+export function setPendingRedirect(path: string) {
+  sessionStorage.setItem(PENDING_REDIRECT_KEY, path)
+}
+
+export function getAndClearPendingRedirect(): string | null {
+  const path = sessionStorage.getItem(PENDING_REDIRECT_KEY)
+  sessionStorage.removeItem(PENDING_REDIRECT_KEY)
+  return path
+}
+
 export function clearSession() {
   document.cookie = `${SESSION_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
   document.cookie = `${USER_ID_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Lax`
@@ -88,7 +101,7 @@ export async function markAuthenticatedFromResponse(response: Response) {
   return data
 }
 
-type FilterValues = {
+export type FilterValues = {
   role: string
   search: string
   country: string
@@ -96,6 +109,7 @@ type FilterValues = {
   experience: number
   salary: number
   bookmarked: boolean
+  companyId?: string
 }
 
 export function getStoredFilters(mode: 'jobs' | 'people'): FilterValues | null {

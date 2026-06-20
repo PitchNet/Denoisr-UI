@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
-import { markAuthenticatedFromResponse } from '../auth'
+import { markAuthenticatedFromResponse, getAndClearPendingRedirect } from '../auth'
 import '../styles/dashboard.css'
 
 const SIGNUP_CREDENTIALS_KEY = 'denoisr-signup-credentials'
@@ -514,7 +514,7 @@ export default function DashboardPage() {
       sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY)
       sessionStorage.removeItem(DRAFT_KEY)
       localStorage.setItem('denoisr_just_signed_up', '1')
-      navigate(wantHiring ? '/company' : '/home')
+      navigate(wantHiring ? '/company' : getAndClearPendingRedirect() ?? '/home')
     } catch {
       setSaveError("Couldn't finish creating your profile. Check your connection and try again.")
     } finally {
