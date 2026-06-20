@@ -1037,6 +1037,22 @@
   color: var(--ink-4);
   margin: 2px 0 0;
 }
+.mp-context__companyLink {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 0;
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  transition: color 0.15s ease;
+}
+.mp-context__companyLink:hover { color: var(--ink); }
 .mp-context__chips {
   display: flex;
   flex-wrap: wrap;

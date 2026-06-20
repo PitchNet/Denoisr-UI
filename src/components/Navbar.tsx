@@ -15,7 +15,7 @@ export default function Navbar() {
   const isMessages = pathname === '/messages'
   const isProfile = pathname === '/profile' || pathname === '/profile/edit'
   const isApplications = pathname === '/applications'
-  const isCompany = pathname === '/company'
+  const isCompany = pathname.startsWith('/company')
   const isSettings = pathname === '/settings'
   const isAdminPage = pathname === '/admin/companies'
   const isAppPage = isHome || isMessages || isProfile || isApplications || isCompany || isSettings || isAdminPage

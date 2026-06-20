@@ -15,6 +15,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import MessagesPage from './pages/MessagesPage'
 import JobApplicationsPage from './pages/JobApplicationsPage'
 import CompanyPage from './pages/CompanyPage'
+import CompanyDetailPage from './pages/CompanyDetailPage'
 import AdminCompaniesPage from './pages/AdminCompaniesPage'
 import SettingsPage from './pages/SettingsPage'
 import ProfileEditPage from './pages/ProfileEditPage'
@@ -39,13 +40,13 @@ import TermsOfServicePage from './pages/TermsOfServicePage'
 function AppShell() {
   const { pathname } = useLocation()
   const isEditorialLanding = pathname === '/'
-  const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications' || pathname === '/company' || pathname === '/settings' || pathname === '/admin/companies'
+  const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications' || pathname.startsWith('/company') || pathname === '/settings' || pathname === '/admin/companies'
 
   const activePage = pathname.startsWith('/profile') || pathname === '/settings' ? 'profile'
     : pathname === '/home' ? 'home'
     : pathname === '/messages' ? 'messages'
     : pathname === '/applications' ? 'applications'
-    : pathname === '/company' ? 'company'
+    : pathname.startsWith('/company') ? 'company'
     : 'home' as const
 
   useEffect(() => {
@@ -79,6 +80,7 @@ function AppShell() {
             <Route path="/profile/edit" element={<ProfileEditPage />} />
             <Route path="/applications" element={<JobApplicationsPage />} />
             <Route path="/company" element={<CompanyPage />} />
+            <Route path="/company/:id" element={<CompanyDetailPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/admin/companies" element={<AdminCompaniesPage />} />
           </Route>

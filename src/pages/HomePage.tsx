@@ -53,6 +53,7 @@ type DiscoveryCard = {
   photo: string
   companyPhoto: string
   companyVerified?: boolean
+  companyId?: string
   jobDescriptionUrl?: string
   jobDescriptionFilename?: string
   sections: Array<{
@@ -108,7 +109,7 @@ function pad2(n: number) {
   return String(Math.max(0, Math.floor(n))).padStart(2, '0')
 }
 
-function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
+function DiscoveryPreview({ card, onViewCompany }: { card: DiscoveryCard; onViewCompany?: (companyId: string) => void }) {
   return (
     <>
       <header className="hp-preview__head">
@@ -117,7 +118,13 @@ function DiscoveryPreview({ card }: { card: DiscoveryCard }) {
         </span>
         <h2 className="hp-preview__title">{card.headline}</h2>
         <div className="hp-preview__meta hp-meta">
-          <span>{card.subheadline}</span>
+          {card.kind === 'jobs' && card.companyId && onViewCompany ? (
+            <button type="button" className="hp-card__companyLink" onClick={() => onViewCompany(card.companyId!)}>
+              {card.subheadline}
+            </button>
+          ) : (
+            <span>{card.subheadline}</span>
+          )}
           <span className="dot">·</span>
           <span>{card.location}</span>
         </div>
@@ -1135,16 +1142,32 @@ window.setTimeout(() => advanceCard(), 260)
 
                   <div className="hp-card__head">
                     <div
-                      className={`hp-card__avatar${((mode === 'people' && currentCard.photo) || (mode === 'jobs' && currentCard.companyPhoto)) ? ' hp-card__avatar--photo' : ''}`}
+                      className={`hp-card__avatar${((mode === 'people' && currentCard.photo) || (mode === 'jobs' && currentCard.companyPhoto)) ? ' hp-card__avatar--photo' : ''}${mode === 'jobs' && currentCard.companyId ? ' hp-card__avatar--clickable' : ''}`}
                       style={(mode === 'people' && currentCard.photo) || (mode === 'jobs' && currentCard.companyPhoto)
                         ? { backgroundImage: `url(${mode === 'people' ? currentCard.photo : currentCard.companyPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' }
                         : { background: swatchFor(currentCard.id) }}
-                      aria-hidden="true"
+                      role={mode === 'jobs' && currentCard.companyId ? 'button' : undefined}
+                      tabIndex={mode === 'jobs' && currentCard.companyId ? 0 : undefined}
+                      aria-label={mode === 'jobs' && currentCard.companyId ? `View ${currentCard.subheadline || 'company'} details` : undefined}
+                      aria-hidden={mode === 'jobs' && currentCard.companyId ? undefined : true}
+                      onPointerDown={(e) => { if (mode === 'jobs' && currentCard.companyId) e.stopPropagation() }}
+                      onClick={(e) => { if (mode === 'jobs' && currentCard.companyId) { e.stopPropagation(); navigate(`/company/${currentCard.companyId}`) } }}
                     >
                       {(mode === 'people' && currentCard.photo) || (mode === 'jobs' && currentCard.companyPhoto) ? null : initialsOf(currentCard.organization || currentCard.headline)}
                     </div>
                     <div className="hp-card__meta el-meta">
-                      <span>{currentCard.subheadline}</span>
+                      {mode === 'jobs' && currentCard.companyId ? (
+                        <button
+                          type="button"
+                          className="hp-card__companyLink"
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/company/${currentCard.companyId}`) }}
+                        >
+                          {currentCard.subheadline}
+                        </button>
+                      ) : (
+                        <span>{currentCard.subheadline}</span>
+                      )}
                       <span className="dot">·</span>
                       <span>{currentCard.organization}</span>
                       {mode === 'jobs' && currentCard.companyVerified ? (
@@ -1303,7 +1326,7 @@ window.setTimeout(() => advanceCard(), 260)
         {/* ─── Preview (right column) ─── */}
         <aside className="hp-panel hp-preview" ref={previewRef}>
           {currentCard ? (
-            <DiscoveryPreview card={currentCard} />
+            <DiscoveryPreview card={currentCard} onViewCompany={(cid) => navigate(`/company/${cid}`)} />
           ) : (
             <>
               <span className="hp-eyebrow">Preview · Empty</span>

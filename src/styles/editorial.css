@@ -1153,6 +1153,13 @@ html, body {
     radial-gradient(45% 40% at 100% 0%, var(--wash-pink), transparent 70%),
     radial-gradient(40% 35% at 0% 100%, var(--wash-violet), transparent 70%);
 }
+/* Page-level loaders can be nested inside a narrow content column (e.g. CompanyDetailPage's
+   720px .cpd-body); anchor the wash to the viewport instead of the loader's own box so it
+   doesn't render as a disconnected rectangle floating mid-page. */
+.loader--page .loader__wash {
+  position: fixed;
+  inset: 0;
+}
 .loader__panel {
   position: relative;
   text-align: left;

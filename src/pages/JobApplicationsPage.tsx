@@ -11,6 +11,7 @@ type JobApplication = {
   status: ApplicationStatus
   headline: string
   subheadline: string
+  companyId?: string
   organization: string
   location: string
   experience: number
@@ -190,6 +191,7 @@ function ApplicationDetailBody({
   withdrawing: boolean
   noTopBorder?: boolean
 }) {
+  const navigate = useNavigate()
   const [confirmingWithdraw, setConfirmingWithdraw] = useState(false)
   const canWithdraw = meta ? WITHDRAWABLE_STATUSES.has(meta.status) : false
 
@@ -252,8 +254,13 @@ function ApplicationDetailBody({
         </div>
       ) : null}
 
-      {meta?.status === 'messaged' || canWithdraw ? (
+      {job.companyId || meta?.status === 'messaged' || canWithdraw ? (
         <div className="ja-card__actions">
+          {job.companyId ? (
+            <button type="button" className="btn btn--outlinedLight ja-card__companyBtn" onClick={() => navigate(`/company/${job.companyId}`)}>
+              View company
+            </button>
+          ) : null}
           {meta?.status === 'messaged' ? (
             <button type="button" className="btn btn--solidDark" onClick={onViewMessages}>
               View messages
@@ -299,6 +306,7 @@ function ApplicationCard({
   onWithdraw: () => void
   withdrawing: boolean
 }) {
+  const navigate = useNavigate()
   const swatch = swatchFor(job.id)
 
   return (
@@ -309,7 +317,17 @@ function ApplicationCard({
         </div>
         <div className="ja-card__meta">
           <h2 className="ja-card__title">{job.headline}</h2>
-          <p className="ja-card__org">{meta?.companyName ?? job.subheadline}</p>
+          {job.companyId ? (
+            <button
+              type="button"
+              className="ja-card__org ja-card__orgLink"
+              onClick={(e) => { e.stopPropagation(); navigate(`/company/${job.companyId}`) }}
+            >
+              {meta?.companyName ?? job.subheadline}
+            </button>
+          ) : (
+            <p className="ja-card__org">{meta?.companyName ?? job.subheadline}</p>
+          )}
         </div>
         <div className="ja-card__topRight">
           {meta ? (

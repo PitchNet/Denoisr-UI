@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { getAuthenticatedUserId } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
@@ -18,6 +19,7 @@ type Connection = {
   status: string
   openable: boolean
   muted?: boolean
+  companyId?: string
   chips?: string[]
   details?: Array<{
     title: string
@@ -80,6 +82,7 @@ function swatchFor(id: string) {
 }
 
 export default function MessagesPage() {
+  const navigate = useNavigate()
   const { showToast } = useToast()
   const userId = getAuthenticatedUserId()
   const messagesThreadBodyRef = useRef<HTMLDivElement>(null)
@@ -279,6 +282,7 @@ export default function MessagesPage() {
         status: String(item.status ?? 'Connected'),
         openable: true,
         muted: Boolean(item.muted),
+        companyId: item.companyId == null ? undefined : String(item.companyId),
         chips: Array.isArray(item.chips)
           ? item.chips.filter((c): c is string => typeof c === 'string')
           : undefined,
@@ -503,6 +507,7 @@ export default function MessagesPage() {
           status: String(item.status ?? 'Connected'),
           openable: true,
           muted: Boolean(item.muted),
+          companyId: item.companyId == null ? undefined : String(item.companyId),
         }))
         setArchivedConnections(formatted)
       }
@@ -1640,6 +1645,15 @@ export default function MessagesPage() {
                 <div>
                   <h3 className="mp-context__name">{activeConversation.name}</h3>
                   <p className="mp-context__role">{activeConversation.role}</p>
+                  {activeConversation.companyId ? (
+                    <button
+                      type="button"
+                      className="mp-context__companyLink"
+                      onClick={() => navigate(`/company/${activeConversation.companyId}`)}
+                    >
+                      View company &rarr;
+                    </button>
+                  ) : null}
                 </div>
               </div>
 
