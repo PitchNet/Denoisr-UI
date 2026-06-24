@@ -21,7 +21,7 @@ import AdminCompaniesPage from './pages/AdminCompaniesPage'
 import SettingsPage from './pages/SettingsPage'
 import ProfileEditPage from './pages/ProfileEditPage'
 import ProfilePage from './pages/ProfilePage'
-import ProductPage from './pages/ProductPage'
+import ProductPageV2 from './pages/ProductPageV2'
 import SignupPage from './pages/SignupPage'
 import MobileBottomNav from './components/MobileBottomNav'
 import { ToastProvider } from './components/ui/Toast'
@@ -67,7 +67,7 @@ function AppShell() {
       <main className="denoisrMain">
         <Routes>
           <Route element={<PublicOnlyRoute />}>
-            <Route path="/" element={<ProductPage />} />
+            <Route path="/" element={<ProductPageV2 />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
           </Route>

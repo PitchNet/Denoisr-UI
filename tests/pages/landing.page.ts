@@ -1,15 +1,13 @@
-import { Page, Locator, expect } from '@playwright/test'
+import { Page, Locator } from '@playwright/test'
 import { BasePage } from './base.page'
 
 export class LandingPage extends BasePage {
   readonly heroHeadline: Locator
   readonly modeJobs: Locator
   readonly modePeople: Locator
-  readonly inviteEmailInput: Locator
-  readonly inviteSubmit: Locator
   readonly deck: Locator
   readonly deckSkip: Locator
-  readonly deckBoost: Locator
+  readonly deckBookmark: Locator
   readonly deckLike: Locator
   readonly faqItems: Locator
   readonly researchLinks: Locator
@@ -19,34 +17,38 @@ export class LandingPage extends BasePage {
     this.heroHeadline = page.getByRole('heading', { level: 1 })
     this.modeJobs = page.getByRole('tab', { name: 'Jobs' })
     this.modePeople = page.getByRole('tab', { name: 'People' })
-    this.inviteEmailInput = page.getByLabel('Work email').or(page.getByPlaceholder('you@work.com'))
-    this.inviteSubmit = page.getByRole('button', { name: 'Request invite' }).first()
     this.deck = page.getByLabel(/sample deck/i)
     this.deckSkip = page.getByRole('button', { name: 'Skip' })
-    this.deckBoost = page.getByRole('button', { name: 'Boost' })
+    this.deckBookmark = page.getByRole('button', { name: 'Bookmark' })
     this.deckLike = page.getByRole('button', { name: 'Like' })
-    this.faqItems = page.locator('.el-faq__item')
-    this.researchLinks = page.locator('.el-paper__link')
+    this.faqItems = page.locator('.el2-faq__item')
+    this.researchLinks = page.locator('.el2-paper__link')
   }
 
   async goto() {
     await this.navigate('/')
   }
 
-  async swipe(action: 'skip' | 'boost' | 'like') {
-    const btn = action === 'skip' ? this.deckSkip : action === 'boost' ? this.deckBoost : this.deckLike
+  // The chrome/navbar is hidden during the scroll-driven noise intro and only becomes
+  // interactive once the noise clears. Scroll past the intro and wait for it to reveal
+  // before interacting with header controls (mode toggle, nav links).
+  async revealChrome() {
+    await this.page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.6))
+    await this.page.waitForFunction(() => {
+      const h = document.querySelector('.el2-chrome')
+      return !!h && getComputedStyle(h).pointerEvents === 'auto'
+    })
+  }
+
+  async swipe(action: 'skip' | 'bookmark' | 'like') {
+    const btn = action === 'skip' ? this.deckSkip : action === 'bookmark' ? this.deckBookmark : this.deckLike
     await btn.click()
     // exit animation is 260ms, wait it out
     await this.page.waitForTimeout(320)
   }
 
-  async submitInvite(email: string) {
-    await this.inviteEmailInput.fill(email)
-    await this.inviteSubmit.click()
-  }
-
   async getActiveModeLabel(): Promise<string> {
-    const activeBtn = this.page.locator('.el-mode__btn--active')
+    const activeBtn = this.page.locator('.el2-mode__btn--active')
     return (await activeBtn.textContent()) ?? ''
   }
 }

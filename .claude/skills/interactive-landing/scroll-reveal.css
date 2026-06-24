@@ -1,0 +1,66 @@
+/* ─────────────────────────────────────────────────────────────
+   Scroll-reveal utilities for Editorial Mono landing pages.
+   Pair with useScrollReveal / useStaggeredReveal. Reuses the
+   --dur-* / --easing-default tokens already defined in landing.css —
+   do not introduce a second motion language.
+   ───────────────────────────────────────────────────────────── */
+
+.sr-fade-up {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--dur-base) var(--easing-default),
+              transform var(--dur-base) var(--easing-default);
+}
+.sr-fade-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.sr-fade {
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--easing-default);
+}
+.sr-fade.is-visible { opacity: 1; }
+
+/* For hero-level reveals where a slightly longer, slower beat reads better */
+.sr-fade-up--slow {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 420ms var(--easing-default),
+              transform 420ms var(--easing-default);
+}
+.sr-fade-up--slow.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* NOTE: an earlier version shipped a `.sr-tilt-hover` that rotated/lifted cards on
+   hover. That violates the Denoisr brand motion law in
+   `denoisr-design/README.md`: "Hover = no transform; only opacity / background-color
+   change at 120ms." It has been removed. For an in-brand card hover, raise the shadow
+   only (opacity/box-shadow), never transform: */
+.sr-card-hover {
+  transition: box-shadow var(--dur-base) var(--easing-default);
+}
+.sr-card-hover:hover {
+  box-shadow: var(--shadow-card);
+}
+
+/* Mono numerals that count up once on reveal — pair the digit swap in JS
+   with this just for the settle-in motion, not a spinning odometer. */
+.sr-count {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-fade-up,
+  .sr-fade,
+  .sr-fade-up--slow {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .sr-card-hover:hover { box-shadow: none; }
+}

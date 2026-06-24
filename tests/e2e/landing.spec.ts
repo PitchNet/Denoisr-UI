@@ -11,11 +11,14 @@ test.describe('Landing page (/)', () => {
 
   test('renders the hero headline', async ({ page }) => {
     await expect(page).toHaveURL('/')
-    await expect(landing.heroHeadline).toContainText('Hire by signal')
-    await expect(landing.heroHeadline).toContainText('proof')
+    await expect(landing.heroHeadline).toContainText('Remove the')
+    await expect(landing.heroHeadline).toContainText('noise')
+    await expect(landing.heroHeadline).toContainText('hiring')
   })
 
   test('mode toggle swaps the deck content', async ({ page }) => {
+    // chrome (with the Jobs/People toggle) is hidden during the noise intro
+    await landing.revealChrome()
     // jobs deck default
     await expect(landing.modeJobs).toHaveAttribute('aria-selected', 'true')
     const firstJobsTitle = await page.locator('.el-deck__top .el-herocard__title').textContent()
@@ -42,36 +45,18 @@ test.describe('Landing page (/)', () => {
     expect(after).not.toBe(before)
   })
 
-  test('invite form rejects empty submit and marks input invalid', async ({ page }) => {
-    // Form uses noValidate, so the JS handler validates and sets aria-invalid
-    await landing.inviteSubmit.click()
-    await expect(landing.inviteEmailInput).toHaveAttribute('aria-invalid', 'true')
-  })
-
-  test('invite form shows error on malformed email', async ({ page }) => {
-    await landing.inviteEmailInput.fill('not-an-email')
-    await landing.inviteSubmit.click()
-    // We don't navigate; the form shows an inline message
-    await expect(page.locator('.el-invite__sub')).toContainText(/work address/i)
-  })
-
-  test('invite form shows success on valid email', async ({ page }) => {
-    await landing.submitInvite('jane@work.com')
-    await expect(page.locator('.el-invite__done-title')).toContainText(/on the list/i)
-  })
-
   test('first FAQ item is open by default', async () => {
     await expect(landing.faqItems.first()).toHaveAttribute('open', '')
   })
 
-  test('FAQ items expand on click', async ({ page }) => {
+  test('FAQ items expand on click', async () => {
     const second = landing.faqItems.nth(1)
     await expect(second).not.toHaveAttribute('open', '')
     await second.locator('summary').click()
     await expect(second).toHaveAttribute('open', '')
   })
 
-  test('research links point to real external papers (open in new tab)', async ({ page }) => {
+  test('research links point to real external papers (open in new tab)', async () => {
     const count = await landing.researchLinks.count()
     expect(count).toBe(3)
     for (let i = 0; i < count; i++) {
@@ -93,11 +78,13 @@ test.describe('Landing page (/)', () => {
   })
 
   test('chrome nav anchors smooth-scroll to sections', async ({ page }) => {
+    // chrome is hidden during the noise intro — reveal it first
+    await landing.revealChrome()
     // Scope to the sticky chrome to avoid colliding with the footer link
-    await page.locator('.el-chrome').getByRole('link', { name: 'How it works' }).click()
+    await page.locator('.el2-chrome').getByRole('link', { name: 'The signal' }).click()
     await page.waitForTimeout(800)
-    const how = page.locator('#how')
-    const inView = await how.evaluate((el) => {
+    const signal = page.locator('#signal')
+    const inView = await signal.evaluate((el) => {
       const rect = el.getBoundingClientRect()
       return rect.top >= -50 && rect.top < window.innerHeight
     })
