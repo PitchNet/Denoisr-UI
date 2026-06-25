@@ -4,6 +4,7 @@ import { pad2 } from '../utils/format'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import LoadingState from '../components/ui/LoadingState'
+import { LOADERS } from '../data/routeLoaders'
 import '../styles/profile.css'
 
 type ProfileData = {
@@ -260,11 +261,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <LoadingState
-        className="pr-loading"
-        label="Loading profile"
-        detail="Pulling together your Denoisr card."
-      />
+      <LoadingState className="pr-loading" {...LOADERS.profile} />
     )
   }
 

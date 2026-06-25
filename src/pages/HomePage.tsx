@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { getStoredFilters, setStoredFilters, clearStoredFilters, getStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import { homeLoader } from '../data/routeLoaders'
 import OnboardingModal from '../components/ui/OnboardingModal'
 import { useToast } from '../components/ui/Toast'
 import verifiedBadge from '../assets/verified-badge.svg'
@@ -723,15 +724,7 @@ window.setTimeout(() => advanceCard(), 260)
 
   if (loading) {
     return (
-      <LoadingState
-        className="hp-loading"
-        label={mode === 'jobs' ? 'Curating roles' : 'Curating people'}
-        detail={
-          mode === 'jobs'
-            ? 'A short, deliberate set is on its way.'
-            : 'Pulling people whose intent overlaps with yours.'
-        }
-      />
+      <LoadingState className="hp-loading" {...homeLoader(mode)} />
     )
   }
 

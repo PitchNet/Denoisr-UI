@@ -4,6 +4,7 @@ import { pad2 } from '../utils/format'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import LoadingState from '../components/ui/LoadingState'
+import { LOADERS } from '../data/routeLoaders'
 import { useToast } from '../components/ui/Toast'
 import '../styles/profile.css'
 import '../styles/job-applications.css'
@@ -541,11 +542,7 @@ export default function JobApplicationsPage() {
 
   if (loading) {
     return (
-      <LoadingState
-        className="ja-loading"
-        label="Loading applications"
-        detail="Pulling your submitted applications."
-      />
+      <LoadingState className="ja-loading" {...LOADERS.applications} />
     )
   }
 

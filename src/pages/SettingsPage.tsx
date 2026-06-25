@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { clearSession } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import { LOADERS } from '../data/routeLoaders'
 import '../styles/profile-edit.css'
 import '../styles/settings.css'
 
@@ -192,7 +193,7 @@ export default function SettingsPage() {
   }
 
   if (loading) {
-    return <LoadingState label="Loading settings" detail="Fetching your account preferences." />
+    return <LoadingState {...LOADERS.settings} />
   }
 
   if (loadError || !settings) {

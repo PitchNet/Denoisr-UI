@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { apiRequest } from '../api'
 import { getStoredProfile, setStoredProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import { LOADERS } from '../data/routeLoaders'
 import PhotoEditor from '../components/ui/PhotoEditor'
 import { useToast } from '../components/ui/Toast'
 import '../styles/company.css'
@@ -541,7 +542,7 @@ export default function CompanyPage() {
   const selectedApplicant = applicants.find((a) => a.id === selectedApplicantId) ?? null
 
   if (loading) {
-    return <LoadingState className="loader--page" label="Loading company" detail="Fetching your company profile." />
+    return <LoadingState className="loader--page" {...LOADERS.company} />
   }
 
   return (

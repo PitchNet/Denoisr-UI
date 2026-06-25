@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { fetchAndCacheProfile } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import { LOADERS } from '../data/routeLoaders'
 import PhotoEditor from '../components/ui/PhotoEditor'
 import '../styles/profile.css'
 import '../styles/profile-edit.css'
@@ -592,11 +593,7 @@ export default function ProfileEditPage() {
 
   if (loading) {
     return (
-      <LoadingState
-        className="pe-loading"
-        label="Loading profile"
-        detail="Preparing your profile editor."
-      />
+      <LoadingState className="pe-loading" {...LOADERS.profileEdit} />
     )
   }
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { getAuthenticatedUserId } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import { LOADERS } from '../data/routeLoaders'
 import ReportUserModal from '../components/ui/ReportUserModal'
 import { useToast } from '../components/ui/Toast'
 import { supabase } from '../supabase'
@@ -1046,11 +1047,7 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <LoadingState
-        className="mp-loading"
-        label="Loading threads"
-        detail="Pulling in the connections you have an open line with."
-      />
+      <LoadingState className="mp-loading" {...LOADERS.messages} />
     )
   }
 

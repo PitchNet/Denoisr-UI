@@ -10,6 +10,7 @@ import Navbar from './components/Navbar'
 import MobileBottomNav from './components/MobileBottomNav'
 import { ToastProvider } from './components/ui/Toast'
 import LoadingState from './components/ui/LoadingState'
+import { getRouteLoader } from './data/routeLoaders'
 // The landing page is the entry route ('/'), so it stays eager — lazy-loading
 // it only adds a Suspense fallback flash and races its scroll-animation setup.
 import ProductPageV2 from './pages/ProductPageV2'
@@ -45,7 +46,7 @@ const StatusPage = lazy(() => import('./pages/StatusPage'))
 const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'))
 
 function AppShell() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const isEditorialLanding = pathname === '/'
   const isAppPage = pathname === '/home' || pathname === '/messages' || pathname === '/profile' || pathname === '/profile/edit' || pathname === '/dashboard' || pathname === '/applications' || pathname.startsWith('/company') || pathname.startsWith('/job') || pathname === '/settings' || pathname === '/admin/companies'
 
@@ -71,7 +72,7 @@ function AppShell() {
     <div className="denoisrApp">
       {isEditorialLanding ? null : <Navbar />}
       <main className="denoisrMain">
-        <Suspense fallback={<LoadingState className="loader--page" />}>
+        <Suspense fallback={<LoadingState className="loader--page" {...getRouteLoader(pathname, search)} />}>
         <Routes>
           <Route element={<PublicOnlyRoute />}>
             <Route path="/" element={<ProductPageV2 />} />

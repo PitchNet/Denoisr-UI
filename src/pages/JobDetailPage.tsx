@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { isAuthenticated, setPendingRedirect } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import { LOADERS } from '../data/routeLoaders'
 import { useToast } from '../components/ui/Toast'
 import '../styles/company.css'
 import '../styles/company-detail.css'
@@ -183,7 +184,7 @@ export default function JobDetailPage() {
         </button>
 
         {loading ? (
-          <LoadingState className="loader--page" label="Loading job" detail="Fetching job details." />
+          <LoadingState className="loader--page" {...LOADERS.jobDetail} />
         ) : notFound || !job ? (
           <div className="cp-card cpd-state">
             <span className="cp-eyebrow">Job</span>

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { setStoredFilters } from '../auth'
 import LoadingState from '../components/ui/LoadingState'
+import { LOADERS } from '../data/routeLoaders'
 import { useToast } from '../components/ui/Toast'
 import '../styles/company.css'
 import '../styles/company-detail.css'
@@ -141,7 +142,7 @@ export default function CompanyDetailPage() {
         </button>
 
         {loading ? (
-          <LoadingState className="loader--page" label="Loading company" detail="Fetching company details." />
+          <LoadingState className="loader--page" {...LOADERS.companyDetail} />
         ) : notFound || !company ? (
           <div className="cp-card cpd-state">
             <span className="cp-eyebrow">Company</span>

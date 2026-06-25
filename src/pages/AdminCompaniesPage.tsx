@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { useToast } from '../components/ui/Toast'
 import LoadingState from '../components/ui/LoadingState'
+import { adminLoader } from '../data/routeLoaders'
 import '../styles/profile.css'
 import '../styles/admin-companies.css'
 
@@ -143,11 +144,7 @@ export default function AdminCompaniesPage() {
 
   if (loading) {
     return (
-      <LoadingState
-        className="adm-loading"
-        label={tab === 'companies' ? 'Loading review queue' : 'Loading reports'}
-        detail={tab === 'companies' ? 'Pulling pending companies.' : 'Pulling open reports.'}
-      />
+      <LoadingState className="adm-loading" {...adminLoader(tab)} />
     )
   }
 
