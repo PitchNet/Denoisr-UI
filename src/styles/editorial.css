@@ -1165,8 +1165,13 @@ html, body {
   text-align: left;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 12px;
-  max-width: 420px;
+  /* Fixed footprint so the panel doesn't resize when the generic chunk-load
+     message is replaced by a page's own loader copy (no abrupt shape change). */
+  width: 420px;
+  max-width: 100%;
+  min-height: 132px;
   background: var(--paper);
   border: 1px solid var(--ink-6);
   border-radius: var(--radius-2xl);

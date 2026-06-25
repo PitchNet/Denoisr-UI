@@ -71,7 +71,7 @@ function AppShell() {
     <div className="denoisrApp">
       {isEditorialLanding ? null : <Navbar />}
       <main className="denoisrMain">
-        <Suspense fallback={<LoadingState />}>
+        <Suspense fallback={<LoadingState className="loader--page" />}>
         <Routes>
           <Route element={<PublicOnlyRoute />}>
             <Route path="/" element={<ProductPageV2 />} />
