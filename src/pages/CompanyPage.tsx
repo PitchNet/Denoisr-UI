@@ -136,31 +136,27 @@ export default function CompanyPage() {
             setCompany(result.company)
             setMode('view')
             setLoading(false)
-            try {
-              const jobsRes = await apiRequest('/CompanyController/companyJobs', { method: 'GET' })
-              if (jobsRes.ok) {
-                const jobsResult = (await jobsRes.json()) as Job[]
-                if (Array.isArray(jobsResult)) {
-                  setJobs(jobsResult)
-                }
+            // companyJobs and jobApplicantCounts are independent; fetch in
+            // parallel. Each tolerates its own failure (both non-critical).
+            const [jobsRes, countsRes] = await Promise.all([
+              apiRequest('/CompanyController/companyJobs', { method: 'GET' }).catch(() => null),
+              apiRequest('/CompanyController/jobApplicantCounts', { method: 'GET' }).catch(() => null),
+            ])
+            if (jobsRes?.ok) {
+              const jobsResult = (await jobsRes.json()) as Job[]
+              if (Array.isArray(jobsResult)) {
+                setJobs(jobsResult)
               }
-              try {
-                const countsRes = await apiRequest('/CompanyController/jobApplicantCounts', { method: 'GET' })
-                if (countsRes.ok) {
-                  const countsData = (await countsRes.json()) as Array<{ jobId: string; count: number }>
-                  if (Array.isArray(countsData)) {
-                    const countsMap: Record<string, number> = {}
-                    for (const item of countsData) {
-                      countsMap[item.jobId] = item.count
-                    }
-                    setJobApplicantCounts(countsMap)
-                  }
+            }
+            if (countsRes?.ok) {
+              const countsData = (await countsRes.json()) as Array<{ jobId: string; count: number }>
+              if (Array.isArray(countsData)) {
+                const countsMap: Record<string, number> = {}
+                for (const item of countsData) {
+                  countsMap[item.jobId] = item.count
                 }
-              } catch {
-                // counts non-critical
+                setJobApplicantCounts(countsMap)
               }
-            } catch {
-              // jobs non-critical
             }
             return
           }

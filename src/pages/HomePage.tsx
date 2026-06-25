@@ -1,4 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { SWATCHES, swatchFor, initialsOf } from '../utils/avatar'
+import { pad2 } from '../utils/format'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { getStoredFilters, setStoredFilters, clearStoredFilters, getStoredProfile } from '../auth'
@@ -77,37 +79,6 @@ const locationOptions = [
   'United Kingdom',
   'Spain',
 ]
-
-const SWATCHES = [
-  'oklch(0.78 0.10 220)',
-  'oklch(0.80 0.11 65)',
-  'oklch(0.82 0.08 150)',
-  'oklch(0.80 0.08 30)',
-  'oklch(0.78 0.10 320)',
-  'oklch(0.80 0.09 200)',
-  'oklch(0.80 0.08 90)',
-  'oklch(0.78 0.10 250)',
-]
-
-function swatchFor(id: string) {
-  let h = 0
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
-  return SWATCHES[h % SWATCHES.length]
-}
-
-function initialsOf(name: string) {
-  return name
-    .split(/\s+/)
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
-function pad2(n: number) {
-  return String(Math.max(0, Math.floor(n))).padStart(2, '0')
-}
 
 function DiscoveryPreview({ card, onViewCompany }: { card: DiscoveryCard; onViewCompany?: (companyId: string) => void }) {
   return (
@@ -291,8 +262,8 @@ export default function HomePage() {
     })
   }, [activeCards, cityFilter, countryFilter, maxExperience, maxSalary, roleFilter])
 
-  const currentCard = filteredCards[currentIndex] ?? null
-  const stackedCards = filteredCards.slice(currentIndex, currentIndex + 3)
+  const currentCard = useMemo(() => filteredCards[currentIndex] ?? null, [filteredCards, currentIndex])
+  const stackedCards = useMemo(() => filteredCards.slice(currentIndex, currentIndex + 3), [filteredCards, currentIndex])
 
   useEffect(() => {
     setEntering(true)

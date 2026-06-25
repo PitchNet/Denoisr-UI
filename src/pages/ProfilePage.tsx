@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { swatchFor } from '../utils/avatar'
+import { pad2 } from '../utils/format'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import LoadingState from '../components/ui/LoadingState'
@@ -34,27 +36,6 @@ type ProfileData = {
   photo: string
   resume: string
   resumeFilename: string
-}
-
-const SWATCHES = [
-  'oklch(0.78 0.10 220)',
-  'oklch(0.80 0.11 65)',
-  'oklch(0.82 0.08 150)',
-  'oklch(0.80 0.08 30)',
-  'oklch(0.78 0.10 320)',
-  'oklch(0.80 0.09 200)',
-  'oklch(0.80 0.08 90)',
-  'oklch(0.78 0.10 250)',
-]
-
-function swatchFor(id: string) {
-  let h = 0
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
-  return SWATCHES[h % SWATCHES.length]
-}
-
-function pad2(n: number) {
-  return String(Math.max(0, Math.floor(n))).padStart(2, '0')
 }
 
 function getInitials(name: string) {

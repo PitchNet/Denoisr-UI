@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { swatchFor } from '../utils/avatar'
 import { useNavigate } from 'react-router-dom'
 import { apiRequest } from '../api'
 import { fetchAndCacheProfile } from '../auth'
@@ -6,23 +7,6 @@ import LoadingState from '../components/ui/LoadingState'
 import PhotoEditor from '../components/ui/PhotoEditor'
 import '../styles/profile.css'
 import '../styles/profile-edit.css'
-
-const SWATCHES = [
-  'oklch(0.78 0.10 220)',
-  'oklch(0.80 0.11 65)',
-  'oklch(0.82 0.08 150)',
-  'oklch(0.80 0.08 30)',
-  'oklch(0.78 0.10 320)',
-  'oklch(0.80 0.09 200)',
-  'oklch(0.80 0.08 90)',
-  'oklch(0.78 0.10 250)',
-]
-
-function swatchFor(id: string) {
-  let h = 0
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
-  return SWATCHES[h % SWATCHES.length]
-}
 
 type ProfileData = {
   id: string

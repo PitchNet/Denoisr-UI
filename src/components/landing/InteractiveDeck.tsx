@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { DeckCard } from '../../data/landing'
 
 // Shared landing chrome + the interactive swipe deck demo.
-// Uses the `el-` class vocabulary, which both landing.css (.editorial-landing) and
-// landing-v2.css (.editorial-landing-v2) define under their own root scope.
+// Uses the `el-` class vocabulary, which landing-v2.css defines under its
+// `.editorial-landing-v2` root scope.
 
 export function Wordmark({ size = 20 }: { size?: number }) {
   return (
